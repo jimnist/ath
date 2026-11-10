@@ -296,8 +296,19 @@ async fn a_tab_that_polls_again_is_used_after_the_relay_gave_up() {
     let relay = relay(300).await;
     relay.fetch(&get("/x")).await.unwrap_err();
     Loop::new(&relay, echo()).spawn();
-    tokio::time::sleep(Duration::from_millis(50)).await;
-    assert_eq!(relay.fetch(&get("/y")).await.unwrap().status, 200);
+    // Until the tab's first poll arrives the relay still fails fast, so retry
+    // briefly instead of guessing how long a busy CI runner takes to poll.
+    let deadline = Instant::now() + Duration::from_secs(5);
+    let answer = loop {
+        match relay.fetch(&get("/y")).await {
+            Ok(answer) => break answer,
+            Err(_) if Instant::now() < deadline => {
+                tokio::time::sleep(Duration::from_millis(10)).await;
+            }
+            Err(e) => panic!("the polling tab was never used: {e}"),
+        }
+    };
+    assert_eq!(answer.status, 200);
 }
 
 #[tokio::test]
