@@ -77,9 +77,16 @@ jobs:
   create_release:
     name: Create GitHub Release
     needs: build_artifacts
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: startsWith(github.ref, 'refs/tags/')
+    # The default token is read-only; creating a release needs write.
+    permissions:
+      contents: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -90,8 +97,17 @@ jobs:
 
       - name: Generate Release Body
         run: |
-          cargo install git-cliff --locked
-          git-cliff --latest --strip all | sed 1,2d > RELEASE.md
+          # The commits since the previous tag (or all of them for the first).
+          prev=$(git describe --tags --abbrev=0 "$GITHUB_REF_NAME^" 2>/dev/null || true)
+          range=${prev:+$prev..}$GITHUB_REF_NAME
+          {
+            echo "Binaries for Linux, macOS, Windows and FreeBSD are attached; see the README for installing and using ath."
+            echo
+            echo "## Changes"
+            echo
+            git log --no-merges --format='- %s' "$range"
+          } > RELEASE.md
+          cat RELEASE.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
