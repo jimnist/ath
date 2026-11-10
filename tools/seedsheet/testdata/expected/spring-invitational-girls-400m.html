@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Girls 400m seed sheet</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="color-scheme" content="light only">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Roboto+Condensed:wght@600;700;800;900&display=swap">
+<style>
+/* Layout: a results-board header, then the seed list as one table: marks fastest first, then a
+   divided group with no mark. Always light: the page ignores the viewer's dark-mode setting. */
+:root {
+  --bg: #fffcf0;
+  --surface: #ffffff;
+  --fg: #161c18;
+  --muted: #5d6a62;
+  --line: #d9e2dc;
+  --accent: #17793f;
+  --seg: #e6e6e6;
+  --seg-on: #3a3a3a;
+  --seg-on-fg: #ffffcc;
+  --highlight: #fff200;
+  --map-bg: #e5f1fb;
+  --display: "Roboto Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --body: "Atkinson Hyperlegible", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light only;
+}
+[hidden] { display: none !important; }
+*, *::before, *::after { box-sizing: border-box; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 18px; }
+.wrap { max-width: 920px; }
+header { display: grid; gap: 10px; }
+.kicker { margin: 0; font-family: var(--display); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: 14px; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 900; font-size: clamp(30px, 5vw, 48px); line-height: 1; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+.lede { margin: 0; color: var(--muted); max-width: 64ch; }
+.back { color: var(--fg); text-decoration: none; border-bottom: 2px solid var(--highlight); }
+.back:hover, .back:focus-visible { color: var(--accent); border-color: var(--accent); outline: none; }
+.spot { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 4px; font-size: 16px; }
+.hl { display: inline-block; padding: 0 .3em; background: var(--highlight); border-radius: 3px; font-family: var(--display); font-weight: 900; font-variant-numeric: tabular-nums; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.dl { display: inline-flex; align-items: center; gap: 8px; font: 700 16px/1 var(--display); letter-spacing: .02em; color: var(--fg); background: var(--seg); border-radius: 6px; padding: 10px 16px; text-decoration: none; }
+.dl:hover { background: var(--seg-on); color: var(--seg-on-fg); }
+.dl:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.dl svg { width: 16px; height: 16px; }
+.tbl-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+thead th { text-align: left; font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line); }
+td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: baseline; }
+tbody:last-child tr:last-child td { border-bottom: 0; }
+.rk { width: 3.2em; text-align: right; font-family: var(--display); font-weight: 800; font-size: 17px; font-variant-numeric: tabular-nums; color: var(--muted); }
+thead .rk { font-size: 12px; font-weight: 600; }
+.ath { font-weight: 600; }
+.pr { white-space: nowrap; }
+.mk { font-family: var(--display); font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; }
+.c-season { color: var(--muted); font-variant-numeric: tabular-nums; }
+.c-team { color: var(--muted); font-size: 14px; }
+td a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
+td a:hover, td a:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
+.sub, .ps { display: none; }
+tr.me td { background: #fff8c4; }
+tr.me .rk { color: var(--fg); box-shadow: inset 4px 0 0 var(--fg); }
+tr.me .mk { padding: 0 .2em; background: var(--highlight); border-radius: 3px; }
+.divider th { text-align: left; font-family: var(--display); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: 13px; color: var(--fg); background: var(--seg); padding: 8px 12px; border-bottom: 1px solid var(--line); }
+tr.nm .rk { font-weight: 600; }
+.none { display: inline-block; font-family: var(--display); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); border: 1px dashed var(--muted); border-radius: 3px; padding: 0 .4em; }
+.notes { color: var(--muted); font-size: 13px; max-width: 72ch; display: grid; gap: 6px; }
+.notes p { margin: 0; }
+button.dl { border: 0; cursor: pointer; }
+.copy-msg { align-self: center; font-size: 13px; color: var(--muted); }
+.miss-link { color: var(--fg); font-weight: 700; text-decoration: underline; text-decoration-color: var(--highlight); text-decoration-thickness: 3px; text-underline-offset: 3px; }
+.missing { display: grid; gap: 6px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--fg); border-radius: 6px; }
+.missing h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 20px; }
+.missing p { margin: 0; color: var(--muted); font-size: 14px; }
+.missing ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.missing li span { color: var(--muted); font-size: 14px; }
+.missing li span::before { content: "\00b7  "; }
+.missing a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
+.empty { margin: 0; padding: 18px; background: var(--surface); border: 1px dashed var(--muted); border-radius: 6px; color: var(--muted); }
+.csv { min-width: 0; font-size: 13px; color: var(--muted); }
+.csv summary { cursor: pointer; font-family: var(--display); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.csv summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.csv p { margin: 6px 0; }
+.csv pre { margin: 0; padding: 10px 12px; max-height: 260px; overflow: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; font-size: 12px; line-height: 1.45; color: var(--fg); white-space: pre; }
+@media (max-width: 640px) {
+  .c-season, .c-team { display: none; }
+  .sub { display: block; font-weight: 400; font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .tw { display: inline-block; }
+  .ps { display: block; font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+  .pr { text-align: right; }
+  td, thead th, .divider th { padding: 8px 8px; }
+  .rk { width: 2.4em; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="kicker">Spring Invitational &middot; June 13, 2026</p>
+    <h1>Girls 400m seed sheet</h1>
+    <p class="lede">8 entrants, seeded on their Personal record in the 400 Meters as of June 10, 2026, fastest first. 3 with no mark are at the bottom. <a class="miss-link" href="#missing">1 name on the roster is not on the sheet.</a></p>
+    <ul class="spot"><li><span class="hl">56.85</span> <b>Gwen Garcia</b> seeded 3rd of 8</li></ul>
+    <div class="actions">
+      <a class="dl" href="data:text/csv;charset=utf-8,rank%2Cathlete%2Cathlete_id%2Cathlete_url%2Cpr%2Cpr_numeric%2Cschool%2Cschool_url%2Cclub%2Cclub_url%2Cpr_season%0A1%2CErin%20Ellis%2C1004%2Chttps%3A//www.athletic.net/athlete/1004/track-and-field%2C54.50%2C54.5%2CNorthgate%20High%2Chttps%3A//www.athletic.net/team/504/track-and-field-outdoor%2C%2C%2C2025%0A2%2CFinn%20Foster%2C1005%2Chttps%3A//www.athletic.net/athlete/1005/track-and-field%2C55.00%2C55.0%2CSouthview%20High%2Chttps%3A//www.athletic.net/team/505/track-and-field-outdoor%2C%2C%2C2026%0A3%2CGwen%20Garcia%2C4001%2Chttps%3A//www.athletic.net/athlete/4001/track-and-field%2C56.85%2C56.85%2CWillow%20Creek%20High%2Chttps%3A//www.athletic.net/team/701/track-and-field-outdoor%2C%2C%2C2026%0A4%2CDana%20Diaz%2C2001%2Chttps%3A//www.athletic.net/athlete/2001/track-and-field%2C56.90%2C56.904%2CHarbor%20High%2Chttps%3A//www.athletic.net/team/601/track-and-field-outdoor%2CCoastal%20Striders%20TC%2Chttps%3A//www.athletic.net/team/9101/track-and-field-outdoor%2C2025%0A5%2CAlice%20Anders%2C1001%2Chttps%3A//www.athletic.net/athlete/1001/track-and-field%2C57.00%2C57.0%2CRiverside%20High%2Chttps%3A//www.athletic.net/team/501/track-and-field-outdoor%2CVelocity%20Track%20Club%2Chttps%3A//www.athletic.net/team/9001/track-and-field-outdoor%2C2025%0A6%2CCara%20Cole%2C1003%2Chttps%3A//www.athletic.net/athlete/1003/track-and-field%2C%2C%2CHillcrest%20High%2Chttps%3A//www.athletic.net/team/503/track-and-field-outdoor%2C%2C%2C%0A7%2CHana%20Hollis%2C4002%2Chttps%3A//www.athletic.net/athlete/4002/track-and-field%2C%2C%2CWillow%20Creek%20High%2Chttps%3A//www.athletic.net/team/701/track-and-field-outdoor%2CRiverbend%20Runners%2Chttps%3A//www.athletic.net/team/9301/track-and-field-outdoor%2C%0A8%2CRiley%20Clubonly%2C3003%2Chttps%3A//www.athletic.net/athlete/3003/track-and-field%2C%2C%2C%2C%2CBayside%20Track%20Club%2Chttps%3A//www.athletic.net/team/9201/track-and-field-outdoor%2C%0A" download="spring-invitational-girls-400m.csv"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1v9m-4-4 4 4 4-4M2 14h12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Download CSV</a>
+      <button class="dl" type="button" id="copy" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 5V2h9v9h-3M2 5h9v9H2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Copy CSV</button>
+      <span class="copy-msg" id="copy-msg" role="status"></span>
+    </div>
+  </header>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th class="rk" scope="col">Seed</th><th scope="col">Athlete</th><th class="pr" scope="col">PR</th><th class="c-season" scope="col">Set</th><th class="c-team" scope="col">School</th><th class="c-team" scope="col">Club</th></tr></thead>
+      <tbody><tr data-athlete="1004"><td class="rk">1</td><td class="ath"><a href="https://www.athletic.net/athlete/1004/track-and-field" target="_blank" rel="noopener">Erin Ellis</a><div class="sub"><span class="tw"><a href="https://www.athletic.net/team/504/track-and-field-outdoor" target="_blank" rel="noopener">Northgate High</a></span></div></td><td class="pr"><span class="mk">54.50</span><span class="ps">2025</span></td><td class="c-season">2025</td><td class="c-team"><a href="https://www.athletic.net/team/504/track-and-field-outdoor" target="_blank" rel="noopener">Northgate High</a></td><td class="c-team"></td></tr><tr data-athlete="1005"><td class="rk">2</td><td class="ath"><a href="https://www.athletic.net/athlete/1005/track-and-field" target="_blank" rel="noopener">Finn Foster</a><div class="sub"><span class="tw"><a href="https://www.athletic.net/team/505/track-and-field-outdoor" target="_blank" rel="noopener">Southview High</a></span></div></td><td class="pr"><span class="mk">55.00</span><span class="ps">2026</span></td><td class="c-season">2026</td><td class="c-team"><a href="https://www.athletic.net/team/505/track-and-field-outdoor" target="_blank" rel="noopener">Southview High</a></td><td class="c-team"></td></tr><tr class="me" data-athlete="4001"><td class="rk">3</td><td class="ath"><a href="https://www.athletic.net/athlete/4001/track-and-field" target="_blank" rel="noopener">Gwen Garcia</a><div class="sub"><span class="tw"><a href="https://www.athletic.net/team/701/track-and-field-outdoor" target="_blank" rel="noopener">Willow Creek High</a></span></div></td><td class="pr"><span class="mk">56.85</span><span class="ps">2026</span></td><td class="c-season">2026</td><td class="c-team"><a href="https://www.athletic.net/team/701/track-and-field-outdoor" target="_blank" rel="noopener">Willow Creek High</a></td><td class="c-team"></td></tr><tr data-athlete="2001"><td class="rk">4</td><td class="ath"><a href="https://www.athletic.net/athlete/2001/track-and-field" target="_blank" rel="noopener">Dana Diaz</a><div class="sub"><span class="tw"><a href="https://www.athletic.net/team/601/track-and-field-outdoor" target="_blank" rel="noopener">Harbor High</a></span> &middot; <span class="tw"><a href="https://www.athletic.net/team/9101/track-and-field-outdoor" target="_blank" rel="noopener">Coastal Striders TC</a></span></div></td><td class="pr"><span class="mk">56.90</span><span class="ps">2025</span></td><td class="c-season">2025</td><td class="c-team"><a href="https://www.athletic.net/team/601/track-and-field-outdoor" target="_blank" rel="noopener">Harbor High</a></td><td class="c-team"><a href="https://www.athletic.net/team/9101/track-and-field-outdoor" target="_blank" rel="noopener">Coastal Striders TC</a></td></tr><tr data-athlete="1001"><td class="rk">5</td><td class="ath"><a href="https://www.athletic.net/athlete/1001/track-and-field" target="_blank" rel="noopener">Alice Anders</a><div class="sub"><span class="tw"><a href="https://www.athletic.net/team/501/track-and-field-outdoor" target="_blank" rel="noopener">Riverside High</a></span> &middot; <span class="tw"><a href="https://www.athletic.net/team/9001/track-and-field-outdoor" target="_blank" rel="noopener">Velocity Track Club</a></span></div></td><td class="pr"><span class="mk">57.00</span><span class="ps">2025</span></td><td class="c-season">2025</td><td class="c-team"><a href="https://www.athletic.net/team/501/track-and-field-outdoor" target="_blank" rel="noopener">Riverside High</a></td><td class="c-team"><a href="https://www.athletic.net/team/9001/track-and-field-outdoor" target="_blank" rel="noopener">Velocity Track Club</a></td></tr></tbody>
+      <tbody class="nomark"><tr class="divider"><th colspan="6" scope="rowgroup">No mark in the 400 Meters &middot; 3</th></tr><tr class="nm" data-athlete="1003"><td class="rk">6</td><td class="ath"><a href="https://www.athletic.net/athlete/1003/track-and-field" target="_blank" rel="noopener">Cara Cole</a><div class="sub"><span class="tw"><a href="https://www.athletic.net/team/503/track-and-field-outdoor" target="_blank" rel="noopener">Hillcrest High</a></span></div></td><td class="pr"><span class="none" title="No mark in the 400 Meters">No mark</span></td><td class="c-season"></td><td class="c-team"><a href="https://www.athletic.net/team/503/track-and-field-outdoor" target="_blank" rel="noopener">Hillcrest High</a></td><td class="c-team"></td></tr><tr class="nm" data-athlete="4002"><td class="rk">7</td><td class="ath"><a href="https://www.athletic.net/athlete/4002/track-and-field" target="_blank" rel="noopener">Hana Hollis</a><div class="sub"><span class="tw"><a href="https://www.athletic.net/team/701/track-and-field-outdoor" target="_blank" rel="noopener">Willow Creek High</a></span> &middot; <span class="tw"><a href="https://www.athletic.net/team/9301/track-and-field-outdoor" target="_blank" rel="noopener">Riverbend Runners</a></span></div></td><td class="pr"><span class="none" title="No mark in the 400 Meters">No mark</span></td><td class="c-season"></td><td class="c-team"><a href="https://www.athletic.net/team/701/track-and-field-outdoor" target="_blank" rel="noopener">Willow Creek High</a></td><td class="c-team"><a href="https://www.athletic.net/team/9301/track-and-field-outdoor" target="_blank" rel="noopener">Riverbend Runners</a></td></tr><tr class="nm" data-athlete="3003"><td class="rk">8</td><td class="ath"><a href="https://www.athletic.net/athlete/3003/track-and-field" target="_blank" rel="noopener">Riley Clubonly</a><div class="sub"><span class="tw"><a href="https://www.athletic.net/team/9201/track-and-field-outdoor" target="_blank" rel="noopener">Bayside Track Club</a></span></div></td><td class="pr"><span class="none" title="No mark in the 400 Meters">No mark</span></td><td class="c-season"></td><td class="c-team"></td><td class="c-team"><a href="https://www.athletic.net/team/9201/track-and-field-outdoor" target="_blank" rel="noopener">Bayside Track Club</a></td></tr></tbody>
+    </table>
+  </div>
+  <section class="missing" id="missing"><h2>Not on the sheet &middot; 1</h2><p>These names are on the roster but could not be seeded, so the list above leaves them out.</p><ul><li><b>Ivy Ironwood</b> <span>no profile found for this name</span></li></ul></section>
+  <div class="notes">
+    <p>Each entrant is seeded on their Personal record in the 400 Meters: their fastest outdoor mark in any season, set on or before June 10, 2026. Indoor marks, relay splits, exhibition and hand-timed marks never count. Set is the season the mark was run in.</p>
+    <p>Entrants with no mark in the 400 Meters are listed last. Names link to their profiles.</p>
+    <p>Data pulled June 10, 2026.</p>
+  </div>
+  <details class="csv" id="csv-box">
+    <summary>Seed sheet CSV</summary>
+    <p>Where the download is blocked (some embedded viewers block downloads), select this text and copy it, or use Copy CSV.</p>
+    <pre id="csv">rank,athlete,athlete_id,athlete_url,pr,pr_numeric,school,school_url,club,club_url,pr_season
+1,Erin Ellis,1004,https://www.athletic.net/athlete/1004/track-and-field,54.50,54.5,Northgate High,https://www.athletic.net/team/504/track-and-field-outdoor,,,2025
+2,Finn Foster,1005,https://www.athletic.net/athlete/1005/track-and-field,55.00,55.0,Southview High,https://www.athletic.net/team/505/track-and-field-outdoor,,,2026
+3,Gwen Garcia,4001,https://www.athletic.net/athlete/4001/track-and-field,56.85,56.85,Willow Creek High,https://www.athletic.net/team/701/track-and-field-outdoor,,,2026
+4,Dana Diaz,2001,https://www.athletic.net/athlete/2001/track-and-field,56.90,56.904,Harbor High,https://www.athletic.net/team/601/track-and-field-outdoor,Coastal Striders TC,https://www.athletic.net/team/9101/track-and-field-outdoor,2025
+5,Alice Anders,1001,https://www.athletic.net/athlete/1001/track-and-field,57.00,57.0,Riverside High,https://www.athletic.net/team/501/track-and-field-outdoor,Velocity Track Club,https://www.athletic.net/team/9001/track-and-field-outdoor,2025
+6,Cara Cole,1003,https://www.athletic.net/athlete/1003/track-and-field,,,Hillcrest High,https://www.athletic.net/team/503/track-and-field-outdoor,,,
+7,Hana Hollis,4002,https://www.athletic.net/athlete/4002/track-and-field,,,Willow Creek High,https://www.athletic.net/team/701/track-and-field-outdoor,Riverbend Runners,https://www.athletic.net/team/9301/track-and-field-outdoor,
+8,Riley Clubonly,3003,https://www.athletic.net/athlete/3003/track-and-field,,,,,Bayside Track Club,https://www.athletic.net/team/9201/track-and-field-outdoor,
+</pre>
+  </details>
+</div>
+<script>
+/* Copy CSV: the clipboard when the browser allows it; otherwise the CSV below is opened and
+   selected, ready for Ctrl+C or Cmd+C. Without script the button stays hidden. */
+(function () {
+  var btn = document.getElementById("copy"), pre = document.getElementById("csv"),
+      box = document.getElementById("csv-box"), msg = document.getElementById("copy-msg");
+  btn.hidden = false;
+  function selectCsv() {
+    box.open = true;
+    var range = document.createRange(), sel = window.getSelection();
+    range.selectNodeContents(pre);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+  function fallback() {
+    selectCsv();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) {}
+    msg.textContent = ok ? "Copied" : "Selected below: press Ctrl+C (Cmd+C on a Mac) to copy";
+  }
+  btn.addEventListener("click", function () {
+    /* Whichever comes first: the clipboard says yes, or it says no, throws, is missing, or has
+       not answered in a second (an embedded frame can leave it hanging). */
+    var done = false;
+    function copied() { if (!done) { done = true; msg.textContent = "Copied"; } }
+    function failed() { if (!done) { done = true; fallback(); } }
+    try {
+      navigator.clipboard.writeText(pre.textContent).then(copied, failed);
+    } catch (e) {
+      failed();
+      return;
+    }
+    setTimeout(failed, 1000);
+  });
+})();
+</script>
+</body>
+</html>

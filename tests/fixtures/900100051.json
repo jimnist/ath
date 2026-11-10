@@ -1,0 +1,12 @@
+{
+  "athlete": { "IDAthlete": 900100051, "SchoolID": 900404, "FirstName": "Wren", "LastName": "Talbot", "Gender": "F" },
+  "allTeams": {
+    "900404": { "IDSchool": 900404, "SchoolName": "Cedar Hollow High", "Level": 4, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "1 Mile", "Type": "T", "IDEvent": 59, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 900100051, "Result": "5:10.00a", "SortInt": 310000, "EventID": 59, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-05-09T00:00:00" }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+ "events": [
+  {
+   "ID": 22,
+   "Event": "800 Meters",
+   "EventShort": "800m",
+   "Gender": "F",
+   "Type": "T",
+   "Entry": 1,
+   "sort": 4,
+   "isPersonal": false
+  },
+  {
+   "ID": 39,
+   "Event": "4x800 Relay",
+   "EventShort": "4x800m",
+   "Gender": "M",
+   "Type": "T",
+   "Entry": 1,
+   "sort": 9,
+   "isPersonal": false
+  },
+  {
+   "ID": 60,
+   "Event": "4xMile Relay",
+   "EventShort": "4xmile",
+   "Gender": "F",
+   "Type": "T",
+   "Entry": 1,
+   "sort": 10,
+   "isPersonal": false
+  }
+ ],
+ "eventDivsWithEntries": [
+  {
+   "e": 22,
+   "d": 13,
+   "ge_p": null
+  },
+  {
+   "e": 39,
+   "d": 13,
+   "ge_p": null
+  },
+  {
+   "e": 60,
+   "d": 13,
+   "ge_p": null
+  }
+ ],
+ "eventDivsWithResults": []
+}

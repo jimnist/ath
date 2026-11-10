@@ -1,0 +1,14 @@
+{
+  "athlete": { "IDAthlete": 4001, "SchoolID": 701, "FirstName": "Gwen", "LastName": "Garcia", "Gender": "F" },
+  "allTeams": {
+    "701": { "IDSchool": 701, "SchoolName": "Willow Creek High", "Level": 4, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "400 Meters", "Type": "T", "IDEvent": 21, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 4001, "Result": "56.85a", "SortInt": 56850, "EventID": 21, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-05-23T00:00:00" },
+    { "AthleteID": 4001, "Result": "58.10a", "SortInt": 58100, "EventID": 21, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-04-04T00:00:00" },
+    { "AthleteID": 4001, "Result": "59.40a", "SortInt": 59400, "EventID": 21, "EventTypeID": 0, "SeasonID": 2025, "Exhibition": false, "ResultDate": "2025-05-10T00:00:00" }
+  ]
+}

@@ -1,0 +1,128 @@
+{
+ "athlete": {
+  "IDAthlete": 1205003,
+  "SchoolID": 4101,
+  "FirstName": "Quinby",
+  "LastName": "Ashgrove",
+  "Gender": "M"
+ },
+ "allTeams": {
+  "4101": {
+   "IDSchool": 4101,
+   "SchoolName": "Wrenfield Academy",
+   "Level": 4,
+   "Year": 2026
+  }
+ },
+ "grades": {
+  "4101_2026": 10,
+  "4101_12026": 10
+ },
+ "allSeasons": [
+  {
+   "ID": 2026,
+   "Display": "2026 Outdoor"
+  },
+  {
+   "ID": 12026,
+   "Display": "2026 Indoor"
+  }
+ ],
+ "eventsTF": [
+  {
+   "Event": "800 Meters",
+   "Type": "T",
+   "IDEvent": 4,
+   "IDEventType": 0
+  },
+  {
+   "Event": "4x800 Relay",
+   "Type": "T",
+   "IDEvent": 39,
+   "IDEventType": 0
+  }
+ ],
+ "resultsTF": [
+  {
+   "IDResult": 88000024,
+   "AthleteID": 1205003,
+   "Result": "2:01.05a",
+   "SortInt": 121050,
+   "EventID": 4,
+   "EventTypeID": 0,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-05-16T00:00:00",
+   "MeetID": 660101,
+   "meetName": null,
+   "SchoolID": 4101,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  },
+  {
+   "IDResult": 88000025,
+   "AthleteID": 1205003,
+   "Result": "1:58.95a",
+   "SortInt": 118950,
+   "EventID": 4,
+   "EventTypeID": 98,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-05-30T00:00:00",
+   "MeetID": 660102,
+   "meetName": null,
+   "SchoolID": 4101,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  },
+  {
+   "IDResult": 88000026,
+   "AthleteID": 1205003,
+   "Result": "2:01.95a",
+   "SortInt": 121950,
+   "EventID": 4,
+   "EventTypeID": 0,
+   "SeasonID": 12026,
+   "Exhibition": false,
+   "ResultDate": "2026-02-07T00:00:00",
+   "MeetID": 660103,
+   "meetName": null,
+   "SchoolID": 4101,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  },
+  {
+   "IDResult": 88000027,
+   "AthleteID": 7714101,
+   "Result": "8:04.00a",
+   "SortInt": 484000,
+   "EventID": 39,
+   "EventTypeID": 0,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-05-30T00:00:00",
+   "MeetID": 660102,
+   "meetName": null,
+   "SchoolID": 4101,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  }
+ ],
+ "meets": {
+  "660101": {
+   "IDMeet": 660101,
+   "MeetName": "Gullwing Invitational",
+   "EndDate": "2026-05-16T00:00:00"
+  },
+  "660102": {
+   "IDMeet": 660102,
+   "MeetName": "Driftwood Relays 2026",
+   "EndDate": "2026-05-30T00:00:00"
+  },
+  "660103": {
+   "IDMeet": 660103,
+   "MeetName": "Wrenfield Indoor Opener",
+   "EndDate": "2026-02-07T00:00:00"
+  }
+ }
+}

@@ -1,0 +1,15 @@
+{
+  "eventId": 22,
+  "currentEventValid": true,
+  "entries": [
+    {"IDAthlete": 900100041, "FirstName": "Nora", "LastName": "Vale", "Gender": "F", "TeamID": 900403, "EventID": 22, "Letter": null, "SchoolID": 900403, "FAT": null, "Grade": "10", "TeamName": "Lakemont Prep", "TeamCode": "LKMT", "DivID": 13, "Comment": null, "Locked": false, "Scratched": false, "OverrideSortInt": null, "SortIntRaw": null, "ConversionInt": 0, "SortInt": null, "AcceptanceStatus": 10, "Source": 1, "OwnerUserId": null, "OriginalEvent": null}
+  ],
+  "teams": [
+    {"IDSchool": 900403, "SchoolName": "Lakemont Prep", "TeamCode": "LKMT", "LevelName": "High School", "DivName": "Section 9", "ParentDivName": "New York", "GrandparentDivName": "High School", "Gender": "F"}
+  ],
+  "events": [],
+  "eventDivsWithEntries": [],
+  "eventTypes": [],
+  "rounds": [],
+  "releyLegs": []
+}

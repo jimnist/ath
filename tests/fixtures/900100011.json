@@ -1,0 +1,14 @@
+{
+  "athlete": { "IDAthlete": 900100011, "SchoolID": 900401, "FirstName": "Ezra", "LastName": "Holt", "Gender": "M" },
+  "allTeams": {
+    "900401": { "IDSchool": 900401, "SchoolName": "Pinecrest Academy", "Level": 4, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "800 Meters", "Type": "T", "IDEvent": 4, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 900100011, "Result": "1:58.20a", "SortInt": 118200, "EventID": 4, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-05-16T00:00:00" },
+    { "AthleteID": 900100011, "Result": "1:55.00a", "SortInt": 115000, "EventID": 4, "EventTypeID": 98, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-05-30T00:00:00" },
+    { "AthleteID": 900100011, "Result": "1:56.90a", "SortInt": 116900, "EventID": 4, "EventTypeID": 0, "SeasonID": 12026, "Exhibition": false, "ResultDate": "2026-02-07T00:00:00" }
+  ]
+}

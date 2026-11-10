@@ -1,0 +1,1 @@
+{"response": {"numFound": 2, "docs": [{"id_db": "1204002", "type": "Athlete", "textsuggest": "Odette Pendergast", "subtext": "Quarry Hill (HS)||Sunder Flats, CA", "score": 41.5}, {"id_db": "4103", "type": "Team", "textsuggest": "Quarry Hill", "subtext": "High School||Sunder Flats, CA", "score": 3.0}]}}

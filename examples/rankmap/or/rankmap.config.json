@@ -1,0 +1,9 @@
+{
+  "_note": "The Oregon example: an 11th grader's 800m (Oregon has no Area file). Anonymized data (ADR 0010), built by examples/build_site.py.",
+  "athlete_id": 980741314,
+  "event": "800m",
+  "graduation_year": 2100,
+  "output_dir": "../../site",
+  "example": true,
+  "areas_dir": "areas"
+}

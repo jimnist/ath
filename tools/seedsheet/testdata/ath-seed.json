@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "event": "400m",
+  "event_name": "400 Meters",
+  "as_of": "2026-06-10",
+  "meet_date": "2026-06-13",
+  "entrants": [
+    {
+      "rank": 1,
+      "athlete": "Erin Ellis",
+      "athlete_id": 1004,
+      "athlete_url": "https://www.athletic.net/athlete/1004/track-and-field",
+      "pr": "54.50",
+      "pr_numeric": 54.5,
+      "school": "Northgate High",
+      "school_url": "https://www.athletic.net/team/504/track-and-field-outdoor",
+      "club": "",
+      "club_url": "",
+      "pr_season": 2025,
+      "sort_int": 54500
+    },
+    {
+      "rank": 2,
+      "athlete": "Finn Foster",
+      "athlete_id": 1005,
+      "athlete_url": "https://www.athletic.net/athlete/1005/track-and-field",
+      "pr": "55.00",
+      "pr_numeric": 55.0,
+      "school": "Southview High",
+      "school_url": "https://www.athletic.net/team/505/track-and-field-outdoor",
+      "club": "",
+      "club_url": "",
+      "pr_season": 2026,
+      "sort_int": 55000
+    },
+    {
+      "rank": 3,
+      "athlete": "Gwen Garcia",
+      "athlete_id": 4001,
+      "athlete_url": "https://www.athletic.net/athlete/4001/track-and-field",
+      "pr": "56.85",
+      "pr_numeric": 56.85,
+      "school": "Willow Creek High",
+      "school_url": "https://www.athletic.net/team/701/track-and-field-outdoor",
+      "club": "",
+      "club_url": "",
+      "pr_season": 2026,
+      "sort_int": 56850
+    },
+    {
+      "rank": 4,
+      "athlete": "Dana Diaz",
+      "athlete_id": 2001,
+      "athlete_url": "https://www.athletic.net/athlete/2001/track-and-field",
+      "pr": "56.90",
+      "pr_numeric": 56.904,
+      "school": "Harbor High",
+      "school_url": "https://www.athletic.net/team/601/track-and-field-outdoor",
+      "club": "Coastal Striders TC",
+      "club_url": "https://www.athletic.net/team/9101/track-and-field-outdoor",
+      "pr_season": 2025,
+      "sort_int": 56904
+    },
+    {
+      "rank": 5,
+      "athlete": "Alice Anders",
+      "athlete_id": 1001,
+      "athlete_url": "https://www.athletic.net/athlete/1001/track-and-field",
+      "pr": "57.00",
+      "pr_numeric": 57.0,
+      "school": "Riverside High",
+      "school_url": "https://www.athletic.net/team/501/track-and-field-outdoor",
+      "club": "Velocity Track Club",
+      "club_url": "https://www.athletic.net/team/9001/track-and-field-outdoor",
+      "pr_season": 2025,
+      "sort_int": 57000
+    },
+    {
+      "rank": 6,
+      "athlete": "Cara Cole",
+      "athlete_id": 1003,
+      "athlete_url": "https://www.athletic.net/athlete/1003/track-and-field",
+      "pr": "",
+      "pr_numeric": null,
+      "school": "Hillcrest High",
+      "school_url": "https://www.athletic.net/team/503/track-and-field-outdoor",
+      "club": "",
+      "club_url": "",
+      "pr_season": null,
+      "sort_int": null
+    },
+    {
+      "rank": 7,
+      "athlete": "Hana Hollis",
+      "athlete_id": 4002,
+      "athlete_url": "https://www.athletic.net/athlete/4002/track-and-field",
+      "pr": "",
+      "pr_numeric": null,
+      "school": "Willow Creek High",
+      "school_url": "https://www.athletic.net/team/701/track-and-field-outdoor",
+      "club": "Riverbend Runners",
+      "club_url": "https://www.athletic.net/team/9301/track-and-field-outdoor",
+      "pr_season": null,
+      "sort_int": null
+    },
+    {
+      "rank": 8,
+      "athlete": "Riley Clubonly",
+      "athlete_id": 3003,
+      "athlete_url": "https://www.athletic.net/athlete/3003/track-and-field",
+      "pr": "",
+      "pr_numeric": null,
+      "school": "",
+      "school_url": "",
+      "club": "Bayside Track Club",
+      "club_url": "https://www.athletic.net/team/9201/track-and-field-outdoor",
+      "pr_season": null,
+      "sort_int": null
+    }
+  ],
+  "skipped": [],
+  "unresolved": [
+    {
+      "name": "Ivy Ironwood",
+      "reason": "no_match",
+      "note": "no Profile matches the name; pin an athlete_id"
+    }
+  ]
+}

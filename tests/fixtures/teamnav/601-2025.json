@@ -1,0 +1,21 @@
+{
+  "team": {
+    "ID": 601,
+    "Name": "Harbor High",
+    "Level": 4,
+    "City": "Harbor",
+    "State": "OR"
+  },
+  "userAthleteIdOnTeam": null,
+  "hasCoachAccess": false,
+  "mascotToken2": null,
+  "grades": [],
+  "divisions": [
+    {"id": 900010, "b": 901, "name": "   United States"},
+    {"id": 900020, "b": 902, "name": "High School"},
+    {"id": 900200, "b": 900, "name": "Oregon"}
+  ],
+  "customLists": [],
+  "customDivisions": [],
+  "linkedTeams": []
+}

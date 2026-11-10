@@ -1,0 +1,21 @@
+{
+  "team": {
+    "ID": 9201,
+    "Name": "Bayside Track Club",
+    "Level": 16,
+    "City": "San Francisco",
+    "State": "CA"
+  },
+  "userAthleteIdOnTeam": null,
+  "hasCoachAccess": false,
+  "mascotToken2": null,
+  "grades": [],
+  "divisions": [
+    {"id": 900010, "b": 901, "name": "   United States"},
+    {"id": 900500, "b": 903, "name": "California"},
+    {"id": 900509, "b": 907, "name": "San Francisco"}
+  ],
+  "customLists": [],
+  "customDivisions": [],
+  "linkedTeams": []
+}

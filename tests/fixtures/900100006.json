@@ -1,0 +1,13 @@
+{
+  "athlete": { "IDAthlete": 900100006, "SchoolID": 900403, "FirstName": "Luca", "LastName": "Brandt", "Gender": "M" },
+  "allTeams": {
+    "900403": { "IDSchool": 900403, "SchoolName": "Lakemont Prep", "Level": 4, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "800 Meters", "Type": "T", "IDEvent": 4, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 900100006, "Result": "1:57.95a", "SortInt": 117950, "EventID": 4, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-05-23T00:00:00" },
+    { "AthleteID": 900100006, "Result": "1:55.00a", "SortInt": 115000, "EventID": 4, "EventTypeID": 98, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-05-30T00:00:00" }
+  ]
+}

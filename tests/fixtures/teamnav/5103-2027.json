@@ -1,0 +1,17 @@
+{
+  "team": {
+    "ID": 5103,
+    "Name": "Seacliff Prep",
+    "Level": 4,
+    "City": "San Francisco",
+    "State": "CA"
+  },
+  "userAthleteIdOnTeam": null,
+  "hasCoachAccess": false,
+  "mascotToken2": null,
+  "grades": [],
+  "divisions": [],
+  "customLists": [],
+  "customDivisions": [],
+  "linkedTeams": []
+}

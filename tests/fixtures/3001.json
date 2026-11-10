@@ -1,0 +1,26 @@
+{
+  "athlete": {
+    "IDAthlete": 3001,
+    "SchoolID": 5103,
+    "FirstName": "Casey",
+    "LastName": "Example",
+    "Gender": "F"
+  },
+  "allTeams": {
+    "5103": {
+      "IDSchool": 5103,
+      "SchoolName": "Seacliff Prep",
+      "Level": 4,
+      "Year": 2026
+    },
+    "9201": {
+      "IDSchool": 9201,
+      "SchoolName": "Bayside Track Club",
+      "Level": 16,
+      "Year": 2026
+    }
+  },
+  "eventsTF": [],
+  "resultsTF": [],
+  "meets": {}
+}

@@ -1,0 +1,9 @@
+{
+  "events": [
+    { "ID": 905, "Event": "4xMile Relay", "EventShort": "4xmile", "Gender": "F", "Type": "T", "Entry": 1, "sort": 1, "isPersonal": false }
+  ],
+  "eventDivsWithEntries": [
+    { "e": 905, "d": 21, "ge_p": null }
+  ],
+  "eventDivsWithResults": []
+}

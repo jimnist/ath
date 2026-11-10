@@ -1,0 +1,5 @@
+rank,athlete,athlete_id,athlete_url,pr,pr_numeric,school,school_url,club,club_url,pr_season
+1,Luca Brandt,900100006,https://www.athletic.net/athlete/900100006/track-and-field,1:57.95,117.95,Lakemont Prep,https://www.athletic.net/team/900403/track-and-field-outdoor,,,2026
+2,Milo Marsh,900100001,https://www.athletic.net/athlete/900100001/track-and-field,1:59.10,119.1,Pinecrest Academy,https://www.athletic.net/team/900401/track-and-field-outdoor,,,2026
+3,Theo Quill,900100002,https://www.athletic.net/athlete/900100002/track-and-field,2:00.45,120.45,Harbor View High,https://www.athletic.net/team/900402/track-and-field-outdoor,,,2025
+4,Ravi Stone,900100003,https://www.athletic.net/athlete/900100003/track-and-field,,,Pinecrest Academy,https://www.athletic.net/team/900401/track-and-field-outdoor,,,

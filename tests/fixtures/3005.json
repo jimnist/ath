@@ -1,0 +1,39 @@
+{
+  "athlete": {
+    "IDAthlete": 3005,
+    "SchoolID": 5103,
+    "FirstName": "Riley",
+    "LastName": "Freshman",
+    "Gender": "F"
+  },
+  "allTeams": {
+    "5103": {
+      "IDSchool": 5103,
+      "SchoolName": "Seacliff Prep",
+      "Level": 4,
+      "Year": 2026
+    },
+    "701": {
+      "IDSchool": 701,
+      "SchoolName": "Hilltop Middle",
+      "Level": 2
+    },
+    "9201": {
+      "IDSchool": 9201,
+      "SchoolName": "Bayside Track Club",
+      "Level": 16,
+      "Year": 2026
+    }
+  },
+  "grades": {
+    "5103_2026": 9,
+    "701_2025": 8,
+    "701_2024": 7,
+    "9201_2026": 9,
+    "9201_2025": 402,
+    "9201_12026": 9
+  },
+  "eventsTF": [],
+  "resultsTF": [],
+  "meets": {}
+}

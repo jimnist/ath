@@ -1,0 +1,19 @@
+{
+  "athlete": { "IDAthlete": 1004, "SchoolID": 504, "FirstName": "Erin", "LastName": "Ellis", "Gender": "F" },
+  "allTeams": {
+    "504": { "IDSchool": 504, "SchoolName": "Northgate High", "Level": 4, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "400 Meters", "Type": "T", "IDEvent": 21, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 1004, "Result": "56.00a", "SortInt": 56000, "EventID": 21, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-04-18T00:00:00" },
+    { "AthleteID": 1004, "Result": "54.50a", "SortInt": 54500, "EventID": 21, "EventTypeID": 0, "SeasonID": 2025, "Exhibition": false, "ResultDate": "2025-05-17T00:00:00" },
+    { "AthleteID": 1004, "Result": "55.80a", "SortInt": 55800, "EventID": 21, "EventTypeID": 0, "SeasonID": 2024, "Exhibition": false, "ResultDate": "2024-05-11T00:00:00" },
+    { "AthleteID": 1004, "Result": "53.00h", "SortInt": 53000, "EventID": 21, "EventTypeID": 0, "SeasonID": 2024, "Exhibition": false, "ResultDate": "2024-04-06T00:00:00" },
+    { "AthleteID": 1004, "Result": "53.50a", "SortInt": 53500, "EventID": 21, "EventTypeID": 0, "SeasonID": 2025, "Exhibition": true, "ResultDate": "2025-04-12T00:00:00" },
+    { "AthleteID": 1004, "Result": "52.90a", "SortInt": 52900, "EventID": 21, "EventTypeID": 98, "SeasonID": 2025, "Exhibition": false, "ResultDate": "2025-05-31T00:00:00" },
+    { "AthleteID": 1004, "Result": "53.20a", "SortInt": 53200, "EventID": 21, "EventTypeID": 0, "SeasonID": 12026, "Exhibition": false, "ResultDate": "2026-02-14T00:00:00" },
+    { "AthleteID": 1004, "Result": "DNF", "SortInt": 20000001, "EventID": 21, "EventTypeID": 0, "SeasonID": 2025, "Exhibition": false, "ResultDate": "2025-03-29T00:00:00" }
+  ]
+}

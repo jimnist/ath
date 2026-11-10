@@ -1,0 +1,43 @@
+{
+ "team": {
+  "ID": 4101,
+  "Name": "Wrenfield Academy",
+  "Level": 4,
+  "City": "Port Ellery",
+  "State": "CA"
+ },
+ "userAthleteIdOnTeam": null,
+ "hasCoachAccess": false,
+ "mascotToken2": null,
+ "grades": [],
+ "divisions": [
+  {
+   "id": 900010,
+   "b": 901,
+   "name": "   United States"
+  },
+  {
+   "id": 900020,
+   "b": 902,
+   "name": "High School"
+  },
+  {
+   "id": 900500,
+   "b": 903,
+   "name": "California"
+  },
+  {
+   "id": 900502,
+   "b": 904,
+   "name": "Central Coast"
+  },
+  {
+   "id": 900511,
+   "b": 905,
+   "name": " Example Conference"
+  }
+ ],
+ "customLists": [],
+ "customDivisions": [],
+ "linkedTeams": []
+}

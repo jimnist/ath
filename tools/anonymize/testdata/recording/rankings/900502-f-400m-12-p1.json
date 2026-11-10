@@ -1,0 +1,106 @@
+{
+ "eventShort": "400m",
+ "division": {
+  "ID": 900502,
+  "ParentID": 900500,
+  "BaseDivID": 904,
+  "SeasonID": 2026,
+  "Name": "Central Coast"
+ },
+ "minCount": 4,
+ "settings": {
+  "fat": true,
+  "official": true,
+  "grades": [
+   12
+  ],
+  "page": 1,
+  "depth": 100
+ },
+ "groupedRankings": [
+  [
+   {
+    "rank": 1,
+    "rowNum": 1,
+    "AthleteID": 1203101,
+    "AthleteName": "Juniper Quillfeather",
+    "GradeID": 12,
+    "display": "55.80",
+    "SortIntRaw": 55800,
+    "SortIntCalc": 55800,
+    "SortIntOrig": 55800,
+    "TeamID": 4102,
+    "TeamName": "Tidewater High School",
+    "ResultDate": "2026-04-05T00:00:00",
+    "MeetID": 660102,
+    "MeetName": "Driftwood Relays 2026",
+    "Event": "400 Meters",
+    "EventShort": "400m",
+    "SeasonID": 2026,
+    "State": "CA"
+   },
+   {
+    "rank": 2,
+    "rowNum": 2,
+    "AthleteID": 1203109,
+    "AthleteName": "Elowen Gallowglass",
+    "GradeID": 12,
+    "display": "57.30",
+    "SortIntRaw": 57300,
+    "SortIntCalc": 57300,
+    "SortIntOrig": 57300,
+    "TeamID": 4105,
+    "TeamName": "Saltmarsh Christian",
+    "ResultDate": "2026-04-13T00:00:00",
+    "MeetID": 660102,
+    "MeetName": "Driftwood Relays 2026",
+    "Event": "400 Meters",
+    "EventShort": "400m",
+    "SeasonID": 2026,
+    "State": "CA"
+   },
+   {
+    "rank": 3,
+    "rowNum": 3,
+    "AthleteID": 1203121,
+    "AthleteName": "Quinby Stillwater",
+    "GradeID": 12,
+    "display": "1:00.48",
+    "SortIntRaw": 60480,
+    "SortIntCalc": 60480,
+    "SortIntOrig": 60480,
+    "TeamID": 4102,
+    "TeamName": "Tidewater High School",
+    "ResultDate": "2026-04-05T00:00:00",
+    "MeetID": 660102,
+    "MeetName": "Driftwood Relays 2026",
+    "Event": "400 Meters",
+    "EventShort": "400m",
+    "SeasonID": 2026,
+    "State": "CA"
+   },
+   {
+    "rank": 4,
+    "rowNum": 4,
+    "AthleteID": 1203125,
+    "AthleteName": "Ulla Whitlock",
+    "GradeID": 12,
+    "display": "1:02.24",
+    "SortIntRaw": 62240,
+    "SortIntCalc": 62240,
+    "SortIntOrig": 62240,
+    "TeamID": 4101,
+    "TeamName": "Wrenfield Academy",
+    "ResultDate": "2026-04-09T00:00:00",
+    "MeetID": 660102,
+    "MeetName": "Driftwood Relays 2026",
+    "Event": "400 Meters",
+    "EventShort": "400m",
+    "SeasonID": 2026,
+    "State": "CA"
+   }
+  ]
+ ],
+ "relayTeams": [],
+ "jwtTFTopReport": ""
+}

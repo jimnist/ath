@@ -1,0 +1,23 @@
+{
+  "events": [
+    { "ID": 41, "Event": "55 Meters", "EventShort": "55m", "Gender": "M", "Type": "T", "Entry": 1, "sort": 1, "isPersonal": false },
+    { "ID": 46, "Event": "55 Meters", "EventShort": "55m", "Gender": "F", "Type": "T", "Entry": 1, "sort": 1, "isPersonal": false },
+    { "ID": 4, "Event": "800 Meters", "EventShort": "800m", "Gender": "M", "Type": "T", "Entry": 1, "sort": 4, "isPersonal": false },
+    { "ID": 22, "Event": "800 Meters", "EventShort": "800m", "Gender": "F", "Type": "T", "Entry": 1, "sort": 4, "isPersonal": false },
+    { "ID": 58, "Event": "1 Mile", "EventShort": "1mile", "Gender": "M", "Type": "T", "Entry": 1, "sort": 5, "isPersonal": false },
+    { "ID": 39, "Event": "4x800 Relay", "EventShort": "4x800m", "Gender": "M", "Type": "T", "Entry": 1, "sort": 9, "isPersonal": false },
+    { "ID": 12, "Event": "Shot Put", "EventShort": "Shot", "Gender": "M", "Type": "F", "Entry": 1, "sort": 12, "isPersonal": false },
+    { "ID": 901, "Event": "SMR 1600m", "EventShort": "sprintmed2248", "Gender": "M", "Type": "T", "Entry": 1, "sort": 10, "isPersonal": false },
+    { "ID": 902, "Event": "4x55 Shuttle Hurdles", "EventShort": "55shuttleh", "Gender": "M", "Type": "T", "Entry": 1, "sort": 11, "isPersonal": false }
+  ],
+  "eventDivsWithEntries": [
+    { "e": 4, "d": 13, "ge_p": null },
+    { "e": 39, "d": 13, "ge_p": null },
+    { "e": 22, "d": 13, "ge_p": null },
+    { "e": 41, "d": 14, "ge_p": null },
+    { "e": 12, "d": 13, "ge_p": null },
+    { "e": 901, "d": 13, "ge_p": null },
+    { "e": 902, "d": 13, "ge_p": null }
+  ],
+  "eventDivsWithResults": []
+}

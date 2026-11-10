@@ -1,0 +1,14 @@
+{
+  "athlete": { "IDAthlete": 1005, "SchoolID": 505, "FirstName": "Finn", "LastName": "Foster", "Gender": "F" },
+  "allTeams": {
+    "505": { "IDSchool": 505, "SchoolName": "Southview High", "Level": 4, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "400 Meters", "Type": "T", "IDEvent": 21, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 1005, "Result": "55.00a", "SortInt": 55000, "EventID": 21, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-05-09T00:00:00" },
+    { "AthleteID": 1005, "Result": "56.00a", "SortInt": 56000, "EventID": 21, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false },
+    { "AthleteID": 1005, "Result": "57.40a", "SortInt": 57400, "EventID": 21, "EventTypeID": 0, "SeasonID": 2025, "Exhibition": false, "ResultDate": "2025-05-03T00:00:00" }
+  ]
+}

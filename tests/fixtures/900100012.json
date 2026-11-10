@@ -1,0 +1,13 @@
+{
+  "athlete": { "IDAthlete": 900100012, "SchoolID": 900401, "FirstName": "Nico", "LastName": "Vance", "Gender": "M" },
+  "allTeams": {
+    "900401": { "IDSchool": 900401, "SchoolName": "Pinecrest Academy", "Level": 4, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "800 Meters", "Type": "T", "IDEvent": 4, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 900100012, "Result": "2:01.80a", "SortInt": 121800, "EventID": 4, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-04-11T00:00:00" },
+    { "AthleteID": 900100012, "Result": "2:00.40a", "SortInt": 120400, "EventID": 4, "EventTypeID": 0, "SeasonID": 2025, "Exhibition": false, "ResultDate": "2025-05-17T00:00:00" }
+  ]
+}

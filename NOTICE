@@ -1,0 +1,86 @@
+ath
+Copyright (c) 2026 Jim Nist
+Licensed under the MIT License (see LICENSE).
+
+This repository includes map data from third parties, listed below with its source and terms.
+The pages that rankmap builds embed shapes from these files.
+
+--------------------------------------------------------------------------------
+tools/us-states-albers.topo.json
+--------------------------------------------------------------------------------
+
+An unmodified copy of states-albers-10m.json from us-atlas 3.0.1
+(https://github.com/topojson/us-atlas, https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/states-albers-10m.json),
+by Mike Bostock, under the ISC License below.
+us-atlas derives it from the U.S. Census Bureau's cartographic boundary files, 2017 edition
+(https://www2.census.gov/geo/tiger/GENZ2017/shp/), projected with d3.geoAlbersUsa.
+
+--------------------------------------------------------------------------------
+tools/maps/CA-counties.json
+--------------------------------------------------------------------------------
+
+California's counties, cut out of counties-albers-10m.json from us-atlas 3.0.1
+(https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/counties-albers-10m.json), under the ISC License below,
+and moved and rescaled by tools/maps/extract_counties.py.
+us-atlas derives it from the U.S. Census Bureau's cartographic county boundaries, 2017 edition
+(https://www2.census.gov/geo/tiger/GENZ2017/shp/).
+A State's tools/maps/<ST>-counties.json made the same way has the same source and terms.
+
+--------------------------------------------------------------------------------
+tools/maps/CA-districts.json
+--------------------------------------------------------------------------------
+
+The Los Angeles Unified and Oakland Unified school district outlines, from the U.S. Census Bureau's
+2024 cartographic boundary file of California's unified school districts, cb_2024_06_unsd_500k
+(https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_06_unsd_500k.zip),
+projected and rescaled by tools/maps/extract_districts.py.
+Each State's tools/maps/<ST>-districts.json comes the same way from the Census Bureau's
+cartographic boundary file of that State's unified school districts,
+cb_<year>_<State FIPS>_unsd_500k (https://www2.census.gov/geo/tiger/GENZ<year>/shp/),
+and its "source" field names the file it was made from.
+
+--------------------------------------------------------------------------------
+tools/maps/label-spots.json
+--------------------------------------------------------------------------------
+
+Computed by tools/maps/label_spots.py from the files above; part of ath.
+
+--------------------------------------------------------------------------------
+U.S. Census Bureau data
+--------------------------------------------------------------------------------
+
+The Census Bureau's cartographic boundary files are works of the U.S. Government and are not
+subject to copyright in the United States (17 U.S.C. 105).
+ath is not endorsed by or affiliated with the U.S. Census Bureau.
+
+--------------------------------------------------------------------------------
+us-atlas license (ISC)
+--------------------------------------------------------------------------------
+
+Copyright 2013-2019 Michael Bostock
+
+Permission to use, copy, modify, and/or distribute this software for any purpose
+with or without fee is hereby granted, provided that the above copyright notice
+and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+THIS SOFTWARE.
+
+--------------------------------------------------------------------------------
+Fonts (not included)
+--------------------------------------------------------------------------------
+
+The report pages link two fonts from Google Fonts (https://fonts.google.com); the browser loads
+them from there, and no font files are in this repository.
+Both are licensed under the SIL Open Font License, Version 1.1 (https://openfontlicense.org),
+as their license files in the Google Fonts repository say:
+
+- Atkinson Hyperlegible, Copyright 2020 Braille Institute of America, Inc.
+  (https://github.com/google/fonts/blob/main/ofl/atkinsonhyperlegible/OFL.txt)
+- Roboto Condensed, Copyright 2011 The Roboto Project Authors
+  (https://github.com/google/fonts/blob/main/ofl/robotocondensed/OFL.txt)

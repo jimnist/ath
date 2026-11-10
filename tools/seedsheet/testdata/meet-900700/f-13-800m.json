@@ -1,0 +1,44 @@
+{
+  "as_of": "2026-11-07",
+  "entrants": [
+    {
+      "athlete": "Nora Vale",
+      "athlete_id": 900100041,
+      "athlete_url": "https://www.athletic.net/athlete/900100041/track-and-field",
+      "club": "",
+      "club_url": "",
+      "pr": "",
+      "pr_numeric": null,
+      "pr_season": null,
+      "rank": 1,
+      "school": "Lakemont Prep",
+      "school_url": "https://www.athletic.net/team/900403/track-and-field-outdoor",
+      "sort_int": null
+    }
+  ],
+  "event": "800m",
+  "event_name": null,
+  "meet": {
+    "date": "2099-01-09",
+    "event": {
+      "division": "Varsity",
+      "division_id": 13,
+      "event": "800 Meters",
+      "event_id": 22,
+      "event_short": "800m",
+      "gender": "f",
+      "relay": false,
+      "url": "https://www.athletic.net/TrackAndField/meet/900700/entries/f/13/800m"
+    },
+    "id": 900700,
+    "indoor": true,
+    "left_out": [],
+    "name": "Riverton Winter Classic",
+    "season_id": 12099,
+    "url": "https://www.athletic.net/TrackAndField/meet/900700"
+  },
+  "meet_date": "2099-01-09",
+  "schema": 1,
+  "skipped": [],
+  "unresolved": []
+}

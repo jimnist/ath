@@ -1,0 +1,15 @@
+{
+  "eventId": 12,
+  "currentEventValid": true,
+  "entries": [
+    {"IDAthlete": 900100031, "FirstName": "Gus", "LastName": "Barrow", "Gender": "M", "TeamID": 900402, "EventID": 12, "Letter": null, "SchoolID": 900402, "FAT": null, "Grade": "12", "TeamName": "Harbor View High", "TeamCode": "HRBV", "DivID": 13, "Comment": null, "Locked": false, "Scratched": false, "OverrideSortInt": null, "SortIntRaw": 19412000, "ConversionInt": 0, "SortInt": 19412000, "AcceptanceStatus": 10, "Source": 1, "OwnerUserId": null, "OriginalEvent": null}
+  ],
+  "teams": [
+    {"IDSchool": 900402, "SchoolName": "Harbor View High", "TeamCode": "HRBV", "LevelName": "High School", "DivName": "Section 9", "ParentDivName": "New York", "GrandparentDivName": "High School", "Gender": "M"}
+  ],
+  "events": [],
+  "eventDivsWithEntries": [],
+  "eventTypes": [],
+  "rounds": [],
+  "releyLegs": []
+}

@@ -1,0 +1,20 @@
+{
+  "athlete": {
+    "IDAthlete": 3003,
+    "SchoolID": 9201,
+    "FirstName": "Riley",
+    "LastName": "Clubonly",
+    "Gender": "F"
+  },
+  "allTeams": {
+    "9201": {
+      "IDSchool": 9201,
+      "SchoolName": "Bayside Track Club",
+      "Level": 16,
+      "Year": 2026
+    }
+  },
+  "eventsTF": [],
+  "resultsTF": [],
+  "meets": {}
+}

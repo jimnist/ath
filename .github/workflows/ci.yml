@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# A pull request's newer push cancels its older run; every push to main runs to the end (its own
+# group, by commit).
+concurrency:
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust:
+    name: Rust (fmt, clippy, test)
+    runs-on: ubuntu-24.04
+    steps:
+      # A full git checkout (the default): tests/local.rs runs git ls-files on it.
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      # cargo test also runs the tools/ Python tests (tests/tools.rs) with this python3,
+      # the current Python.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Tool versions
+        run: |
+          rustc --version
+          cargo fmt --version
+          cargo clippy --version
+          python3 --version
+          git --version
+      - name: cargo fmt --check
+        run: cargo fmt --check
+      - name: cargo clippy
+        run: cargo clippy --locked --all-targets -- -D warnings
+      - name: cargo test
+        run: cargo test --locked
+        env:
+          # The real-value guard's key (docs/anonymize.md); without it the guard's scan skips.
+          ATH_GUARD_KEY: ${{ secrets.ATH_GUARD_KEY }}
+
+  python39:
+    # cargo test runs both suites on the current Python (tests/tools.rs); this job checks the
+    # oldest Python the reports support, 3.9 (macOS's /usr/bin/python3).
+    name: Python 3.9 (rankmap, seedsheet, anonymize)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - run: python --version
+      - name: rankmap tests
+        run: python -m unittest discover -s tools/rankmap -p 'test_*.py'
+      - name: seedsheet tests
+        run: python -m unittest discover -s tools/seedsheet -p 'test_*.py'
+      - name: examples tests
+        run: python -m unittest discover -s examples -p 'test_*.py'
+      - name: anonymize tests
+        run: python -m unittest discover -s tools/anonymize -p 'test_*.py'
+        env:
+          ATH_GUARD_KEY: ${{ secrets.ATH_GUARD_KEY }}

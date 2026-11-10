@@ -1,0 +1,23 @@
+{
+  "eventId": 905,
+  "currentEventValid": true,
+  "entries": [
+    {"IDAthlete": 900100051, "FirstName": "Wren", "LastName": "Talbot", "Gender": "F", "TeamID": 900505, "EventID": 905, "Letter": "A1", "SchoolID": 900404, "FAT": null, "Grade": "12", "TeamName": "Cedar Hollow High", "TeamCode": null, "DivID": 21, "Comment": null, "Locked": false, "Scratched": false, "OverrideSortInt": null, "SortIntRaw": 1260000, "ConversionInt": 0, "SortInt": 1260000, "AcceptanceStatus": 10, "Source": 1, "OwnerUserId": null, "OriginalEvent": null},
+    {"IDAthlete": 900100052, "FirstName": "Iris", "LastName": "Kettering", "Gender": "F", "TeamID": 900505, "EventID": 905, "Letter": "A2", "SchoolID": 900404, "FAT": null, "Grade": "11", "TeamName": "Cedar Hollow High", "TeamCode": null, "DivID": 21, "Comment": null, "Locked": false, "Scratched": false, "OverrideSortInt": null, "SortIntRaw": 1260000, "ConversionInt": 0, "SortInt": 1260000, "AcceptanceStatus": 10, "Source": 1, "OwnerUserId": null, "OriginalEvent": null},
+    {"IDAthlete": 900100053, "FirstName": "Juno", "LastName": "Halvorsen", "Gender": "F", "TeamID": 900505, "EventID": 905, "Letter": "A3", "SchoolID": 900404, "FAT": null, "Grade": "11", "TeamName": "Cedar Hollow High", "TeamCode": null, "DivID": 21, "Comment": null, "Locked": false, "Scratched": false, "OverrideSortInt": null, "SortIntRaw": 1260000, "ConversionInt": 0, "SortInt": 1260000, "AcceptanceStatus": 10, "Source": 1, "OwnerUserId": null, "OriginalEvent": null},
+    {"IDAthlete": 900100054, "FirstName": "Tess", "LastName": "Amberly", "Gender": "F", "TeamID": 900505, "EventID": 905, "Letter": "A4", "SchoolID": 900404, "FAT": null, "Grade": "10", "TeamName": "Cedar Hollow High", "TeamCode": null, "DivID": 21, "Comment": null, "Locked": false, "Scratched": false, "OverrideSortInt": null, "SortIntRaw": 1260000, "ConversionInt": 0, "SortInt": 1260000, "AcceptanceStatus": 10, "Source": 1, "OwnerUserId": null, "OriginalEvent": null},
+    {"IDAthlete": 900100055, "FirstName": "Noor", "LastName": "Castellan", "Gender": "F", "TeamID": 900506, "EventID": 905, "Letter": "A1", "SchoolID": 900405, "FAT": null, "Grade": "12", "TeamName": "Maple Ridge High", "TeamCode": null, "DivID": 21, "Comment": null, "Locked": false, "Scratched": false, "OverrideSortInt": null, "SortIntRaw": 1260000, "ConversionInt": 0, "SortInt": 1260000, "AcceptanceStatus": 10, "Source": 1, "OwnerUserId": null, "OriginalEvent": null},
+    {"IDAthlete": 900100056, "FirstName": "Lila", "LastName": "Brennick", "Gender": "F", "TeamID": 900506, "EventID": 905, "Letter": "A2", "SchoolID": 900405, "FAT": null, "Grade": "10", "TeamName": "Maple Ridge High", "TeamCode": null, "DivID": 21, "Comment": null, "Locked": false, "Scratched": false, "OverrideSortInt": null, "SortIntRaw": 1260000, "ConversionInt": 0, "SortInt": 1260000, "AcceptanceStatus": 10, "Source": 1, "OwnerUserId": null, "OriginalEvent": null},
+    {"IDAthlete": 900100057, "FirstName": "Maeve", "LastName": "Duprey", "Gender": "F", "TeamID": 900506, "EventID": 905, "Letter": "A3", "SchoolID": 900405, "FAT": null, "Grade": "9", "TeamName": "Maple Ridge High", "TeamCode": null, "DivID": 21, "Comment": null, "Locked": false, "Scratched": false, "OverrideSortInt": null, "SortIntRaw": 1260000, "ConversionInt": 0, "SortInt": 1260000, "AcceptanceStatus": 10, "Source": 1, "OwnerUserId": null, "OriginalEvent": null},
+    {"IDAthlete": 900100058, "FirstName": "Cora", "LastName": "Whitlow", "Gender": "F", "TeamID": 900506, "EventID": 905, "Letter": "A4", "SchoolID": 900405, "FAT": null, "Grade": "11", "TeamName": "Maple Ridge High", "TeamCode": null, "DivID": 21, "Comment": null, "Locked": false, "Scratched": false, "OverrideSortInt": null, "SortIntRaw": 1260000, "ConversionInt": 0, "SortInt": 1260000, "AcceptanceStatus": 10, "Source": 1, "OwnerUserId": null, "OriginalEvent": null}
+  ],
+  "teams": [
+    {"IDSchool": 900404, "SchoolName": "Cedar Hollow High", "TeamCode": null, "LevelName": "High School", "DivName": "Section 9", "ParentDivName": "New York", "GrandparentDivName": "High School", "Gender": "F"},
+    {"IDSchool": 900405, "SchoolName": "Maple Ridge High", "TeamCode": null, "LevelName": "High School", "DivName": "Section 9", "ParentDivName": "New York", "GrandparentDivName": "High School", "Gender": "F"}
+  ],
+  "events": [],
+  "eventDivsWithEntries": [],
+  "eventTypes": [],
+  "rounds": [],
+  "releyLegs": []
+}

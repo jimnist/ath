@@ -1,0 +1,12 @@
+{
+  "athlete": { "IDAthlete": 900100031, "SchoolID": 900403, "FirstName": "Dex", "LastName": "Arden", "Gender": "M" },
+  "allTeams": {
+    "900403": { "IDSchool": 900403, "SchoolName": "Lakemont Prep", "Level": 4, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "800 Meters", "Type": "T", "IDEvent": 4, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 900100031, "Result": "2:03.00a", "SortInt": 123000, "EventID": 4, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-05-09T00:00:00" }
+  ]
+}

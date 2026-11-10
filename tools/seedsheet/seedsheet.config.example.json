@@ -1,0 +1,9 @@
+{
+  "meet": "Spring Invitational",
+  "meet_date": "2027-04-17",
+  "athletes": [4001],
+  "output_dir": "out",
+  "events": [
+    {"label": "Girls 400m", "event": "400m", "roster": "girls-400m.csv"}
+  ]
+}

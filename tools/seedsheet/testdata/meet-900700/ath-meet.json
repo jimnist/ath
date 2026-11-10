@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "id": 900700,
+  "name": "Riverton Winter Classic",
+  "date": "2099-01-09",
+  "season_id": 12099,
+  "indoor": true,
+  "url": "https://www.athletic.net/TrackAndField/meet/900700",
+  "end_date": "2099-01-09",
+  "season": "2099 Indoor",
+  "location": "Riverton Fieldhouse",
+  "city": "Riverton",
+  "state": "NY",
+  "relay_athletes": 4,
+  "divisions": [
+    {
+      "id": 13,
+      "name": "Varsity",
+      "short": "V"
+    },
+    {
+      "id": 14,
+      "name": "Junior Varsity",
+      "short": "JV"
+    }
+  ],
+  "events": [
+    {
+      "gender": "f",
+      "division_id": 13,
+      "division": "Varsity",
+      "event_id": 22,
+      "event": "800 Meters",
+      "event_short": "800m",
+      "relay": false,
+      "url": "https://www.athletic.net/TrackAndField/meet/900700/entries/f/13/800m"
+    },
+    {
+      "gender": "m",
+      "division_id": 13,
+      "division": "Varsity",
+      "event_id": 4,
+      "event": "800 Meters",
+      "event_short": "800m",
+      "relay": false,
+      "url": "https://www.athletic.net/TrackAndField/meet/900700/entries/m/13/800m"
+    },
+    {
+      "gender": "m",
+      "division_id": 13,
+      "division": "Varsity",
+      "event_id": 39,
+      "event": "4x800 Relay",
+      "event_short": "4x800m",
+      "relay": true,
+      "url": "https://www.athletic.net/TrackAndField/meet/900700/entries/m/13/4x800m"
+    },
+    {
+      "gender": "m",
+      "division_id": 13,
+      "division": "Varsity",
+      "event_id": 12,
+      "event": "Shot Put",
+      "event_short": "Shot",
+      "relay": false,
+      "url": "https://www.athletic.net/TrackAndField/meet/900700/entries/m/13/Shot"
+    },
+    {
+      "gender": "m",
+      "division_id": 13,
+      "division": "Varsity",
+      "event_id": 901,
+      "event": "SMR 1600m",
+      "event_short": "sprintmed2248",
+      "relay": true,
+      "url": "https://www.athletic.net/TrackAndField/meet/900700/entries/m/13/sprintmed2248"
+    },
+    {
+      "gender": "m",
+      "division_id": 13,
+      "division": "Varsity",
+      "event_id": 902,
+      "event": "4x55 Shuttle Hurdles",
+      "event_short": "55shuttleh",
+      "relay": true,
+      "url": "https://www.athletic.net/TrackAndField/meet/900700/entries/m/13/55shuttleh"
+    },
+    {
+      "gender": "m",
+      "division_id": 14,
+      "division": "Junior Varsity",
+      "event_id": 41,
+      "event": "55 Meters",
+      "event_short": "55m",
+      "relay": false,
+      "url": "https://www.athletic.net/TrackAndField/meet/900700/entries/m/14/55m"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "athlete": { "IDAthlete": 900100052, "SchoolID": 900404, "FirstName": "Iris", "LastName": "Kettering", "Gender": "F" },
+  "allTeams": {
+    "900404": { "IDSchool": 900404, "SchoolName": "Cedar Hollow High", "Level": 4, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "1600 Meters", "Type": "T", "IDEvent": 53, "IDEventType": 0 },
+    { "Event": "1 Mile", "Type": "T", "IDEvent": 59, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 900100052, "Result": "5:05.00a", "SortInt": 305000, "EventID": 53, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-04-18T00:00:00" },
+    { "AthleteID": 900100052, "Result": "5:02.10a", "SortInt": 302100, "EventID": 59, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-05-16T00:00:00" },
+    { "AthleteID": 900100052, "Result": "4:55.00a", "SortInt": 295000, "EventID": 59, "EventTypeID": 98, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-05-23T00:00:00" },
+    { "AthleteID": 900100052, "Result": "4:58.00a", "SortInt": 298000, "EventID": 59, "EventTypeID": 0, "SeasonID": 12026, "Exhibition": false, "ResultDate": "2026-02-14T00:00:00" }
+  ]
+}

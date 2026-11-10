@@ -1,0 +1,271 @@
+{
+  "state": "CA",
+  "level": "Section",
+  "label": "Section",
+  "labels": "Sections",
+  "body": "CIF",
+  "map": "tools/maps/CA-counties.json",
+  "note": "Counties are colored by the Section most of their schools play in; Section membership is by school, and a few counties are split between Sections. Checked for 2025-26.",
+  "outlines": "tools/maps/CA-districts.json",
+  "areas": [
+    {
+      "name": "Central",
+      "abbr": "CS",
+      "counties": [
+        "Fresno",
+        "Inyo",
+        "Kern",
+        "Kings",
+        "Madera",
+        "Mono",
+        "San Luis Obispo",
+        "Santa Barbara",
+        "Tulare"
+      ]
+    },
+    {
+      "name": "Central Coast",
+      "abbr": "CCS",
+      "counties": [
+        "Monterey",
+        "San Benito",
+        "San Mateo",
+        "Santa Clara",
+        "Santa Cruz"
+      ]
+    },
+    {
+      "name": "Los Angeles",
+      "abbr": "LACS",
+      "counties": [],
+      "city": "Los Angeles",
+      "county": "Los Angeles",
+      "note": "Los Angeles Unified schools",
+      "display": "Los Angeles City"
+    },
+    {
+      "name": "North Coast",
+      "abbr": "NCS",
+      "counties": [
+        "Alameda",
+        "Contra Costa",
+        "Del Norte",
+        "Humboldt",
+        "Lake",
+        "Marin",
+        "Mendocino",
+        "Napa",
+        "Sonoma"
+      ]
+    },
+    {
+      "name": "Northern",
+      "abbr": "NS",
+      "counties": [
+        "Butte",
+        "Colusa",
+        "Glenn",
+        "Lassen",
+        "Modoc",
+        "Plumas",
+        "Shasta",
+        "Sierra",
+        "Siskiyou",
+        "Tehama",
+        "Trinity"
+      ]
+    },
+    {
+      "name": "Oakland",
+      "abbr": "OS",
+      "counties": [],
+      "city": "Oakland",
+      "county": "Alameda",
+      "note": "Oakland Unified public schools"
+    },
+    {
+      "name": "Sac-Joaquin",
+      "abbr": "SJS",
+      "counties": [
+        "Alpine",
+        "Amador",
+        "Calaveras",
+        "El Dorado",
+        "Mariposa",
+        "Merced",
+        "Nevada",
+        "Placer",
+        "Sacramento",
+        "San Joaquin",
+        "Solano",
+        "Stanislaus",
+        "Sutter",
+        "Tuolumne",
+        "Yolo",
+        "Yuba"
+      ]
+    },
+    {
+      "name": "San Diego",
+      "abbr": "SDS",
+      "counties": [
+        "Imperial",
+        "San Diego"
+      ]
+    },
+    {
+      "name": "San Francisco",
+      "abbr": "SFS",
+      "counties": [
+        "San Francisco"
+      ],
+      "note": "San Francisco Unified public schools; the city's private schools play in Central Coast (WCAL)"
+    },
+    {
+      "name": "Southern",
+      "abbr": "SS",
+      "counties": [
+        "Los Angeles",
+        "Orange",
+        "Riverside",
+        "San Bernardino",
+        "Ventura"
+      ]
+    }
+  ],
+  "split_counties": {
+    "Alameda": "Oakland Unified public schools are the Oakland Section; the rest, Oakland's private schools included, North Coast",
+    "Los Angeles": "Los Angeles Unified schools are the Los Angeles City Section; the rest Southern",
+    "San Francisco": "San Francisco Unified public schools are the San Francisco Section; private schools Central Coast",
+    "Santa Barbara": "Santa Maria Valley, Lompoc, Cabrillo and Santa Ynez are Central; the South Coast stays Southern",
+    "Kern": "Central, except Burroughs (Ridgecrest), Southern",
+    "Solano": "Vacaville, Fairfield, Dixon, Rio Vista and Vanden are Sac-Joaquin; Vallejo, Benicia and neighbors North Coast",
+    "Merced": "Sac-Joaquin, except Dos Palos, Central",
+    "Yolo": "Sac-Joaquin, except Winters, Northern",
+    "Sutter": "Yuba City, River Valley, Sutter and Wheatland are Sac-Joaquin; Live Oak and East Nicolaus Northern",
+    "Alpine": "no high school"
+  },
+  "state_meet": {
+    "name": "CIF State Track & Field Championships",
+    "short": "State Meet",
+    "places": {
+      "Southern": 6,
+      "Central": 3,
+      "Central Coast": 3,
+      "Los Angeles": 3,
+      "North Coast": 3,
+      "Sac-Joaquin": 3,
+      "San Diego": 3,
+      "Northern": 1,
+      "Oakland": 1,
+      "San Francisco": 1
+    },
+    "places_note": "Each Section's entries per individual event, girls and boys alike (27 in all), from the places at its own State qualifying meet (Southern: the first heat of its Masters Meet).",
+    "at_large_rule": "Beyond its places, a Section also enters anyone whose mark at its State qualifying meet met the at-large standard (running marks fully automatic timed).",
+    "at_large": {
+      "2025": {
+        "f": {
+          "100m": "11.84",
+          "200m": "24.48",
+          "400m": "55.95",
+          "800m": "2:12.54",
+          "1600m": "4:52.17",
+          "3200m": "10:30.96",
+          "100mH": "14.37",
+          "300mH": "43.78",
+          "HJ": "5-06",
+          "PV": "12-03",
+          "LJ": "18-03.50",
+          "TJ": "37-06",
+          "Shot": "40-05.50"
+        },
+        "m": {
+          "100m": "10.59",
+          "200m": "21.44",
+          "400m": "48.35",
+          "800m": "1:53.64",
+          "1600m": "4:12.98",
+          "3200m": "9:03.03",
+          "110mH": "14.45",
+          "300mH": "38.68",
+          "HJ": "6-06",
+          "PV": "15-02",
+          "LJ": "22-11.25",
+          "TJ": "45-10.50",
+          "Shot": "55-04.50"
+        }
+      },
+      "2026": {
+        "f": {
+          "100m": "11.77",
+          "200m": "24.32",
+          "400m": "55.60",
+          "800m": "2:11.70",
+          "1600m": "4:52.04",
+          "3200m": "10:29.42",
+          "100mH": "14.28",
+          "300mH": "43.36",
+          "HJ": "5-06",
+          "PV": "12-02",
+          "LJ": "18-02.75",
+          "TJ": "38-00.50",
+          "Shot": "41-00.00"
+        },
+        "m": {
+          "100m": "10.56",
+          "200m": "21.35",
+          "400m": "48.11",
+          "800m": "1:53.13",
+          "1600m": "4:11.75",
+          "3200m": "9:02.48",
+          "110mH": "14.33",
+          "300mH": "38.28",
+          "HJ": "6-06",
+          "PV": "15-06",
+          "LJ": "22-11.00",
+          "TJ": "46-04.75",
+          "Shot": "55-10.50"
+        }
+      },
+      "2027": {
+        "f": {
+          "100m": "11.72",
+          "200m": "24.12",
+          "400m": "55.32",
+          "800m": "2:10.83",
+          "1600m": "4:51.49",
+          "3200m": "10:28.89",
+          "100mH": "14.20",
+          "300mH": "43.23",
+          "HJ": "5-06",
+          "PV": "12-02",
+          "LJ": "18-03.75",
+          "TJ": "38-02.25",
+          "Shot": "40-04.75"
+        },
+        "m": {
+          "100m": "10.52",
+          "200m": "21.29",
+          "400m": "47.84",
+          "800m": "1:52.67",
+          "1600m": "4:10.27",
+          "3200m": "9:01.41",
+          "110mH": "14.13",
+          "300mH": "38.10",
+          "HJ": "6-06",
+          "PV": "15-06",
+          "LJ": "22-09.50",
+          "TJ": "46-07",
+          "Shot": "56-01"
+        }
+      }
+    },
+    "sources": [
+      "https://www.cifstate.org/sports/track_and_field/2026_State_Track_and_Field_Handbook.pdf",
+      "https://www.cifstate.org/governance/constitution/Blue_Pages.pdf",
+      "https://www.cifstate.org/sports/track_and_field/at_large_standards",
+      "https://web.archive.org/web/20250415211902/https://www.cifstate.org/sports/track_and_field/at_large_standards"
+    ],
+    "checked": "2026-11-02"
+  }
+}

@@ -1,0 +1,26 @@
+{
+ "eventShort": "400m",
+ "division": {
+  "ID": 900400,
+  "ParentID": 900020,
+  "SeasonID": 2026,
+  "Name": "Capped State"
+ },
+ "minCount": 696,
+ "settings": {
+  "fat": true,
+  "official": true,
+  "page": 1,
+  "depth": 100
+ },
+ "groupedRankings": [
+  [
+   {"rank": 1, "rowNum": 1, "AthleteID": 940000001, "AthleteName": "Wren Halloway", "GradeID": 12, "display": "53.10", "SortIntRaw": 53100, "SortIntCalc": 53100, "SortIntOrig": 53100, "TeamID": 990001, "TeamName": "Juniper Flats", "ResultDate": "2026-05-23T00:00:00", "MeetID": 990101, "MeetName": "Made-Up Invitational", "Event": "400 Meters", "EventShort": "400m", "SeasonID": 2026},
+   {"rank": 2, "rowNum": 2, "AthleteID": 940000002, "AthleteName": "Odette Brannick", "GradeID": 11, "display": "53.84", "SortIntRaw": 53840, "SortIntCalc": 53840, "SortIntOrig": 53840, "TeamID": 990002, "TeamName": "Cobalt Ridge", "ResultDate": "2026-05-16T00:00:00", "MeetID": 990102, "MeetName": "Made-Up Relays", "Event": "400 Meters", "EventShort": "400m", "SeasonID": 2026},
+   {"rank": 3, "rowNum": 3, "AthleteID": 940000003, "AthleteName": "Maren Tolliver", "GradeID": 10, "display": "54.20", "SortIntRaw": 54200, "SortIntCalc": 54200, "SortIntOrig": 54200, "TeamID": 990001, "TeamName": "Juniper Flats", "ResultDate": "2026-05-23T00:00:00", "MeetID": 990101, "MeetName": "Made-Up Invitational", "Event": "400 Meters", "EventShort": "400m", "SeasonID": 2026},
+   {"rank": 4, "rowNum": 4, "AthleteID": 940000004, "AthleteName": "Ines Calloway", "GradeID": 12, "display": "54.66", "SortIntRaw": 54660, "SortIntCalc": 54660, "SortIntOrig": 54660, "TeamID": 990003, "TeamName": "Saltmarsh", "ResultDate": "2026-04-25T00:00:00", "MeetID": 990103, "MeetName": "Made-Up Dual", "Event": "400 Meters", "EventShort": "400m", "SeasonID": 2026},
+   {"rank": 5, "rowNum": 5, "AthleteID": 940000005, "AthleteName": "Pia Rendell", "GradeID": 9, "display": "55.02", "SortIntRaw": 55020, "SortIntCalc": 55020, "SortIntOrig": 55020, "TeamID": 990002, "TeamName": "Cobalt Ridge", "ResultDate": "2026-05-16T00:00:00", "MeetID": 990102, "MeetName": "Made-Up Relays", "Event": "400 Meters", "EventShort": "400m", "SeasonID": 2026},
+   {"rank": 6, "rowNum": 6, "AthleteID": 0, "AthleteName": "Xxxxxx Xxxxxx", "GradeID": 99, "display": "", "SortIntRaw": 55400, "SortIntCalc": 55400, "SortIntOrig": 55400, "TeamID": 0, "TeamName": "Xxxxxx Xxxxxx", "ResultDate": "2026-05-23T00:00:00", "MeetID": 0, "MeetName": "XXX Xxxxxxx Xxxxxxxxxxxxx Xxxxxx", "Event": "400 Meters", "EventShort": "400m", "SeasonID": 2026}
+  ]
+ ]
+}

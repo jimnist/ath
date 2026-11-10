@@ -1,0 +1,398 @@
+{
+  "athlete": {
+    "IDAthlete": 2001,
+    "SchoolID": 601,
+    "FirstName": "Dana",
+    "LastName": "Diaz",
+    "Gender": "F"
+  },
+  "allTeams": {
+    "601": {
+      "IDSchool": 601,
+      "SchoolName": "Harbor High",
+      "Level": 4,
+      "Year": 2026
+    },
+    "602": {
+      "IDSchool": 602,
+      "SchoolName": "Bayview Middle",
+      "Level": 2,
+      "Year": 2024
+    },
+    "9101": {
+      "IDSchool": 9101,
+      "SchoolName": "Coastal Striders TC",
+      "Level": 16,
+      "Year": 2026
+    }
+  },
+  "eventsTF": [
+    {
+      "Event": "200 Meters",
+      "Type": "T",
+      "IDEvent": 20,
+      "IDEventType": 0
+    },
+    {
+      "Event": "400 Meters",
+      "Type": "T",
+      "IDEvent": 21,
+      "IDEventType": 0
+    },
+    {
+      "Event": "800 Meters",
+      "Type": "T",
+      "IDEvent": 22,
+      "IDEventType": 0
+    },
+    {
+      "Event": "Long Jump",
+      "Type": "F",
+      "IDEvent": 28,
+      "IDEventType": 0
+    }
+  ],
+  "resultsTF": [
+    {
+      "AthleteID": 2001,
+      "Result": "1:01.20a",
+      "SortInt": 61200,
+      "EventID": 21,
+      "EventTypeID": 0,
+      "SeasonID": 2024,
+      "Exhibition": false,
+      "ResultDate": "2024-05-04T00:00:00",
+      "SchoolID": 602,
+      "MeetID": 5001,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 7
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "59.40a",
+      "SortInt": 59400,
+      "EventID": 21,
+      "EventTypeID": 0,
+      "SeasonID": 2025,
+      "Exhibition": false,
+      "ResultDate": "2025-03-22T00:00:00",
+      "SchoolID": 601,
+      "MeetID": 5002,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 0
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "56.90a",
+      "SortInt": 56904,
+      "EventID": 21,
+      "EventTypeID": 0,
+      "SeasonID": 2025,
+      "Exhibition": false,
+      "ResultDate": "2025-05-10T00:00:00",
+      "SchoolID": 601,
+      "MeetID": 5003,
+      "meetName": null,
+      "PersonalBest": 15,
+      "SeasonBest": 7
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "54.80a",
+      "SortInt": 54800,
+      "EventID": 21,
+      "EventTypeID": 0,
+      "SeasonID": 12026,
+      "Exhibition": false,
+      "ResultDate": "2026-02-14T00:00:00",
+      "SchoolID": 601,
+      "MeetID": 5099,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 0
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "58.20a",
+      "SortInt": 58195,
+      "EventID": 21,
+      "EventTypeID": 0,
+      "SeasonID": 2026,
+      "Exhibition": false,
+      "ResultDate": "2026-03-14T00:00:00",
+      "SchoolID": 601,
+      "MeetID": 5004,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 0
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "55.80h",
+      "SortInt": 55800,
+      "EventID": 21,
+      "EventTypeID": 0,
+      "SeasonID": 2026,
+      "Exhibition": false,
+      "ResultDate": "2026-03-28T00:00:00",
+      "SchoolID": 601,
+      "MeetID": 5005,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 0
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "55.10a",
+      "SortInt": 55100,
+      "EventID": 21,
+      "EventTypeID": 98,
+      "SeasonID": 2026,
+      "Exhibition": false,
+      "ResultDate": "2026-04-04T00:00:00",
+      "SchoolID": 601,
+      "MeetID": 5006,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 0
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "55.50a",
+      "SortInt": 55500,
+      "EventID": 21,
+      "EventTypeID": 0,
+      "SeasonID": 2026,
+      "Exhibition": true,
+      "ResultDate": "2026-04-11T00:00:00",
+      "SchoolID": 9101,
+      "MeetID": 5007,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 0
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "57.10a",
+      "SortInt": 57100,
+      "EventID": 21,
+      "EventTypeID": 0,
+      "SeasonID": 2026,
+      "Exhibition": false,
+      "ResultDate": "2026-04-18T00:00:00",
+      "SchoolID": 601,
+      "MeetID": 5008,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 7
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "DNS",
+      "SortInt": 20000001,
+      "EventID": 21,
+      "EventTypeID": 0,
+      "SeasonID": 2026,
+      "Exhibition": false,
+      "ResultDate": "2026-05-02T00:00:00",
+      "SchoolID": 601,
+      "MeetID": 5009,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 0
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "DNF",
+      "SortInt": 1,
+      "EventID": 21,
+      "EventTypeID": 0,
+      "SeasonID": 2026,
+      "Exhibition": false,
+      "ResultDate": "2026-05-09T00:00:00",
+      "SchoolID": 601,
+      "MeetID": 5010,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 0
+    },
+    {
+      "AthleteID": 7701,
+      "Result": "54.00a",
+      "SortInt": 54000,
+      "EventID": 21,
+      "EventTypeID": 0,
+      "SeasonID": 2026,
+      "Exhibition": false,
+      "ResultDate": "2026-05-09T00:00:00",
+      "SchoolID": 601,
+      "MeetID": 5010,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 0
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "26.40a",
+      "SortInt": 26400,
+      "EventID": 20,
+      "EventTypeID": 0,
+      "SeasonID": 2026,
+      "Exhibition": false,
+      "ResultDate": "2026-04-18T00:00:00",
+      "SchoolID": 601,
+      "MeetID": 5008,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 0
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "25.90a",
+      "SortInt": 25900,
+      "EventID": 20,
+      "EventTypeID": 0,
+      "SeasonID": 2026,
+      "Exhibition": false,
+      "SchoolID": 601,
+      "MeetID": 5011,
+      "meetName": null,
+      "PersonalBest": 15,
+      "SeasonBest": 7
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "2:14.30a",
+      "SortInt": 134300,
+      "EventID": 22,
+      "EventTypeID": 98,
+      "SeasonID": 2026,
+      "Exhibition": false,
+      "ResultDate": "2026-04-04T00:00:00",
+      "SchoolID": 601,
+      "MeetID": 5006,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 0
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "2:20.00a",
+      "SortInt": 140000,
+      "EventID": 22,
+      "EventTypeID": 0,
+      "SeasonID": 2026,
+      "Exhibition": true,
+      "ResultDate": "2026-04-11T00:00:00",
+      "SchoolID": 9101,
+      "MeetID": 5007,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 0
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "DNS",
+      "SortInt": 20000001,
+      "EventID": 22,
+      "EventTypeID": 0,
+      "SeasonID": 2026,
+      "Exhibition": false,
+      "ResultDate": "2026-05-02T00:00:00",
+      "SchoolID": 601,
+      "MeetID": 5009,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 0
+    },
+    {
+      "AthleteID": 7701,
+      "Result": "9:30.00a",
+      "SortInt": 570000,
+      "EventID": 22,
+      "EventTypeID": 0,
+      "SeasonID": 2026,
+      "Exhibition": false,
+      "ResultDate": "2026-05-09T00:00:00",
+      "SchoolID": 601,
+      "MeetID": 5010,
+      "meetName": null,
+      "PersonalBest": 0,
+      "SeasonBest": 0
+    },
+    {
+      "AthleteID": 2001,
+      "Result": "15-02.50",
+      "SortInt": 19817500,
+      "EventID": 28,
+      "EventTypeID": 0,
+      "SeasonID": 2026,
+      "Exhibition": false,
+      "ResultDate": "2026-04-18T00:00:00",
+      "SchoolID": 601,
+      "MeetID": 5008,
+      "meetName": null,
+      "PersonalBest": 15,
+      "SeasonBest": 7
+    }
+  ],
+  "meets": {
+    "5001": {
+      "IDMeet": 5001,
+      "MeetName": "Bayview Middle Champs",
+      "EndDate": "2024-05-04T00:00:00"
+    },
+    "5002": {
+      "IDMeet": 5002,
+      "MeetName": "Early Bird Invite",
+      "EndDate": "2025-03-22T00:00:00"
+    },
+    "5003": {
+      "IDMeet": 5003,
+      "MeetName": "League Finals",
+      "EndDate": "2025-05-10T00:00:00"
+    },
+    "5004": {
+      "IDMeet": 5004,
+      "MeetName": "Spring Opener",
+      "EndDate": "2026-03-14T00:00:00"
+    },
+    "5005": {
+      "IDMeet": 5005,
+      "MeetName": "Hand-Timed Dual",
+      "EndDate": "2026-03-28T00:00:00"
+    },
+    "5006": {
+      "IDMeet": 5006,
+      "MeetName": "Relay Carnival",
+      "EndDate": "2026-04-04T00:00:00"
+    },
+    "5007": {
+      "IDMeet": 5007,
+      "MeetName": "Harbor Time Trial",
+      "EndDate": "2026-04-11T00:00:00"
+    },
+    "5008": {
+      "IDMeet": 5008,
+      "MeetName": "Harbor Invite",
+      "EndDate": "2026-04-18T00:00:00"
+    },
+    "5009": {
+      "IDMeet": 5009,
+      "MeetName": "League Finals",
+      "EndDate": "2026-05-02T00:00:00"
+    },
+    "5010": {
+      "IDMeet": 5010,
+      "MeetName": "Section Trials",
+      "EndDate": "2026-05-09T00:00:00"
+    },
+    "5011": {
+      "IDMeet": 5011,
+      "MeetName": "Undated Twilight",
+      "EndDate": null
+    }
+  }
+}

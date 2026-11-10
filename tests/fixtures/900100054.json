@@ -1,0 +1,12 @@
+{
+  "athlete": { "IDAthlete": 900100054, "SchoolID": 900404, "FirstName": "Tess", "LastName": "Amberly", "Gender": "F" },
+  "allTeams": {
+    "900404": { "IDSchool": 900404, "SchoolName": "Cedar Hollow High", "Level": 4, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "1600 Meters", "Type": "T", "IDEvent": 53, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 900100054, "Result": "5:12.00a", "SortInt": 312000, "EventID": 53, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-04-25T00:00:00" }
+  ]
+}

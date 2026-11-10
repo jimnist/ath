@@ -1,0 +1,103 @@
+{
+  "as_of": "2026-11-07",
+  "entrants": [
+    {
+      "athlete": "Luca Brandt",
+      "athlete_id": 900100006,
+      "athlete_url": "https://www.athletic.net/athlete/900100006/track-and-field",
+      "club": "",
+      "club_url": "",
+      "pr": "1:57.95",
+      "pr_numeric": 117.95,
+      "pr_season": 2026,
+      "rank": 1,
+      "school": "Lakemont Prep",
+      "school_url": "https://www.athletic.net/team/900403/track-and-field-outdoor",
+      "sort_int": 117950
+    },
+    {
+      "athlete": "Milo Marsh",
+      "athlete_id": 900100001,
+      "athlete_url": "https://www.athletic.net/athlete/900100001/track-and-field",
+      "club": "",
+      "club_url": "",
+      "pr": "1:59.10",
+      "pr_numeric": 119.1,
+      "pr_season": 2026,
+      "rank": 2,
+      "school": "Pinecrest Academy",
+      "school_url": "https://www.athletic.net/team/900401/track-and-field-outdoor",
+      "sort_int": 119100
+    },
+    {
+      "athlete": "Theo Quill",
+      "athlete_id": 900100002,
+      "athlete_url": "https://www.athletic.net/athlete/900100002/track-and-field",
+      "club": "",
+      "club_url": "",
+      "pr": "2:00.45",
+      "pr_numeric": 120.45,
+      "pr_season": 2025,
+      "rank": 3,
+      "school": "Harbor View High",
+      "school_url": "https://www.athletic.net/team/900402/track-and-field-outdoor",
+      "sort_int": 120450
+    },
+    {
+      "athlete": "Ravi Stone",
+      "athlete_id": 900100003,
+      "athlete_url": "https://www.athletic.net/athlete/900100003/track-and-field",
+      "club": "",
+      "club_url": "",
+      "pr": "",
+      "pr_numeric": null,
+      "pr_season": null,
+      "rank": 4,
+      "school": "Pinecrest Academy",
+      "school_url": "https://www.athletic.net/team/900401/track-and-field-outdoor",
+      "sort_int": null
+    }
+  ],
+  "event": "800m",
+  "event_name": "800 Meters",
+  "meet": {
+    "date": "2099-01-09",
+    "event": {
+      "division": "Varsity",
+      "division_id": 13,
+      "event": "800 Meters",
+      "event_id": 4,
+      "event_short": "800m",
+      "gender": "m",
+      "relay": false,
+      "url": "https://www.athletic.net/TrackAndField/meet/900700/entries/m/13/800m"
+    },
+    "id": 900700,
+    "indoor": true,
+    "left_out": [
+      {
+        "acceptance_status": 10,
+        "athlete_id": 900100004,
+        "letter": null,
+        "name": "Owen Pike",
+        "reason": "scratched",
+        "team_id": 900402
+      },
+      {
+        "acceptance_status": 5,
+        "athlete_id": 900100005,
+        "letter": null,
+        "name": "Jace Fenwick",
+        "reason": "not_accepted",
+        "team_id": 900403
+      }
+    ],
+    "name": "Riverton Winter Classic",
+    "season_id": 12099,
+    "url": "https://www.athletic.net/TrackAndField/meet/900700"
+  },
+  "meet_date": "2099-01-09",
+  "schema": 1,
+  "skipped": [],
+  "unresolved": []
+}

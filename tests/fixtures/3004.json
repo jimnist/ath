@@ -1,0 +1,26 @@
+{
+  "athlete": {
+    "IDAthlete": 3004,
+    "SchoolID": 601,
+    "FirstName": "Taylor",
+    "LastName": "Transfer",
+    "Gender": "F"
+  },
+  "allTeams": {
+    "5103": {
+      "IDSchool": 5103,
+      "SchoolName": "Seacliff Prep",
+      "Level": 4,
+      "Year": 2025
+    },
+    "601": {
+      "IDSchool": 601,
+      "SchoolName": "Harbor High",
+      "Level": 4,
+      "Year": 2026
+    }
+  },
+  "eventsTF": [],
+  "resultsTF": [],
+  "meets": {}
+}

@@ -1,0 +1,70 @@
+{
+ "athlete": {
+  "IDAthlete": 1206004,
+  "SchoolID": 4105,
+  "FirstName": "Xanthe",
+  "LastName": "Oakshott",
+  "Gender": "F"
+ },
+ "allTeams": {
+  "4105": {
+   "IDSchool": 4105,
+   "SchoolName": "Saltmarsh Christian",
+   "Level": 4,
+   "Year": 2026
+  }
+ },
+ "grades": {
+  "4105_2026": 10,
+  "4105_12026": 10
+ },
+ "allSeasons": [
+  {
+   "ID": 2026,
+   "Display": "2026 Outdoor"
+  },
+  {
+   "ID": 12026,
+   "Display": "2026 Indoor"
+  }
+ ],
+ "eventsTF": [
+  {
+   "Event": "1600 Meters",
+   "Type": "T",
+   "IDEvent": 23,
+   "IDEventType": 0
+  },
+  {
+   "Event": "1 Mile",
+   "Type": "T",
+   "IDEvent": 59,
+   "IDEventType": 0
+  }
+ ],
+ "resultsTF": [
+  {
+   "IDResult": 88000053,
+   "AthleteID": 1206004,
+   "Result": "5:18.80a",
+   "SortInt": 318800,
+   "EventID": 59,
+   "EventTypeID": 0,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-05-02T00:00:00",
+   "MeetID": 660102,
+   "meetName": null,
+   "SchoolID": 4105,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  }
+ ],
+ "meets": {
+  "660102": {
+   "IDMeet": 660102,
+   "MeetName": "Driftwood Relays 2026",
+   "EndDate": "2026-05-02T00:00:00"
+  }
+ }
+}

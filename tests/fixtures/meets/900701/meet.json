@@ -1,0 +1,23 @@
+{
+  "meet": {
+    "ID": 900701,
+    "Name": "Riverton New Year Opener",
+    "MeetDate": "2020-01-11T00:00:00",
+    "StartDate": "2020-01-11T00:00:00",
+    "EndDate": "2020-01-11T00:00:00",
+    "SeasonID": 12020,
+    "PublicEntries": null,
+    "RegEnabled": false,
+    "RelayAthletesRequired": 4,
+    "Location": {
+      "Indoor": true,
+      "Name": "Riverton Fieldhouse",
+      "City": "Riverton",
+      "State": "NY"
+    }
+  },
+  "tfDivisions": [
+    { "IDMeetDiv": 900701013, "MeetID": 900701, "IDDiv": 13, "Division": "Varsity", "DivisionShort": "V", "LevelMask": 4 }
+  ],
+  "jwtMeet": "fixture-meet-token-not-a-real-jwt"
+}

@@ -1,0 +1,22 @@
+{
+  "eventId": 4,
+  "currentEventValid": true,
+  "entries": [
+    {"IDAthlete": 900100001, "FirstName": "Milo", "LastName": "Marsh", "Gender": "M", "TeamID": 900401, "EventID": 4, "Letter": null, "SchoolID": 900401, "FAT": null, "Grade": "11", "TeamName": "Pinecrest Academy", "TeamCode": "PINE", "DivID": 13, "Comment": null, "Locked": false, "Scratched": false, "OverrideSortInt": null, "SortIntRaw": 118900, "ConversionInt": 0, "SortInt": 118900, "AcceptanceStatus": 10, "Source": 1, "OwnerUserId": null, "OriginalEvent": null},
+    {"IDAthlete": 900100002, "FirstName": "Theo", "LastName": "Quill", "Gender": "M", "TeamID": 900402, "EventID": 4, "Letter": null, "SchoolID": 900402, "FAT": null, "Grade": "12", "TeamName": "Harbor View High", "TeamCode": "HRBV", "DivID": 13, "Comment": null, "Locked": false, "Scratched": false, "OverrideSortInt": null, "SortIntRaw": 121500, "ConversionInt": 0, "SortInt": 121500, "AcceptanceStatus": 10, "Source": 1, "OwnerUserId": null, "OriginalEvent": null},
+    {"IDAthlete": 900100003, "FirstName": "Ravi", "LastName": "Stone", "Gender": "M", "TeamID": 900401, "EventID": 4, "Letter": null, "SchoolID": 900401, "FAT": null, "Grade": "10", "TeamName": "Pinecrest Academy", "TeamCode": "PINE", "DivID": 13, "Comment": null, "Locked": false, "Scratched": false, "OverrideSortInt": null, "SortIntRaw": null, "ConversionInt": 0, "SortInt": null, "AcceptanceStatus": 10, "Source": 1, "OwnerUserId": null, "OriginalEvent": null},
+    {"IDAthlete": 900100004, "FirstName": "Owen", "LastName": "Pike", "Gender": "M", "TeamID": 900402, "EventID": 4, "Letter": null, "SchoolID": 900402, "FAT": null, "Grade": "11", "TeamName": "Harbor View High", "TeamCode": "HRBV", "DivID": 13, "Comment": null, "Locked": false, "Scratched": true, "OverrideSortInt": null, "SortIntRaw": 119800, "ConversionInt": 0, "SortInt": 119800, "AcceptanceStatus": 10, "Source": 1, "OwnerUserId": null, "OriginalEvent": null},
+    {"IDAthlete": 900100005, "FirstName": "Jace", "LastName": "Fenwick", "Gender": "M", "TeamID": 900403, "EventID": 4, "Letter": null, "SchoolID": 900403, "FAT": null, "Grade": "12", "TeamName": "Lakemont Prep", "TeamCode": "LKMT", "DivID": 13, "Comment": null, "Locked": false, "Scratched": false, "OverrideSortInt": null, "SortIntRaw": 120300, "ConversionInt": 0, "SortInt": 120300, "AcceptanceStatus": 5, "Source": 1, "OwnerUserId": null, "OriginalEvent": null},
+    {"IDAthlete": 900100006, "FirstName": "Luca", "LastName": "Brandt", "Gender": "M", "TeamID": 900403, "EventID": 4, "Letter": null, "SchoolID": 900403, "FAT": null, "Grade": "9", "TeamName": "Lakemont Prep", "TeamCode": "LKMT", "DivID": 13, "Comment": null, "Locked": false, "Scratched": false, "OverrideSortInt": null, "SortIntRaw": 117500, "ConversionInt": 0, "SortInt": 117500, "AcceptanceStatus": 10, "Source": 1, "OwnerUserId": null, "OriginalEvent": null}
+  ],
+  "teams": [
+    {"IDSchool": 900401, "SchoolName": "Pinecrest Academy", "TeamCode": "PINE", "LevelName": "High School", "DivName": "Section 9", "ParentDivName": "New York", "GrandparentDivName": "High School", "Gender": "M"},
+    {"IDSchool": 900402, "SchoolName": "Harbor View High", "TeamCode": "HRBV", "LevelName": "High School", "DivName": "Section 9", "ParentDivName": "New York", "GrandparentDivName": "High School", "Gender": "M"},
+    {"IDSchool": 900403, "SchoolName": "Lakemont Prep", "TeamCode": "LKMT", "LevelName": "High School", "DivName": "Section 9", "ParentDivName": "New York", "GrandparentDivName": "High School", "Gender": "M"}
+  ],
+  "events": [],
+  "eventDivsWithEntries": [],
+  "eventTypes": [],
+  "rounds": [],
+  "releyLegs": []
+}

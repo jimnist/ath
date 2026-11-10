@@ -1,0 +1,270 @@
+{
+ "divListId": 900500,
+ "levels": [],
+ "levelDivId": 900020,
+ "seasons": {
+  "2026": 900500
+ },
+ "countries": [],
+ "countryDivId": 900010,
+ "regions": [
+  {
+   "id": 900020,
+   "name": "High School",
+   "state": null,
+   "divType": "Level",
+   "subDivType": "State",
+   "depth": 0,
+   "customDivision": false
+  },
+  {
+   "id": 900500,
+   "name": "California",
+   "state": "CA",
+   "divType": "State",
+   "subDivType": "Section",
+   "depth": 1,
+   "customDivision": false
+  },
+  {
+   "id": 900501,
+   "name": " Central",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900502,
+   "name": " Central Coast",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900503,
+   "name": " Los Angeles",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900504,
+   "name": " North Coast",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900505,
+   "name": " Northern",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900506,
+   "name": " Oakland",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900507,
+   "name": " Sac-Joaquin",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900508,
+   "name": " San Diego",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900509,
+   "name": " San Francisco",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900510,
+   "name": " Southern",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900100,
+   "name": "New York",
+   "state": "NY",
+   "divType": "State",
+   "subDivType": "Association",
+   "depth": 1,
+   "customDivision": false
+  },
+  {
+   "id": 900101,
+   "name": " Example Association",
+   "state": "NY",
+   "divType": "Association",
+   "subDivType": null,
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900200,
+   "name": "Oregon",
+   "state": "OR",
+   "divType": "State",
+   "subDivType": null,
+   "depth": 1,
+   "customDivision": false
+  },
+  {
+   "id": 900300,
+   "name": "Texas",
+   "state": "TX",
+   "divType": "State",
+   "subDivType": "League",
+   "depth": 1,
+   "customDivision": false
+  },
+  {
+   "id": 900301,
+   "name": " Example League",
+   "state": "TX",
+   "divType": "League",
+   "subDivType": null,
+   "depth": 2,
+   "customDivision": false
+  }
+ ],
+ "regionDivId": 900500,
+ "tree": [
+  {
+   "id": 900500,
+   "name": "California",
+   "state": "CA",
+   "divType": "State",
+   "subDivType": "Section",
+   "depth": 1,
+   "customDivision": false
+  },
+  {
+   "id": 900501,
+   "name": " Central",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900502,
+   "name": " Central Coast",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900503,
+   "name": " Los Angeles",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900504,
+   "name": " North Coast",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900505,
+   "name": " Northern",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900506,
+   "name": " Oakland",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900507,
+   "name": " Sac-Joaquin",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900508,
+   "name": " San Diego",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900509,
+   "name": " San Francisco",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  },
+  {
+   "id": 900510,
+   "name": " Southern",
+   "state": "CA",
+   "divType": "Section",
+   "subDivType": "League",
+   "depth": 2,
+   "customDivision": false
+  }
+ ],
+ "events": [],
+ "events_main": [],
+ "recordSets": []
+}

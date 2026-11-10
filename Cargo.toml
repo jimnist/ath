@@ -1,0 +1,50 @@
+[package]
+name = "ath"
+version = "0.1.0"
+edition = "2024"
+authors = ["Jim Nist"]
+description = "Generate meet seed sheets from Athletic.net, CSV in / CSV out."
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/jimnist/ath"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+anyhow = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde", "std"] }
+async-trait = "0.1"
+clap = { version = "4", features = ["derive", "env"] }
+csv = "1"
+dirs = "6"
+futures = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+
+# Async by default (this template targets network/IO CLIs). To strip it out for
+# an offline CLI, see "Going sync" in the README.
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time", "net", "sync"] }
+reqwest = { version = "0.12", features = ["json"] }
+
+# The browser relay's small localhost HTTP server (all three already come in
+# through reqwest).
+http-body-util = "0.1"
+hyper = { version = "1", features = ["server", "http1"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+# Encodes the bookmarklet (already in the tree through url/reqwest).
+percent-encoding = "2"
+
+[dev-dependencies]
+tempfile = "3"
+# A one-shot localhost server for the cookie transport's tests.
+# `test-util` for the paused clock that times rankings page pacing exactly.
+tokio = { version = "1", features = ["net", "io-util", "test-util"] }
+
+[profile.release]
+strip = true
+opt-level = "s"
+codegen-units = 1
+lto = true
+panic = "unwind"

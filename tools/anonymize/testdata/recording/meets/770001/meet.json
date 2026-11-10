@@ -1,0 +1,29 @@
+{
+ "meet": {
+  "ID": 770001,
+  "Name": "Harrowgate Winter Classic",
+  "MeetDate": "2099-01-09T00:00:00",
+  "StartDate": "2099-01-09T00:00:00",
+  "EndDate": "2099-01-10T00:00:00",
+  "SeasonID": 12099,
+  "PublicEntries": "2098-12-20T00:00:00",
+  "RegEnabled": true,
+  "RelayAthletesRequired": 4,
+  "Location": {
+   "Indoor": true,
+   "Name": "Harrowgate Fieldhouse",
+   "City": "Callowmere",
+   "State": "CA"
+  }
+ },
+ "tfDivisions": [
+  {
+   "IDMeetDiv": 3300013,
+   "MeetID": 770001,
+   "IDDiv": 13,
+   "Division": "Varsity",
+   "DivisionShort": "V",
+   "LevelMask": 4
+  }
+ ]
+}

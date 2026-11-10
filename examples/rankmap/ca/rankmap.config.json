@@ -1,0 +1,9 @@
+{
+  "_note": "The California example: an 11th grader's 400m, with the CIF Sections and State Meet. Anonymized data (ADR 0010), built by examples/build_site.py.",
+  "athlete_id": 992042057,
+  "event": "400m",
+  "graduation_year": 2100,
+  "output_dir": "../../site",
+  "example": true,
+  "areas_dir": "areas"
+}

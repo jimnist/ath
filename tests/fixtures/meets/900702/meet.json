@@ -1,0 +1,23 @@
+{
+  "meet": {
+    "ID": 900702,
+    "Name": "Lakeshore Distance Carnival",
+    "MeetDate": "2099-04-11T00:00:00",
+    "StartDate": "2099-04-11T00:00:00",
+    "EndDate": "2099-04-11T00:00:00",
+    "SeasonID": 2099,
+    "PublicEntries": "2099-04-01T00:00:00",
+    "RegEnabled": true,
+    "RelayAthletesRequired": 4,
+    "Location": {
+      "Indoor": false,
+      "Name": "Lakeshore Stadium",
+      "City": "Lakeshore",
+      "State": "NY"
+    }
+  },
+  "tfDivisions": [
+    { "IDMeetDiv": 900702021, "MeetID": 900702, "IDDiv": 21, "Division": "Varsity", "DivisionShort": "V", "LevelMask": 4 }
+  ],
+  "jwtMeet": "fixture-meet-token-not-a-real-jwt"
+}

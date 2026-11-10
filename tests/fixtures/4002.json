@@ -1,0 +1,13 @@
+{
+  "athlete": { "IDAthlete": 4002, "SchoolID": 701, "FirstName": "Hana", "LastName": "Hollis", "Gender": "F" },
+  "allTeams": {
+    "701": { "IDSchool": 701, "SchoolName": "Willow Creek High", "Level": 4, "Year": 2026 },
+    "9301": { "IDSchool": 9301, "SchoolName": "Riverbend Runners", "Level": 16, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "200 Meters", "Type": "T", "IDEvent": 20, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 4002, "Result": "26.40a", "SortInt": 26400, "EventID": 20, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-04-18T00:00:00" }
+  ]
+}

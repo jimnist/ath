@@ -1,0 +1,19 @@
+{
+  "athlete": { "IDAthlete": 1001, "SchoolID": 501, "FirstName": "Alice", "LastName": "Anders", "Gender": "F" },
+  "allTeams": {
+    "501": { "IDSchool": 501, "SchoolName": "Riverside High", "Level": 4, "Year": 2026 },
+    "9001": { "IDSchool": 9001, "SchoolName": "Velocity Track Club", "Level": 16, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "400 Meters", "Type": "T", "IDEvent": 21, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 1001, "Result": "58.24a", "SortInt": 58240, "EventID": 21, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false },
+    { "AthleteID": 1001, "Result": "57.00a", "SortInt": 57000, "EventID": 21, "EventTypeID": 0, "SeasonID": 2025, "Exhibition": false },
+    { "AthleteID": 1001, "Result": "DNS", "SortInt": 20000001, "EventID": 21, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false },
+    { "AthleteID": 1001, "Result": "56.50h", "SortInt": 56500, "EventID": 21, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false },
+    { "AthleteID": 1001, "Result": "54.00a", "SortInt": 54000, "EventID": 21, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": true },
+    { "AthleteID": 1001, "Result": "53.62a", "SortInt": 53620, "EventID": 21, "EventTypeID": 98, "SeasonID": 2026, "Exhibition": false },
+    { "AthleteID": 8801, "Result": "3:58.58a", "SortInt": 238580, "EventID": 26, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false }
+  ]
+}

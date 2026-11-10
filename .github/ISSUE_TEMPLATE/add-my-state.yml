@@ -1,0 +1,55 @@
+name: Add my State
+description: Ask for your State's Areas (Sections, Classes, Districts) and State Meet rules in rankmap.
+title: "Add <State>: <Area level>"
+labels: ["feature", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        rankmap shows a second view for States that have an Area file in `areas/`.
+        [`docs/areas.md`](https://github.com/jimnist/ath/blob/main/docs/areas.md#adding-a-state) is the guide to adding one; a pull request is welcome, and this issue is the place to collect what it needs.
+  - type: input
+    id: state
+    attributes:
+      label: State
+      description: The State's name and two-letter code.
+      placeholder: Oregon (OR)
+    validations:
+      required: true
+  - type: textarea
+    id: level
+    attributes:
+      label: Area level
+      description: |
+        Paste the output of `ath areas <ST>` (it says when a State has no Area file yet), and say what people in your State call the level directly below the State on Athletic.net.
+      render: text
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What are the Areas?
+      description: Places get a county map; school sizes (or anything not geographic) get one card per Area.
+      options:
+        - Places (regions, sections or districts on a map)
+        - School sizes (classes or divisions by enrollment)
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: state_meet
+    attributes:
+      label: State Meet qualifying rules
+      description: |
+        How athletes qualify for the State championship: by place at each Area's meet (how many per event), by standards (automatic and provisional marks), or both.
+        Link the State association's handbook or page for each season you know; every number in the Area file cites one.
+      placeholder: |
+        Top 3 per event from each district meet, plus anyone meeting the at-large standard.
+        Handbook: https://...
+    validations:
+      required: true
+  - type: textarea
+    id: other
+    attributes:
+      label: Anything else
+      description: Counties split between Areas, city or district Areas, names that differ from Athletic.net's, recent changes.

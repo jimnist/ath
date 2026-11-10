@@ -1,0 +1,85 @@
+{
+ "athlete": {
+  "IDAthlete": 1204001,
+  "SchoolID": 4102,
+  "FirstName": "Linnea",
+  "LastName": "Rookwood",
+  "Gender": "F"
+ },
+ "allTeams": {
+  "4102": {
+   "IDSchool": 4102,
+   "SchoolName": "Tidewater High School",
+   "Level": 4,
+   "Year": 2026
+  }
+ },
+ "grades": {
+  "4102_2026": 11,
+  "4102_12026": 11
+ },
+ "allSeasons": [
+  {
+   "ID": 2026,
+   "Display": "2026 Outdoor"
+  },
+  {
+   "ID": 12026,
+   "Display": "2026 Indoor"
+  }
+ ],
+ "eventsTF": [
+  {
+   "Event": "800 Meters",
+   "Type": "T",
+   "IDEvent": 22,
+   "IDEventType": 0
+  }
+ ],
+ "resultsTF": [
+  {
+   "IDResult": 88000010,
+   "AthleteID": 1204001,
+   "Result": "2:11.25a",
+   "SortInt": 131250,
+   "EventID": 22,
+   "EventTypeID": 0,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-05-09T00:00:00",
+   "MeetID": 660102,
+   "meetName": null,
+   "SchoolID": 4102,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  },
+  {
+   "IDResult": 88000011,
+   "AthleteID": 1204001,
+   "Result": "2:12.95a",
+   "SortInt": 132950,
+   "EventID": 22,
+   "EventTypeID": 0,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-04-04T00:00:00",
+   "MeetID": 660101,
+   "meetName": null,
+   "SchoolID": 4102,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  }
+ ],
+ "meets": {
+  "660102": {
+   "IDMeet": 660102,
+   "MeetName": "Driftwood Relays 2026",
+   "EndDate": "2026-05-09T00:00:00"
+  },
+  "660101": {
+   "IDMeet": 660101,
+   "MeetName": "Gullwing Invitational",
+   "EndDate": "2026-04-04T00:00:00"
+  }
+ }
+}

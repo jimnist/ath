@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Boys 4x800m seed sheet</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="color-scheme" content="light only">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Roboto+Condensed:wght@600;700;800;900&display=swap">
+<style>
+/* Layout: a results-board header, then the seed list as one table: marks fastest first, then a
+   divided group with no mark. Always light: the page ignores the viewer's dark-mode setting. */
+:root {
+  --bg: #fffcf0;
+  --surface: #ffffff;
+  --fg: #161c18;
+  --muted: #5d6a62;
+  --line: #d9e2dc;
+  --accent: #17793f;
+  --seg: #e6e6e6;
+  --seg-on: #3a3a3a;
+  --seg-on-fg: #ffffcc;
+  --highlight: #fff200;
+  --map-bg: #e5f1fb;
+  --display: "Roboto Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --body: "Atkinson Hyperlegible", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light only;
+}
+[hidden] { display: none !important; }
+*, *::before, *::after { box-sizing: border-box; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 18px; }
+.wrap { max-width: 920px; }
+header { display: grid; gap: 10px; }
+.kicker { margin: 0; font-family: var(--display); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: 14px; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 900; font-size: clamp(30px, 5vw, 48px); line-height: 1; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+.lede { margin: 0; color: var(--muted); max-width: 64ch; }
+.back { color: var(--fg); text-decoration: none; border-bottom: 2px solid var(--highlight); }
+.back:hover, .back:focus-visible { color: var(--accent); border-color: var(--accent); outline: none; }
+.spot { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 4px; font-size: 16px; }
+.hl { display: inline-block; padding: 0 .3em; background: var(--highlight); border-radius: 3px; font-family: var(--display); font-weight: 900; font-variant-numeric: tabular-nums; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.dl { display: inline-flex; align-items: center; gap: 8px; font: 700 16px/1 var(--display); letter-spacing: .02em; color: var(--fg); background: var(--seg); border-radius: 6px; padding: 10px 16px; text-decoration: none; }
+.dl:hover { background: var(--seg-on); color: var(--seg-on-fg); }
+.dl:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.dl svg { width: 16px; height: 16px; }
+.tbl-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+thead th { text-align: left; font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line); }
+td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: baseline; }
+tbody:last-child tr:last-child td { border-bottom: 0; }
+.rk { width: 3.2em; text-align: right; font-family: var(--display); font-weight: 800; font-size: 17px; font-variant-numeric: tabular-nums; color: var(--muted); }
+thead .rk { font-size: 12px; font-weight: 600; }
+.ath { font-weight: 600; }
+.pr { white-space: nowrap; }
+.mk { font-family: var(--display); font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; }
+.c-season { color: var(--muted); font-variant-numeric: tabular-nums; }
+.c-team { color: var(--muted); font-size: 14px; }
+td a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
+td a:hover, td a:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
+.sub, .ps { display: none; }
+tr.me td { background: #fff8c4; }
+tr.me .rk { color: var(--fg); box-shadow: inset 4px 0 0 var(--fg); }
+tr.me .mk { padding: 0 .2em; background: var(--highlight); border-radius: 3px; }
+.divider th { text-align: left; font-family: var(--display); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: 13px; color: var(--fg); background: var(--seg); padding: 8px 12px; border-bottom: 1px solid var(--line); }
+tr.nm .rk { font-weight: 600; }
+.none { display: inline-block; font-family: var(--display); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); border: 1px dashed var(--muted); border-radius: 3px; padding: 0 .4em; }
+.notes { color: var(--muted); font-size: 13px; max-width: 72ch; display: grid; gap: 6px; }
+.notes p { margin: 0; }
+button.dl { border: 0; cursor: pointer; }
+.copy-msg { align-self: center; font-size: 13px; color: var(--muted); }
+.miss-link { color: var(--fg); font-weight: 700; text-decoration: underline; text-decoration-color: var(--highlight); text-decoration-thickness: 3px; text-underline-offset: 3px; }
+.missing { display: grid; gap: 6px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--fg); border-radius: 6px; }
+.missing h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 20px; }
+.missing p { margin: 0; color: var(--muted); font-size: 14px; }
+.missing ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.missing li span { color: var(--muted); font-size: 14px; }
+.missing li span::before { content: "\00b7  "; }
+.missing a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
+.empty { margin: 0; padding: 18px; background: var(--surface); border: 1px dashed var(--muted); border-radius: 6px; color: var(--muted); }
+.csv { min-width: 0; font-size: 13px; color: var(--muted); }
+.csv summary { cursor: pointer; font-family: var(--display); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.csv summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.csv p { margin: 6px 0; }
+.csv pre { margin: 0; padding: 10px 12px; max-height: 260px; overflow: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; font-size: 12px; line-height: 1.45; color: var(--fg); white-space: pre; }
+@media (max-width: 640px) {
+  .c-season, .c-team { display: none; }
+  .sub { display: block; font-weight: 400; font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .tw { display: inline-block; }
+  .ps { display: block; font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+  .pr { text-align: right; }
+  td, thead th, .divider th { padding: 8px 8px; }
+  .rk { width: 2.4em; }
+}
+.relay .tm td, .relay .tm th { padding-top: 12px; border-bottom: 0; }
+.relay .tn { text-align: left; font-family: var(--display); font-weight: 800; font-size: 18px; padding: 12px 12px 4px; }
+.relay .tn a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
+.relay .tn a:hover, .relay .tn a:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
+.relay .ltr { display: inline-block; margin-left: .2em; padding: 0 .35em; font-size: 14px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 3px; vertical-align: 2px; }
+.relay .why { font-family: var(--body); font-weight: 400; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.relay .est { font-family: var(--body); font-size: 12px; font-style: italic; color: var(--muted); white-space: normal; }
+.relay .tm .mk { font-size: 20px; }
+.relay tbody.team + tbody.team .tm td, .relay tbody.team + tbody.team .tm th { border-top: 1px solid var(--line); }
+.relay .lg td { padding-top: 5px; padding-bottom: 5px; border-bottom: 0; }
+.relay tbody.team .lg:last-child td { padding-bottom: 12px; }
+.relay .lg .ath { font-weight: 400; padding-left: 12px; }
+.relay .lg .mk { font-size: 15px; font-weight: 700; }
+.relay .ln { display: inline-block; width: 1.6em; font-family: var(--display); font-weight: 700; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.relay .nr { color: var(--muted); font-style: italic; }
+.relay .c-grade { width: 5em; color: var(--muted); font-variant-numeric: tabular-nums; }
+.relay .pr { width: 8em; }
+.relay .c-season { width: 4.5em; }
+.relay tbody.mine .tm .rk { color: var(--fg); }
+@media (max-width: 640px) {
+  .relay .c-grade { display: none; }
+  .relay .lg .ath { padding-left: 8px; }
+  .relay .lg .sub { margin-left: 1.6em; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="kicker">Riverton Winter Classic &middot; January 9, 2099</p>
+    <h1>Boys 4x800m seed sheet</h1>
+    <p class="lede">4 teams, seeded on the sum of their four runners’ Personal records in the 800 Meters as of November 6, 2026, fastest first. 2 missing a runner, or with a runner who has no mark, are at the bottom.</p>
+    <ul class="spot"><li><span class="hl">2:00.40</span> <b>Nico Vance</b> runs leg 2 for Pinecrest Academy A, seeded 2nd of 4 (8:02.55)</li><li><b>Finch Dorsey</b> runs leg 4 for Pinecrest Academy B with no mark in the 800 Meters yet, so the team has no aggregate and is seeded at the bottom (3rd of 4)</li></ul>
+    <div class="actions">
+      <a class="dl" href="data:text/csv;charset=utf-8,rank%2Cteam%2Cletter%2Cteam_url%2Caggregate%2Caggregate_seconds%2Caggregate_estimated%2Cno_aggregate_reason%2Crunner1%2Crunner1_id%2Crunner1_url%2Crunner1_pr%2Crunner1_estimated_from%2Crunner2%2Crunner2_id%2Crunner2_url%2Crunner2_pr%2Crunner2_estimated_from%2Crunner3%2Crunner3_id%2Crunner3_url%2Crunner3_pr%2Crunner3_estimated_from%2Crunner4%2Crunner4_id%2Crunner4_url%2Crunner4_pr%2Crunner4_estimated_from%0A1%2CHarbor%20View%20High%2CA%2Chttps%3A//www.athletic.net/team/900402/track-and-field-outdoor%2C7%3A59.05%2C479.05%2Cfalse%2C%2CKai%20Lowell%2C900100021%2Chttps%3A//www.athletic.net/athlete/900100021/track-and-field%2C1%3A57.40%2C%2CBram%20Ostrow%2C900100022%2Chttps%3A//www.athletic.net/athlete/900100022/track-and-field%2C1%3A59.90%2C%2COtis%20Wren%2C900100023%2Chttps%3A//www.athletic.net/athlete/900100023/track-and-field%2C2%3A00.05%2C%2CCyrus%20Hale%2C900100024%2Chttps%3A//www.athletic.net/athlete/900100024/track-and-field%2C2%3A01.70%2C%0A2%2CPinecrest%20Academy%2CA%2Chttps%3A//www.athletic.net/team/900401/track-and-field-outdoor%2C8%3A02.55%2C482.55%2Cfalse%2C%2CEzra%20Holt%2C900100011%2Chttps%3A//www.athletic.net/athlete/900100011/track-and-field%2C1%3A58.20%2C%2CNico%20Vance%2C900100012%2Chttps%3A//www.athletic.net/athlete/900100012/track-and-field%2C2%3A00.40%2C%2CSilas%20Reed%2C900100013%2Chttps%3A//www.athletic.net/athlete/900100013/track-and-field%2C2%3A01.15%2C%2CArlo%20Penn%2C900100014%2Chttps%3A//www.athletic.net/athlete/900100014/track-and-field%2C2%3A02.80%2C%0A3%2CPinecrest%20Academy%2CB%2Chttps%3A//www.athletic.net/team/900401/track-and-field-outdoor%2C%2C%2Cfalse%2CLeg%204%20has%20no%20800%20Meters%20mark%2CJude%20Calloway%2C900100015%2Chttps%3A//www.athletic.net/athlete/900100015/track-and-field%2C2%3A04.30%2C%2CRhys%20Monroe%2C900100016%2Chttps%3A//www.athletic.net/athlete/900100016/track-and-field%2C2%3A06.10%2C%2CAbel%20Tran%2C900100017%2Chttps%3A//www.athletic.net/athlete/900100017/track-and-field%2C2%3A05.55%2C%2CFinch%20Dorsey%2C900100018%2Chttps%3A//www.athletic.net/athlete/900100018/track-and-field%2C%2C%0A4%2CLakemont%20Prep%2CA%2Chttps%3A//www.athletic.net/team/900403/track-and-field-outdoor%2C%2C%2Cfalse%2CLeg%204%20has%20no%20runner%2CDex%20Arden%2C900100031%2Chttps%3A//www.athletic.net/athlete/900100031/track-and-field%2C2%3A03.00%2C%2CLev%20Okafor%2C900100032%2Chttps%3A//www.athletic.net/athlete/900100032/track-and-field%2C2%3A04.00%2C%2CWade%20Pruitt%2C900100033%2Chttps%3A//www.athletic.net/athlete/900100033/track-and-field%2C2%3A05.00%2C%2C%2C%2C%2C%2C%0A" download="riverton-winter-classic-boys-4x800m.csv"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1v9m-4-4 4 4 4-4M2 14h12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Download CSV</a>
+      <button class="dl" type="button" id="copy" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 5V2h9v9h-3M2 5h9v9H2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Copy CSV</button>
+      <span class="copy-msg" id="copy-msg" role="status"></span>
+    </div>
+  </header>
+  <div class="tbl-wrap">
+    <table class="relay">
+      <thead><tr><th class="rk" scope="col">Seed</th><th scope="col">Team &middot; runners by leg</th><th class="c-grade" scope="col">Grade</th><th class="pr" scope="col">Mark</th><th class="c-season" scope="col">Set</th></tr></thead>
+      <tbody class="team"><tr class="tm"><td class="rk">1</td><th class="tn" scope="rowgroup"><a href="https://www.athletic.net/team/900402/track-and-field-outdoor" target="_blank" rel="noopener">Harbor View High</a> <span class="ltr">A</span></th><td class="c-grade"></td><td class="pr"><span class="mk">7:59.05</span></td><td class="c-season"></td></tr><tr class="lg" data-athlete="900100021"><td class="rk"></td><td class="ath"><span class="ln" title="Leg 1">1</span><a href="https://www.athletic.net/athlete/900100021/track-and-field" target="_blank" rel="noopener">Kai Lowell</a><div class="sub">Grade 12</div></td><td class="c-grade">12</td><td class="pr"><span class="mk">1:57.40</span><span class="ps">2026</span></td><td class="c-season">2026</td></tr><tr class="lg" data-athlete="900100022"><td class="rk"></td><td class="ath"><span class="ln" title="Leg 2">2</span><a href="https://www.athletic.net/athlete/900100022/track-and-field" target="_blank" rel="noopener">Bram Ostrow</a><div class="sub">Grade 12</div></td><td class="c-grade">12</td><td class="pr"><span class="mk">1:59.90</span><span class="ps">2025</span></td><td class="c-season">2025</td></tr><tr class="lg" data-athlete="900100023"><td class="rk"></td><td class="ath"><span class="ln" title="Leg 3">3</span><a href="https://www.athletic.net/athlete/900100023/track-and-field" target="_blank" rel="noopener">Otis Wren</a><div class="sub">Grade 11</div></td><td class="c-grade">11</td><td class="pr"><span class="mk">2:00.05</span><span class="ps">2026</span></td><td class="c-season">2026</td></tr><tr class="lg" data-athlete="900100024"><td class="rk"></td><td class="ath"><span class="ln" title="Leg 4">4</span><a href="https://www.athletic.net/athlete/900100024/track-and-field" target="_blank" rel="noopener">Cyrus Hale</a><div class="sub">Grade 11</div></td><td class="c-grade">11</td><td class="pr"><span class="mk">2:01.70</span><span class="ps">2026</span></td><td class="c-season">2026</td></tr></tbody><tbody class="team mine"><tr class="tm"><td class="rk">2</td><th class="tn" scope="rowgroup"><a href="https://www.athletic.net/team/900401/track-and-field-outdoor" target="_blank" rel="noopener">Pinecrest Academy</a> <span class="ltr">A</span></th><td class="c-grade"></td><td class="pr"><span class="mk">8:02.55</span></td><td class="c-season"></td></tr><tr class="lg" data-athlete="900100011"><td class="rk"></td><td class="ath"><span class="ln" title="Leg 1">1</span><a href="https://www.athletic.net/athlete/900100011/track-and-field" target="_blank" rel="noopener">Ezra Holt</a><div class="sub">Grade 12</div></td><td class="c-grade">12</td><td class="pr"><span class="mk">1:58.20</span><span class="ps">2026</span></td><td class="c-season">2026</td></tr><tr class="lg me" data-athlete="900100012"><td class="rk"></td><td class="ath"><span class="ln" title="Leg 2">2</span><a href="https://www.athletic.net/athlete/900100012/track-and-field" target="_blank" rel="noopener">Nico Vance</a><div class="sub">Grade 11</div></td><td class="c-grade">11</td><td class="pr"><span class="mk">2:00.40</span><span class="ps">2025</span></td><td class="c-season">2025</td></tr><tr class="lg" data-athlete="900100013"><td class="rk"></td><td class="ath"><span class="ln" title="Leg 3">3</span><a href="https://www.athletic.net/athlete/900100013/track-and-field" target="_blank" rel="noopener">Silas Reed</a><div class="sub">Grade 11</div></td><td class="c-grade">11</td><td class="pr"><span class="mk">2:01.15</span><span class="ps">2026</span></td><td class="c-season">2026</td></tr><tr class="lg" data-athlete="900100014"><td class="rk"></td><td class="ath"><span class="ln" title="Leg 4">4</span><a href="https://www.athletic.net/athlete/900100014/track-and-field" target="_blank" rel="noopener">Arlo Penn</a><div class="sub">Grade 10</div></td><td class="c-grade">10</td><td class="pr"><span class="mk">2:02.80</span><span class="ps">2026</span></td><td class="c-season">2026</td></tr></tbody><tbody class="nomark"><tr class="divider"><th colspan="5" scope="rowgroup">No aggregate &middot; 2</th></tr></tbody><tbody class="team mine nm"><tr class="tm"><td class="rk">3</td><th class="tn" scope="rowgroup"><a href="https://www.athletic.net/team/900401/track-and-field-outdoor" target="_blank" rel="noopener">Pinecrest Academy</a> <span class="ltr">B</span><div class="why">Leg 4 has no 800 Meters mark</div></th><td class="c-grade"></td><td class="pr"><span class="none" title="No aggregate">No aggregate</span></td><td class="c-season"></td></tr><tr class="lg" data-athlete="900100015"><td class="rk"></td><td class="ath"><span class="ln" title="Leg 1">1</span><a href="https://www.athletic.net/athlete/900100015/track-and-field" target="_blank" rel="noopener">Jude Calloway</a><div class="sub">Grade 10</div></td><td class="c-grade">10</td><td class="pr"><span class="mk">2:04.30</span><span class="ps">2026</span></td><td class="c-season">2026</td></tr><tr class="lg" data-athlete="900100016"><td class="rk"></td><td class="ath"><span class="ln" title="Leg 2">2</span><a href="https://www.athletic.net/athlete/900100016/track-and-field" target="_blank" rel="noopener">Rhys Monroe</a><div class="sub">Grade 9</div></td><td class="c-grade">9</td><td class="pr"><span class="mk">2:06.10</span><span class="ps">2026</span></td><td class="c-season">2026</td></tr><tr class="lg" data-athlete="900100017"><td class="rk"></td><td class="ath"><span class="ln" title="Leg 3">3</span><a href="https://www.athletic.net/athlete/900100017/track-and-field" target="_blank" rel="noopener">Abel Tran</a><div class="sub">Grade 10</div></td><td class="c-grade">10</td><td class="pr"><span class="mk">2:05.55</span><span class="ps">2026</span></td><td class="c-season">2026</td></tr><tr class="lg me nm" data-athlete="900100018"><td class="rk"></td><td class="ath"><span class="ln" title="Leg 4">4</span><a href="https://www.athletic.net/athlete/900100018/track-and-field" target="_blank" rel="noopener">Finch Dorsey</a><div class="sub">Grade 9</div></td><td class="c-grade">9</td><td class="pr"><span class="none" title="No mark in the 800 Meters">No mark</span></td><td class="c-season"></td></tr></tbody><tbody class="team nm"><tr class="tm"><td class="rk">4</td><th class="tn" scope="rowgroup"><a href="https://www.athletic.net/team/900403/track-and-field-outdoor" target="_blank" rel="noopener">Lakemont Prep</a> <span class="ltr">A</span><div class="why">Leg 4 has no runner</div></th><td class="c-grade"></td><td class="pr"><span class="none" title="No aggregate">No aggregate</span></td><td class="c-season"></td></tr><tr class="lg" data-athlete="900100031"><td class="rk"></td><td class="ath"><span class="ln" title="Leg 1">1</span><a href="https://www.athletic.net/athlete/900100031/track-and-field" target="_blank" rel="noopener">Dex Arden</a><div class="sub">Grade 11</div></td><td class="c-grade">11</td><td class="pr"><span class="mk">2:03.00</span><span class="ps">2026</span></td><td class="c-season">2026</td></tr><tr class="lg" data-athlete="900100032"><td class="rk"></td><td class="ath"><span class="ln" title="Leg 2">2</span><a href="https://www.athletic.net/athlete/900100032/track-and-field" target="_blank" rel="noopener">Lev Okafor</a><div class="sub">Grade 10</div></td><td class="c-grade">10</td><td class="pr"><span class="mk">2:04.00</span><span class="ps">2026</span></td><td class="c-season">2026</td></tr><tr class="lg" data-athlete="900100033"><td class="rk"></td><td class="ath"><span class="ln" title="Leg 3">3</span><a href="https://www.athletic.net/athlete/900100033/track-and-field" target="_blank" rel="noopener">Wade Pruitt</a><div class="sub">Grade 12</div></td><td class="c-grade">12</td><td class="pr"><span class="mk">2:05.00</span><span class="ps">2026</span></td><td class="c-season">2026</td></tr><tr class="lg nm"><td class="rk"></td><td class="ath"><span class="ln">4</span><span class="nr">No runner entered</span></td><td class="c-grade"></td><td class="pr"><span class="none">No runner</span></td><td class="c-season"></td></tr></tbody>
+    </table>
+  </div>
+  
+  <div class="notes">
+    <p>Each team is seeded on its aggregate: the sum of its four runners’ Personal records in the 800 Meters, each their fastest outdoor mark in any season, set on or before November 6, 2026. Indoor marks, relay splits, exhibition and hand-timed marks never count. Set is the season a mark was run in.</p>
+    <p>A team missing a runner, or with a runner who has no mark in the 800 Meters, has no aggregate and is listed last. Runners are in leg order; names link to their profiles.</p>
+    <p>Data pulled November 6, 2026.</p>
+  </div>
+  <details class="csv" id="csv-box">
+    <summary>Seed sheet CSV</summary>
+    <p>Where the download is blocked (some embedded viewers block downloads), select this text and copy it, or use Copy CSV.</p>
+    <pre id="csv">rank,team,letter,team_url,aggregate,aggregate_seconds,aggregate_estimated,no_aggregate_reason,runner1,runner1_id,runner1_url,runner1_pr,runner1_estimated_from,runner2,runner2_id,runner2_url,runner2_pr,runner2_estimated_from,runner3,runner3_id,runner3_url,runner3_pr,runner3_estimated_from,runner4,runner4_id,runner4_url,runner4_pr,runner4_estimated_from
+1,Harbor View High,A,https://www.athletic.net/team/900402/track-and-field-outdoor,7:59.05,479.05,false,,Kai Lowell,900100021,https://www.athletic.net/athlete/900100021/track-and-field,1:57.40,,Bram Ostrow,900100022,https://www.athletic.net/athlete/900100022/track-and-field,1:59.90,,Otis Wren,900100023,https://www.athletic.net/athlete/900100023/track-and-field,2:00.05,,Cyrus Hale,900100024,https://www.athletic.net/athlete/900100024/track-and-field,2:01.70,
+2,Pinecrest Academy,A,https://www.athletic.net/team/900401/track-and-field-outdoor,8:02.55,482.55,false,,Ezra Holt,900100011,https://www.athletic.net/athlete/900100011/track-and-field,1:58.20,,Nico Vance,900100012,https://www.athletic.net/athlete/900100012/track-and-field,2:00.40,,Silas Reed,900100013,https://www.athletic.net/athlete/900100013/track-and-field,2:01.15,,Arlo Penn,900100014,https://www.athletic.net/athlete/900100014/track-and-field,2:02.80,
+3,Pinecrest Academy,B,https://www.athletic.net/team/900401/track-and-field-outdoor,,,false,Leg 4 has no 800 Meters mark,Jude Calloway,900100015,https://www.athletic.net/athlete/900100015/track-and-field,2:04.30,,Rhys Monroe,900100016,https://www.athletic.net/athlete/900100016/track-and-field,2:06.10,,Abel Tran,900100017,https://www.athletic.net/athlete/900100017/track-and-field,2:05.55,,Finch Dorsey,900100018,https://www.athletic.net/athlete/900100018/track-and-field,,
+4,Lakemont Prep,A,https://www.athletic.net/team/900403/track-and-field-outdoor,,,false,Leg 4 has no runner,Dex Arden,900100031,https://www.athletic.net/athlete/900100031/track-and-field,2:03.00,,Lev Okafor,900100032,https://www.athletic.net/athlete/900100032/track-and-field,2:04.00,,Wade Pruitt,900100033,https://www.athletic.net/athlete/900100033/track-and-field,2:05.00,,,,,,
+</pre>
+  </details>
+</div>
+<script>
+/* Copy CSV: the clipboard when the browser allows it; otherwise the CSV below is opened and
+   selected, ready for Ctrl+C or Cmd+C. Without script the button stays hidden. */
+(function () {
+  var btn = document.getElementById("copy"), pre = document.getElementById("csv"),
+      box = document.getElementById("csv-box"), msg = document.getElementById("copy-msg");
+  btn.hidden = false;
+  function selectCsv() {
+    box.open = true;
+    var range = document.createRange(), sel = window.getSelection();
+    range.selectNodeContents(pre);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+  function fallback() {
+    selectCsv();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) {}
+    msg.textContent = ok ? "Copied" : "Selected below: press Ctrl+C (Cmd+C on a Mac) to copy";
+  }
+  btn.addEventListener("click", function () {
+    /* Whichever comes first: the clipboard says yes, or it says no, throws, is missing, or has
+       not answered in a second (an embedded frame can leave it hanging). */
+    var done = false;
+    function copied() { if (!done) { done = true; msg.textContent = "Copied"; } }
+    function failed() { if (!done) { done = true; fallback(); } }
+    try {
+      navigator.clipboard.writeText(pre.textContent).then(copied, failed);
+    } catch (e) {
+      failed();
+      return;
+    }
+    setTimeout(failed, 1000);
+  });
+})();
+</script>
+</body>
+</html>

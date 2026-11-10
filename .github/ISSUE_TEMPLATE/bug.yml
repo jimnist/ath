@@ -1,0 +1,64 @@
+name: Bug
+description: Something in ath, rankmap or seedsheet works wrong.
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do not paste real athletes' names, ids or marks, cookies, or anything from your `local/` folder.
+        Replace names with invented ones; the bug usually still shows.
+  - type: textarea
+    id: command
+    attributes:
+      label: Command run
+      description: The exact command, with its options (and the config's settings, for rankmap or seedsheet).
+      render: shell
+      placeholder: ath rank 123 --event 400m --season 2026 --in all
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+      description: What you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: got
+    attributes:
+      label: Got
+      description: What happened instead, with the error or warnings `ath` printed.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: ath --version
+      description: The output of `ath --version`, if the bug involves `ath` (rankmap and seedsheet run it too).
+      placeholder: ath 0.1.0
+  - type: dropdown
+    id: transport
+    attributes:
+      label: How ath reached Athletic.net
+      options:
+        - Browser relay
+        - Cookie (--cookie, --cookie-file or ATH_COOKIE)
+        - Offline (--fixtures-dir)
+        - Not an ath fetch (rankmap or seedsheet --no-fetch, or a page bug)
+  - type: dropdown
+    id: paid
+    attributes:
+      label: Athletic.net subscription
+      description: Full Rankings lists need a paid subscription; without one they stop at 25 rows.
+      options:
+        - Paid, signed in
+        - Signed in, not paid
+        - Signed out
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and browser
+      placeholder: macOS 15, Chrome 141

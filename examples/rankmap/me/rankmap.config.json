@@ -1,0 +1,9 @@
+{
+  "_note": "The Maine example: an 11th grader's 400m, with the MPA Classes and their standards. Anonymized data (ADR 0010), built by examples/build_site.py.",
+  "athlete_id": 925635428,
+  "event": "400m",
+  "graduation_year": 2100,
+  "output_dir": "../../site",
+  "example": true,
+  "areas_dir": "areas"
+}

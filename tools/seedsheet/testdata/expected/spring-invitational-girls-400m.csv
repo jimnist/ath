@@ -1,0 +1,9 @@
+rank,athlete,athlete_id,athlete_url,pr,pr_numeric,school,school_url,club,club_url,pr_season
+1,Erin Ellis,1004,https://www.athletic.net/athlete/1004/track-and-field,54.50,54.5,Northgate High,https://www.athletic.net/team/504/track-and-field-outdoor,,,2025
+2,Finn Foster,1005,https://www.athletic.net/athlete/1005/track-and-field,55.00,55.0,Southview High,https://www.athletic.net/team/505/track-and-field-outdoor,,,2026
+3,Gwen Garcia,4001,https://www.athletic.net/athlete/4001/track-and-field,56.85,56.85,Willow Creek High,https://www.athletic.net/team/701/track-and-field-outdoor,,,2026
+4,Dana Diaz,2001,https://www.athletic.net/athlete/2001/track-and-field,56.90,56.904,Harbor High,https://www.athletic.net/team/601/track-and-field-outdoor,Coastal Striders TC,https://www.athletic.net/team/9101/track-and-field-outdoor,2025
+5,Alice Anders,1001,https://www.athletic.net/athlete/1001/track-and-field,57.00,57.0,Riverside High,https://www.athletic.net/team/501/track-and-field-outdoor,Velocity Track Club,https://www.athletic.net/team/9001/track-and-field-outdoor,2025
+6,Cara Cole,1003,https://www.athletic.net/athlete/1003/track-and-field,,,Hillcrest High,https://www.athletic.net/team/503/track-and-field-outdoor,,,
+7,Hana Hollis,4002,https://www.athletic.net/athlete/4002/track-and-field,,,Willow Creek High,https://www.athletic.net/team/701/track-and-field-outdoor,Riverbend Runners,https://www.athletic.net/team/9301/track-and-field-outdoor,
+8,Riley Clubonly,3003,https://www.athletic.net/athlete/3003/track-and-field,,,,,Bayside Track Club,https://www.athletic.net/team/9201/track-and-field-outdoor,

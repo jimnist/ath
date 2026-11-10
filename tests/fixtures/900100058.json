@@ -1,0 +1,12 @@
+{
+  "athlete": { "IDAthlete": 900100058, "SchoolID": 900405, "FirstName": "Cora", "LastName": "Whitlow", "Gender": "F" },
+  "allTeams": {
+    "900405": { "IDSchool": 900405, "SchoolName": "Maple Ridge High", "Level": 4, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "1600 Meters", "Type": "T", "IDEvent": 53, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 900100058, "Result": "5:15.00a", "SortInt": 315000, "EventID": 53, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-05-09T00:00:00" }
+  ]
+}

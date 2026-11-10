@@ -1,0 +1,12 @@
+{
+  "athlete": { "IDAthlete": 900100003, "SchoolID": 900401, "FirstName": "Ravi", "LastName": "Stone", "Gender": "M" },
+  "allTeams": {
+    "900401": { "IDSchool": 900401, "SchoolName": "Pinecrest Academy", "Level": 4, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "400 Meters", "Type": "T", "IDEvent": 3, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 900100003, "Result": "52.40a", "SortInt": 52400, "EventID": 3, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-04-18T00:00:00" }
+  ]
+}

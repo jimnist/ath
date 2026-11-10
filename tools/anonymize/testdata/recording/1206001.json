@@ -1,0 +1,91 @@
+{
+ "athlete": {
+  "IDAthlete": 1206001,
+  "SchoolID": 4105,
+  "FirstName": "Saoirse",
+  "LastName": "Lisle",
+  "Gender": "F"
+ },
+ "allTeams": {
+  "4105": {
+   "IDSchool": 4105,
+   "SchoolName": "Saltmarsh Christian",
+   "Level": 4,
+   "Year": 2026
+  }
+ },
+ "grades": {
+  "4105_2026": 10,
+  "4105_12026": 10
+ },
+ "allSeasons": [
+  {
+   "ID": 2026,
+   "Display": "2026 Outdoor"
+  },
+  {
+   "ID": 12026,
+   "Display": "2026 Indoor"
+  }
+ ],
+ "eventsTF": [
+  {
+   "Event": "1600 Meters",
+   "Type": "T",
+   "IDEvent": 23,
+   "IDEventType": 0
+  },
+  {
+   "Event": "1 Mile",
+   "Type": "T",
+   "IDEvent": 59,
+   "IDEventType": 0
+  }
+ ],
+ "resultsTF": [
+  {
+   "IDResult": 88000048,
+   "AthleteID": 1206001,
+   "Result": "5:07.00a",
+   "SortInt": 307000,
+   "EventID": 23,
+   "EventTypeID": 0,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-04-18T00:00:00",
+   "MeetID": 660101,
+   "meetName": null,
+   "SchoolID": 4105,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  },
+  {
+   "IDResult": 88000049,
+   "AthleteID": 1206001,
+   "Result": "5:09.10a",
+   "SortInt": 309100,
+   "EventID": 59,
+   "EventTypeID": 0,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-05-02T00:00:00",
+   "MeetID": 660102,
+   "meetName": null,
+   "SchoolID": 4105,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  }
+ ],
+ "meets": {
+  "660101": {
+   "IDMeet": 660101,
+   "MeetName": "Gullwing Invitational",
+   "EndDate": "2026-04-18T00:00:00"
+  },
+  "660102": {
+   "IDMeet": 660102,
+   "MeetName": "Driftwood Relays 2026",
+   "EndDate": "2026-05-02T00:00:00"
+  }
+ }
+}

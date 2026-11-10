@@ -1,0 +1,13 @@
+{
+  "athlete": { "IDAthlete": 1003, "SchoolID": 503, "FirstName": "Cara", "LastName": "Cole", "Gender": "F" },
+  "allTeams": {
+    "503": { "IDSchool": 503, "SchoolName": "Hillcrest High", "Level": 4, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "200 Meters", "Type": "T", "IDEvent": 20, "IDEventType": 0 },
+    { "Event": "400 Meters", "Type": "T", "IDEvent": 21, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 1003, "Result": "26.10a", "SortInt": 26100, "EventID": 20, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false }
+  ]
+}

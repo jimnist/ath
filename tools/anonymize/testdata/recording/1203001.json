@@ -1,0 +1,227 @@
+{
+ "athlete": {
+  "IDAthlete": 1203001,
+  "SchoolID": 4101,
+  "FirstName": "Linnea",
+  "LastName": "Penhallow",
+  "Gender": "F"
+ },
+ "allTeams": {
+  "4101": {
+   "IDSchool": 4101,
+   "SchoolName": "Wrenfield Academy",
+   "Level": 4,
+   "Year": 2026
+  },
+  "5901": {
+   "IDSchool": 5901,
+   "SchoolName": "Ellery Striders TC",
+   "Level": 6,
+   "Year": 2026
+  }
+ },
+ "grades": {
+  "4101_2026": 10,
+  "4101_12026": 10,
+  "5901_2026": 402
+ },
+ "allSeasons": [
+  {
+   "ID": 2026,
+   "Display": "2026 Outdoor"
+  },
+  {
+   "ID": 12026,
+   "Display": "2026 Indoor"
+  }
+ ],
+ "eventsTF": [
+  {
+   "Event": "400 Meters",
+   "Type": "T",
+   "IDEvent": 21,
+   "IDEventType": 0
+  },
+  {
+   "Event": "4x400 Relay",
+   "Type": "T",
+   "IDEvent": 33,
+   "IDEventType": 0
+  },
+  {
+   "Event": "Shot Put",
+   "Type": "F",
+   "IDEvent": 30,
+   "IDEventType": 0
+  },
+  {
+   "Event": "High Jump",
+   "Type": "F",
+   "IDEvent": 25,
+   "IDEventType": 0
+  }
+ ],
+ "resultsTF": [
+  {
+   "IDResult": 88000001,
+   "AthleteID": 1203001,
+   "Result": "56.77a",
+   "SortInt": 56770,
+   "EventID": 21,
+   "EventTypeID": 0,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-04-09T00:00:00",
+   "MeetID": 660102,
+   "meetName": null,
+   "SchoolID": 4101,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  },
+  {
+   "IDResult": 88000002,
+   "AthleteID": 1203001,
+   "Result": "57.40a",
+   "SortInt": 57400,
+   "EventID": 21,
+   "EventTypeID": 0,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-03-21T00:00:00",
+   "MeetID": 660102,
+   "meetName": null,
+   "SchoolID": 4101,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  },
+  {
+   "IDResult": 88000003,
+   "AthleteID": 1203001,
+   "Result": "57.9h",
+   "SortInt": 57900,
+   "EventID": 21,
+   "EventTypeID": 0,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-03-14T00:00:00",
+   "MeetID": 660101,
+   "meetName": null,
+   "SchoolID": 4101,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  },
+  {
+   "IDResult": 88000004,
+   "AthleteID": 1203001,
+   "Result": "DNS",
+   "SortInt": 20000001,
+   "EventID": 21,
+   "EventTypeID": 0,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-05-02T00:00:00",
+   "MeetID": 660102,
+   "meetName": null,
+   "SchoolID": 4101,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  },
+  {
+   "IDResult": 88000005,
+   "AthleteID": 1203001,
+   "Result": "58.89a",
+   "SortInt": 58890,
+   "EventID": 21,
+   "EventTypeID": 0,
+   "SeasonID": 12026,
+   "Exhibition": false,
+   "ResultDate": "2025-12-30T00:00:00",
+   "MeetID": 660103,
+   "meetName": null,
+   "SchoolID": 4101,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  },
+  {
+   "IDResult": 88000006,
+   "AthleteID": 1203001,
+   "Result": "55.95a",
+   "SortInt": 55950,
+   "EventID": 21,
+   "EventTypeID": 98,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-04-25T00:00:00",
+   "MeetID": 660102,
+   "meetName": null,
+   "SchoolID": 4101,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  },
+  {
+   "IDResult": 88000007,
+   "AthleteID": 7700123,
+   "Result": "3:56.40a",
+   "SortInt": 236400,
+   "EventID": 33,
+   "EventTypeID": 0,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-04-25T00:00:00",
+   "MeetID": 660102,
+   "meetName": null,
+   "SchoolID": 4101,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  },
+  {
+   "IDResult": 88000008,
+   "AthleteID": 1203001,
+   "Result": "31-04.50",
+   "SortInt": 19962350,
+   "EventID": 30,
+   "EventTypeID": 0,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-04-11T00:00:00",
+   "MeetID": 660101,
+   "meetName": null,
+   "SchoolID": 4101,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  },
+  {
+   "IDResult": 88000009,
+   "AthleteID": 1203001,
+   "Result": "4-10",
+   "SortInt": 19942000,
+   "EventID": 25,
+   "EventTypeID": 0,
+   "SeasonID": 2026,
+   "Exhibition": false,
+   "ResultDate": "2026-04-11T00:00:00",
+   "MeetID": 660101,
+   "meetName": null,
+   "SchoolID": 4101,
+   "PersonalBest": 0,
+   "SeasonBest": 0
+  }
+ ],
+ "meets": {
+  "660102": {
+   "IDMeet": 660102,
+   "MeetName": "Driftwood Relays 2026",
+   "EndDate": "2026-04-25T00:00:00"
+  },
+  "660101": {
+   "IDMeet": 660101,
+   "MeetName": "Gullwing Invitational",
+   "EndDate": "2026-04-11T00:00:00"
+  },
+  "660103": {
+   "IDMeet": 660103,
+   "MeetName": "Wrenfield Indoor Opener",
+   "EndDate": "2025-12-30T00:00:00"
+  }
+ }
+}

@@ -1,0 +1,59 @@
+name: Pages
+
+# The published examples (ADR 0010): examples/build_site.py renders examples/site/ from the anonymized
+# data committed under examples/ (no ath build, no network), the examples' tests check that folder,
+# and that same folder is deployed to GitHub Pages.
+#
+# Deploying needs both Pages turned on (Settings > Pages > Source: GitHub Actions) and the
+# repository variable PAGES_ENABLED set to true. Set the variable only after turning Pages on,
+# or the deploys fail. Without the variable (a fork, say) the deploy job is skipped, so a push to
+# main never fails on it. The build and its checks always run.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deployment at a time; a newer push waits for the one in progress rather than cancelling it.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build the examples
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      # Built once: the checks run on this very folder, and it is what gets deployed.
+      - name: Build examples/site
+        run: python examples/build_site.py --out examples/site
+      - name: Check the built site (no Athletic.net links, footer, no robots tag)
+        run: python -m unittest discover -s examples -p 'test_*.py'
+        env:
+          ATH_EXAMPLES_SITE: examples/site
+      - uses: actions/upload-pages-artifact@v3
+        if: vars.PAGES_ENABLED == 'true'
+        with:
+          path: examples/site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: vars.PAGES_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

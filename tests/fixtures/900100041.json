@@ -1,0 +1,12 @@
+{
+  "athlete": { "IDAthlete": 900100041, "SchoolID": 900403, "FirstName": "Nora", "LastName": "Vale", "Gender": "F" },
+  "allTeams": {
+    "900403": { "IDSchool": 900403, "SchoolName": "Lakemont Prep", "Level": 4, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "400 Meters", "Type": "T", "IDEvent": 21, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 900100041, "Result": "61.20a", "SortInt": 61200, "EventID": 21, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false, "ResultDate": "2026-04-25T00:00:00" }
+  ]
+}

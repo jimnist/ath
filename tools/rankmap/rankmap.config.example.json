@@ -1,0 +1,7 @@
+{
+  "_note": "Put your athlete's Athletic.net id (the number in their Profile URL) as athlete_id, and the year they graduate as graduation_year.",
+  "athlete_id": 0,
+  "event": "400m",
+  "graduation_year": 2029,
+  "output_dir": "out"
+}

@@ -1,0 +1,12 @@
+{
+  "athlete": { "IDAthlete": 1002, "SchoolID": 502, "FirstName": "Bob", "LastName": "Brooks", "Gender": "M" },
+  "allTeams": {
+    "502": { "IDSchool": 502, "SchoolName": "Lakeside High", "Level": 4, "Year": 2026 }
+  },
+  "eventsTF": [
+    { "Event": "400 Meters", "Type": "T", "IDEvent": 21, "IDEventType": 0 }
+  ],
+  "resultsTF": [
+    { "AthleteID": 1002, "Result": "55.20a", "SortInt": 55200, "EventID": 21, "EventTypeID": 0, "SeasonID": 2026, "Exhibition": false }
+  ]
+}

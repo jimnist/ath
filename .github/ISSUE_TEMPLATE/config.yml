@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Adding a State (contributor guide)
+    url: https://github.com/jimnist/ath/blob/main/docs/areas.md#adding-a-state
+    about: How an Area file is made, to open a pull request for your State.

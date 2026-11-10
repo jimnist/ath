@@ -1,0 +1,106 @@
+{
+ "eventShort": "400m",
+ "division": {
+  "ID": 900502,
+  "ParentID": 900500,
+  "BaseDivID": 904,
+  "SeasonID": 2026,
+  "Name": "Central Coast"
+ },
+ "minCount": 4,
+ "settings": {
+  "fat": true,
+  "official": true,
+  "grades": [
+   10
+  ],
+  "page": 1,
+  "depth": 100
+ },
+ "groupedRankings": [
+  [
+   {
+    "rank": 1,
+    "rowNum": 1,
+    "AthleteID": 1203001,
+    "AthleteName": "Linnea Penhallow",
+    "GradeID": 10,
+    "display": "56.77",
+    "SortIntRaw": 56770,
+    "SortIntCalc": 56770,
+    "SortIntOrig": 56770,
+    "TeamID": 4101,
+    "TeamName": "Wrenfield Academy",
+    "ResultDate": "2026-04-09T00:00:00",
+    "MeetID": 660102,
+    "MeetName": "Driftwood Relays 2026",
+    "Event": "400 Meters",
+    "EventShort": "400m",
+    "SeasonID": 2026,
+    "State": "CA"
+   },
+   {
+    "rank": 2,
+    "rowNum": 2,
+    "AthleteID": 1203111,
+    "AthleteName": "Greer Ironwood",
+    "GradeID": 10,
+    "display": "57.64",
+    "SortIntRaw": 57640,
+    "SortIntCalc": 57640,
+    "SortIntOrig": 57640,
+    "TeamID": 4102,
+    "TeamName": "Tidewater High School",
+    "ResultDate": "2026-04-15T00:00:00",
+    "MeetID": 660102,
+    "MeetName": "Driftwood Relays 2026",
+    "Event": "400 Meters",
+    "EventShort": "400m",
+    "SeasonID": 2026,
+    "State": "CA"
+   },
+   {
+    "rank": 3,
+    "rowNum": 3,
+    "AthleteID": 1203115,
+    "AthleteName": "Kestrel Mountjoy",
+    "GradeID": 10,
+    "display": "58.45",
+    "SortIntRaw": 58450,
+    "SortIntCalc": 58450,
+    "SortIntOrig": 58450,
+    "TeamID": 4101,
+    "TeamName": "Wrenfield Academy",
+    "ResultDate": "2026-04-19T00:00:00",
+    "MeetID": 660102,
+    "MeetName": "Driftwood Relays 2026",
+    "Event": "400 Meters",
+    "EventShort": "400m",
+    "SeasonID": 2026,
+    "State": "CA"
+   },
+   {
+    "rank": 4,
+    "rowNum": 4,
+    "AthleteID": 1203119,
+    "AthleteName": "Orla Quarrington",
+    "GradeID": 10,
+    "display": "59.60",
+    "SortIntRaw": 59600,
+    "SortIntCalc": 59600,
+    "SortIntOrig": 59600,
+    "TeamID": 4105,
+    "TeamName": "Saltmarsh Christian",
+    "ResultDate": "2026-04-23T00:00:00",
+    "MeetID": 660102,
+    "MeetName": "Driftwood Relays 2026",
+    "Event": "400 Meters",
+    "EventShort": "400m",
+    "SeasonID": 2026,
+    "State": "CA"
+   }
+  ]
+ ],
+ "relayTeams": [],
+ "jwtTFTopReport": ""
+}

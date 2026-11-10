@@ -1,0 +1,24 @@
+{
+  "meet": {
+    "ID": 900700,
+    "Name": "Riverton Winter Classic",
+    "MeetDate": "2099-01-09T00:00:00",
+    "StartDate": "2099-01-09T00:00:00",
+    "EndDate": "2099-01-09T00:00:00",
+    "SeasonID": 12099,
+    "PublicEntries": "2098-12-20T00:00:00",
+    "RegEnabled": true,
+    "RelayAthletesRequired": 4,
+    "Location": {
+      "Indoor": true,
+      "Name": "Riverton Fieldhouse",
+      "City": "Riverton",
+      "State": "NY"
+    }
+  },
+  "tfDivisions": [
+    { "IDMeetDiv": 900700013, "MeetID": 900700, "IDDiv": 13, "Division": "Varsity", "DivisionShort": "V", "LevelMask": 4 },
+    { "IDMeetDiv": 900700014, "MeetID": 900700, "IDDiv": 14, "Division": "Junior Varsity", "DivisionShort": "JV", "LevelMask": 4 }
+  ],
+  "jwtMeet": "fixture-meet-token-not-a-real-jwt"
+}
