@@ -36,6 +36,12 @@ hyper-util = { version = "0.1", features = ["tokio"] }
 # Encodes the bookmarklet (already in the tree through url/reqwest).
 percent-encoding = "2"
 
+# reqwest's TLS on Linux is OpenSSL; build it from source so the release's
+# cross-compiled musl targets link without a system OpenSSL. macOS and Windows
+# keep their system TLS, and the TLS stack (and its fingerprint) is unchanged.
+[target.'cfg(target_os = "linux")'.dependencies]
+openssl = { version = "0.10", features = ["vendored"] }
+
 [dev-dependencies]
 tempfile = "3"
 # A one-shot localhost server for the cookie transport's tests.

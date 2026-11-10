@@ -14,19 +14,19 @@ jobs:
       matrix:
         include:
           - os_name: FreeBSD-x86_64
-            os: ubuntu-latest
+            os: ubuntu-24.04
             target: x86_64-unknown-freebsd
           - os_name: Linux-x86_64
-            os: ubuntu-latest
+            os: ubuntu-24.04
             target: x86_64-unknown-linux-musl
           - os_name: Linux-aarch64
-            os: ubuntu-latest
+            os: ubuntu-24.04
             target: aarch64-unknown-linux-musl
           - os_name: Linux-arm
-            os: ubuntu-latest
+            os: ubuntu-24.04
             target: arm-unknown-linux-musleabi
           - os_name: Linux-riscv64
-            os: ubuntu-latest
+            os: ubuntu-24.04
             target: riscv64gc-unknown-linux-gnu
           - os_name: Windows-aarch64
             os: windows-latest
@@ -49,7 +49,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Install musl-tools on Linux
         run: sudo apt-get update --yes && sudo apt-get install --yes musl-tools
-        if: contains(matrix.name, 'musl')
+        if: contains(matrix.target, 'musl')
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
@@ -62,9 +62,11 @@ jobs:
         shell: bash
         run: |
           APP_NAME=ath
-          ver=${GITHUB_REF#refs/tags/}
+          # The tag (v0.1.0), or for a manual run on a branch its name with
+          # slashes made safe for a file name.
+          ver=${GITHUB_REF_NAME//\//-}
           ASSET_PATH=$APP_NAME-$ver-${{ matrix.target }}${{ matrix.ext }}
-          mv target/${{ matrix.target }}/release/$APP_NAME $ASSET_PATH
+          mv target/${{ matrix.target }}/release/$APP_NAME${{ matrix.ext }} $ASSET_PATH
           echo "ASSET_PATH=$ASSET_PATH" >> $GITHUB_ENV
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
