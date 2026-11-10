@@ -14,19 +14,19 @@ jobs:
       matrix:
         include:
           - os_name: FreeBSD-x86_64
-            os: ubuntu-latest
+            os: ubuntu-24.04
             target: x86_64-unknown-freebsd
           - os_name: Linux-x86_64
-            os: ubuntu-latest
+            os: ubuntu-24.04
             target: x86_64-unknown-linux-musl
           - os_name: Linux-aarch64
-            os: ubuntu-latest
+            os: ubuntu-24.04
             target: aarch64-unknown-linux-musl
           - os_name: Linux-arm
-            os: ubuntu-latest
+            os: ubuntu-24.04
             target: arm-unknown-linux-musleabi
           - os_name: Linux-riscv64
-            os: ubuntu-latest
+            os: ubuntu-24.04
             target: riscv64gc-unknown-linux-gnu
           - os_name: Windows-aarch64
             os: windows-latest
@@ -49,7 +49,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Install musl-tools on Linux
         run: sudo apt-get update --yes && sudo apt-get install --yes musl-tools
-        if: contains(matrix.name, 'musl')
+        if: contains(matrix.target, 'musl')
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
