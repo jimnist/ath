@@ -131,6 +131,7 @@ seedsheet runs `$ATH` when it is set, else this checkout's newest `target/releas
 | `output_dir` | yes | Where the meet's folder (index, pages and CSVs) is written. Relative paths are relative to the config file. |
 | `data_dir` | no | Where the saved meet and sheets are kept (default `data`, beside the config). Relative paths are relative to the config file. |
 | `fixtures_dir` | no | Recorded responses for `ath --fixtures-dir`, instead of Athletic.net: for tests and demos (`../../tests/fixtures` from `tools/seedsheet/` runs the made-up meet 900700). |
+| `theme` | no | A theme file for the index and every event page (a path, relative to the config file) whose design tokens replace the house look's: see [Restyling](rankmap.md#restyling) and `tools/theme.example.json`. Without it the pages are the house theme's, byte for byte. |
 
 `ath meet <id>` lists each event's gender, division and code: the values `events` takes.
 A listed event `ath` does not find (no entries yet, or a typo) is not run; the index shows it as not seeded with `ath`'s reason (`meet 900700 has no 1mile entries in the Varsity division (yet)`).
@@ -159,6 +160,7 @@ Each listed event is looked up once per run with `ath meet <id> --gender --div -
 | `output_dir` | yes | Where the pages and CSVs are written. Relative paths are relative to the config file. |
 | `data_dir` | no | Where saved sheets are kept (default `data`, beside the config). Relative paths are relative to the config file. |
 | `fixtures_dir` | no | As in meet mode. |
+| `theme` | no | As in meet mode. |
 | `events` | yes | One entry per page. |
 | `events[].label` | yes | The event as the page names it (`Girls 400m`). Labels must give different file names. |
 | `events[].event` | yes | The event `ath seed --event` takes: the Athletic.net name (`400 Meters`) or a flat race's short form (`400m`). |
@@ -258,12 +260,16 @@ From `ath meet` (`schema` 1) it reads the meet's `name`, `date`, `end_date`, `se
 ## Restyling
 
 Every color and font the pages use is a named token in `THEME`, in `tools/report.py` (`house_theme()`), shared with the rankmap page.
-Change a value there and rebuild (`--no-fetch`); nothing else needs to change.
+To restyle without touching code, give the config a `theme`: a theme file (a path, relative to the config file) with only the tokens it changes, over the house values.
+`tools/theme.example.json` is one to start from; [A theme file in `docs/rankmap.md`](rankmap.md#a-theme-file) says what each token takes and how strictly the file is checked.
+`fonts_url` may be any `https://` stylesheet, or `null` for system fonts only (no stylesheet and no font host is loaded).
+These pages draw no maps, so the display font's `metrics` only matter to rankmap, but a theme file that changes `display`'s first family needs them all the same, so one file serves both reports.
+Without a theme file, change a value in `house_theme()` and rebuild (`--no-fetch`); nothing else needs to change.
 The page colors and fonts reach the CSS as custom properties on `:root` (`--bg`, `--fg`, `--highlight`, `--display`, and the rest, one per line), and the configured Athletes' rows take `highlight_row`.
 `build(..., theme)`, `html(..., theme)` and the index's `meet_index.html(..., theme)` take a theme, `THEME` by default, so the pages can also be rendered in another one.
 Of the type sizes, only the copy's (`copy_px`) is a token on these pages; the rest (heading, table, marks, buttons) is each page's layout, in its template (`tools/seedsheet/build.py`, `tools/seedsheet/meet_index.py`).
 A test fails when a color (hex, a color function or a named color as a value) is written out anywhere else in the page code, so new styling becomes a token too.
-The pages stay light-only.
+The pages stay light-only, with or without a theme file: there is no dark mode.
 See [Restyling in `docs/rankmap.md`](rankmap.md#restyling) for the map's tokens.
 
 ## Files
