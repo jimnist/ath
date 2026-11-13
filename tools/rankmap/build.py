@@ -491,10 +491,13 @@ class Page:
         first = esc(self.meta["first"])
         multi = len(v["grades"]) > 1
         firsts, rest = grouped(rows)
+        # The season's home State, tagged in the states table as it is outlined on the map.
+        home = self.seasons[season]["home"] if map_ == "us" else None
+        tag = lambda s: ' <span class="htag">home</span>' if s["abbr"] == home else ""
         out = []
         if firsts:
             names = ", ".join(
-                self.link(s["name"], s["url"])
+                self.link(s["name"], s["url"]) + tag(s)
                 + (f' <span class="tm">(tied with {self.link(s["ties"][0]["name"], s["ties"][0]["url"])})</span>'
                    if s["ties"] else "")
                 for s in firsts)
@@ -515,7 +518,7 @@ class Page:
                        f'<ol class="who">{items}</ol></details>')
             out.append(
                 f'<tr data-pick="{esc(s["abbr"])}"><td class="rk"><span class="pill {s["bucket"][3]}">{rank_html(s["label"])}</span></td>'
-                f'<td class="sn">{self.link(s["name"], s["url"])}</td>'
+                f'<td class="sn">{self.link(s["name"], s["url"])}{tag(s)}</td>'
                 f'<td class="ah">{who}</td></tr>')
         return f'<tbody{self.attrs(season, v["key"], map_)}>' + "".join(out) + "</tbody>"
 
@@ -629,8 +632,16 @@ class Page:
                 + '</section>')
 
     def us_svg(self, start, places, shapes):
+        """The US map in the default season and view: each state filled with its rank's color and
+        its number on it (a callout's in a chip at the map's edge), and the season's home State
+        outlined over its neighbors' borders, its callout too. The page script moves the outline
+        when a season's home State is another (home)."""
+        home = self.seasons[self.default_season]["home"]
         svg_shapes, svg_labels, svg_callouts = [], [], []
+        outline = '<path class="home" hidden/>'  # a season without a home State on the map
         for abbr, d in shapes:
+            if abbr == home:
+                outline = f'<path class="home" d="{d}"/>'
             lab, cls, size, tip, _, x, y = start[abbr]
             svg_shapes.append(f'<path class="st {cls}" data-abbr="{abbr}" d="{d}"><title>{esc(tip)}</title></path>')
             if abbr not in CALLOUTS:
@@ -643,14 +654,16 @@ class Page:
             lab, cls = start[abbr][:2]
             w = ch.width(lab)
             svg_callouts.append(
-                f'<g class="co"><path class="lead" d="M{x:.1f},{y:.1f}L{cx - ch.left},{cy}"/>'
+                f'<g class="co{" home" if abbr == home else ""}" data-abbr="{abbr}">'
+                f'<path class="lead" d="M{x:.1f},{y:.1f}L{cx - ch.left},{cy}"/>'
                 f'<circle class="dot" cx="{x:.1f}" cy="{y:.1f}" r="1.8"/>'
                 f'<rect class="chip {cls}" data-abbr="{abbr}" data-cx="{cx}" x="{cx - ch.left}" y="{cy - ch.half}" width="{w}" height="{2 * ch.half}" rx="4"/>'
                 f'<text class="lbl {cls}" data-abbr="{abbr}" x="{cx - ch.left + w / 2}" y="{cy}" style="font-size:{self.theme.chip_px}px">{rank_svg(lab)}</text>'
                 f'<text class="ab" x="{cx - ch.left + w + ch.gap}" y="{cy + 1}">{abbr}</text></g>')
         return (f'<svg class="map" id="usmap" data-map="us" viewBox="{map_viewbox(self.theme)}" role="img" '
                 f'aria-label="US map with {esc(self.meta["name"])}\'s rank in each state">'
-                f'<g>{"".join(svg_shapes)}</g><g>{"".join(svg_labels)}</g><g>{"".join(svg_callouts)}</g></svg>')
+                f'<g>{"".join(svg_shapes)}</g><g>{outline}</g><g>{"".join(svg_labels)}</g>'
+                f'<g>{"".join(svg_callouts)}</g></svg>')
 
     def area_svg(self, start, smap):
         """The home State's county map, colored by Area, with a rank in each roomy Area, district
@@ -765,7 +778,8 @@ class Page:
         spots = label_spots()
         us = self.map_data(
             lambda season, v: v["rows"],
-            lambda s: [None, None, self.theme.chip_px] if s["abbr"] in CALLOUTS else spot(spots["us"], s["name"], s["label"]))
+            lambda s: [None, None, self.theme.chip_px] if s["abbr"] in CALLOUTS else spot(spots["us"], s["name"], s["label"]),
+            lambda season, s: f"; {meta['first']}'s home state" if s["abbr"] == seasons[season]["home"] else "")
         us_svg = self.us_svg(us[self.default_season][self.default_view], places, shapes)
 
         maps = [("us", "US states")]
@@ -810,9 +824,15 @@ class Page:
         per_season = lambda f: "".join(f'<span{self.attrs(s)}>{f(s, sd)}</span>' for s, sd in seasons.items())
         against = "".join(f'<span{self.attrs(s, v["key"])}>{v["phrase"]}</span>'
                           for s, sd in seasons.items() for v in sd["views"])
+        # The home State's key: the outline on a fill of no rank, named per season.
+        home_key = "".join(
+            f'<li class="hk" data-season="{s}" data-map="us"{"" if s == self.default_season else " hidden"}>'
+            f'<span class="sw hsw"></span><span class="lk">{esc(sd["home"])}</span>'
+            f'<span class="lc">&middot; home state</span></li>'
+            for s, sd in seasons.items() if sd["home"])
         legend = '<ul class="legend"><li class="grp">Rank</li>' + "".join(
             f'<li data-b="{b[3]}"><span class="sw {b[3]}"></span><span class="lk">{b[0]}</span>'
-            f'<span class="lc"></span></li>' for b in RANK_BUCKETS) + "</ul>"
+            f'<span class="lc"></span></li>' for b in RANK_BUCKETS) + home_key + "</ul>"
         pulled = "".join(
             f'<li>{s} season data pulled {pretty_date(sd["pulled"])}</li>'
             for s, sd in sorted(seasons.items(), key=lambda kv: -int(kv[0])))
@@ -857,6 +877,7 @@ class Page:
             area_noun=esc(self.noun("areas")[0]) if self.areas else "",
             area_nouns=esc(self.noun("areas")[1]) if self.areas else "",
             data=json.dumps(us, separators=(",", ":")), areas=json.dumps(areas_data, separators=(",", ":")),
+            home=json.dumps({s: sd["home"] for s, sd in seasons.items()}, separators=(",", ":")),
             label_em=json.dumps([DIGIT_EM, TIE_EM, BEARING_EM, INK_DROP_EM]),
             chip=self.chips, blank_px=BLANK_PX,
             default_season=self.default_season, default_view=self.default_view)
@@ -877,14 +898,15 @@ class Page:
         write_csv(path, ["Season", "Mark", "Against", "List", "Rank", "Name", "Abbr", "Faster", "Tied",
                          "Athletes ahead (mark, grade, team, profile)", "Athletic.net list"], rows)
 
-    def md_table(self, rows, noun):
+    def md_table(self, rows, noun, home=None):
         firsts, rest = grouped(rows)
+        mine = lambda s: " (home)" if s["abbr"] == home else ""  # the season's home State
         lines = [f"- #1 in {len(firsts)} of {len(rows)} {noun}",
                  f"- Top 3 in {sum(s['rank'] <= 3 for s in rows)}, top 5 in {sum(s['rank'] <= 5 for s in rows)}",
                  "", "| Rank | Name | Faster |", "| ---: | --- | --- |"]
         if firsts:
             names = ", ".join(
-                s["name"] + (f" (tied with {s['ties'][0]['name']})" if s["ties"] else "") for s in firsts)
+                s["name"] + mine(s) + (f" (tied with {s['ties'][0]['name']})" if s["ties"] else "") for s in firsts)
             lines.append(f"| 1 | {names} | - |")
         for s in rest:
             if len(s["ahead"]) + len(s["ties"]) <= SHOW_ALL:
@@ -894,7 +916,7 @@ class Page:
                 who = ", ".join(parts)
             else:
                 who = f"{len(s['ahead'])} faster, led by {s['ahead'][0]['name']} {s['ahead'][0]['mark']}"
-            lines.append(f"| {s['label']} | {s['name']} | {who} |")
+            lines.append(f"| {s['label']} | {s['name']}{mine(s)} | {who} |")
         return lines
 
     def meet_lines(self, sd):
@@ -931,7 +953,7 @@ class Page:
         for season, sd in sorted(self.seasons.items(), key=lambda kv: -int(kv[0])):
             lines += ["", f"## {season} season - {sd['pr']} (data pulled {pretty_date(sd['pulled'])})"]
             for v in sd["views"]:
-                lines += ["", f"### Against {v['phrase']}", ""] + self.md_table(v["rows"], "(50 states + DC)")
+                lines += ["", f"### Against {v['phrase']}", ""] + self.md_table(v["rows"], "(50 states + DC)", sd["home"])
                 if v["areas"]:
                     home = next((r["name"] for r in v["rows"] if r["abbr"] == sd["home"]), sd["home"])
                     labels = sd["area_file"]["labels"]
@@ -1005,6 +1027,14 @@ h1 a:hover, h1 a:focus-visible {{ text-decoration: underline; text-decoration-th
 .legend .grp {{ font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; font-size: 12px; width: 5.5em; }}
 .sw {{ width: 18px; height: 12px; border-radius: 2px; display: inline-block; background: var(--f); box-shadow: inset 0 0 0 1px var(--fg); }}
 .lk {{ font-family: var(--display); font-weight: 900; color: var(--fg); font-size: {theme.copy_px}px; }}
+/* The home State: outlined over its neighbors' borders in the outline ink, its fill left to its rank (a
+   stroke in screen pixels, so it reads at any map size); its callout chip ringed, its abbreviation inked;
+   a tag on its row. */
+#usmap path.home {{ fill: none; stroke: var(--fg); stroke-width: 2px; stroke-linejoin: round; vector-effect: non-scaling-stroke; pointer-events: none; }}
+#usmap .co.home .chip {{ stroke: var(--fg); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }}
+#usmap .co.home .ab {{ fill: var(--fg); }}
+.hsw {{ background: transparent; box-shadow: inset 0 0 0 2px var(--fg); }}
+.htag {{ display: inline-block; margin-left: 6px; font-family: var(--display); font-weight: 700; font-size: {theme.abbr_px}px; line-height: 1.35; letter-spacing: .04em; padding: 0 6px; border-radius: 4px; background: {theme.tag}; color: {theme.tag_fg}; vertical-align: 1px; }}
 h2 {{ font-family: var(--display); font-weight: 800; font-size: 26px; margin: 0; letter-spacing: .01em; }}
 .list {{ display: grid; gap: 10px; min-width: 0; }}
 .tbl-wrap {{ overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }}
@@ -1068,7 +1098,7 @@ tbody tr.on td {{ background: {theme.highlight_row}; }}
 .smnotes {{ color: var(--muted); font-size: 13px; max-width: 72ch; }}
 .smnotes ul {{ margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; }}
 .smnotes a {{ color: inherit; }}
-@media (max-width: 560px) {{ .acard {{ min-height: 0; grid-template-columns: 1fr auto; grid-template-rows: auto auto; align-items: center; }} .crank {{ grid-row: 1 / 3; grid-column: 2; font-size: 64px; }} .amap {{ height: auto; width: 100%; }} .amap.tight .co {{ display: none; }} .legend .grp {{ width: 100%; }} td, th {{ padding: 8px 10px; }} .sn {{ width: auto; }} .stats b {{ font-size: 28px; }} .seg button {{ padding: 8px 11px; }} }}
+@media (max-width: 560px) {{ #usmap path.home {{ stroke-width: 1.25px; }} #usmap .co.home .chip {{ stroke-width: 1px; }} .acard {{ min-height: 0; grid-template-columns: 1fr auto; grid-template-rows: auto auto; align-items: center; }} .crank {{ grid-row: 1 / 3; grid-column: 2; font-size: 64px; }} .amap {{ height: auto; width: 100%; }} .amap.tight .co {{ display: none; }} .legend .grp {{ width: 100%; }} td, th {{ padding: 8px 10px; }} .sn {{ width: auto; }} .stats b {{ font-size: 28px; }} .seg button {{ padding: 8px 11px; }} }}
 @media (prefers-reduced-motion: reduce) {{ .st {{ transition: none; }} }}
 </style>
 </head>
@@ -1109,6 +1139,7 @@ tbody tr.on td {{ background: {theme.highlight_row}; }}
 <script>
 const DATA = {data};
 const AREAS = {areas};
+const HOME = {home};  // each season's home State
 let season = "{default_season}", map = "us", pick = null;
 const views = {{}};  // last grade group picked in each season
 function visible(el) {{
@@ -1197,6 +1228,11 @@ function show(s, v, m) {{
     r.setAttribute("class", "chip " + cls);
     chip(r, lab);
   }});
+  // The season's home State: its outline (a copy of its shape, over its neighbors') and callout.
+  const home = HOME[s] && document.querySelector('#usmap .st[data-abbr="' + HOME[s] + '"]'), outline = document.querySelector("#usmap path.home");
+  if (home) outline.setAttribute("d", home.getAttribute("d"));
+  outline.toggleAttribute("hidden", !home);
+  document.querySelectorAll("#usmap .co").forEach(g => g.classList.toggle("home", g.dataset.abbr === HOME[s]));
   document.querySelectorAll("#areamap .ct, #areamap .dist").forEach(p => {{
     const e = a[p.dataset.area], kind = p.classList.contains("dist") ? "dist" : "ct";
     p.setAttribute("class", kind + " " + (e ? e[1] : "none") + (pick === p.dataset.area ? " on" : ""));
