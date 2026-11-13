@@ -884,7 +884,7 @@ class Theme:
     map_edge: str = field()  # the map panel's border
     county_line: str = field()  # county lines inside an Area, over its fill
     highlight_row: str = field()  # the configured Athlete's row in a list, a picked Area's
-    tag: str = field()  # the tag on the athlete's own Class card
+    tag: str = field()  # the tag on the athlete's own Class card and on their home State's row
     tag_fg: str = field()  # text on tag
     ranks: tuple[Swatch, ...] = field()  # the rank buckets' colors, best first (rankmap's buckets())
     no_rank: Swatch = field()  # an Area with no rank in the view
@@ -896,7 +896,7 @@ class Theme:
     copy_px: int = field()  # copy, the legend's keys, the pick line under a map
     toggle_px: int = field()  # a toggle's label
     chip_px: int = field()  # a rank in a map's callout chip (the chip is sized for it: see chips)
-    abbr_px: int = field()  # a state's abbreviation beside its chip on the US map, a Class card's tag
+    abbr_px: int = field()  # a state's abbreviation beside its chip on the US map, the tags (tag)
     name_px: int = field()  # an Area's name in a State map's callout or on a Class card
 
 

@@ -20,6 +20,9 @@ It lives in `tools/rankmap/` and gets its data from `ath rank` (see [How it rela
   Numbers are the header's highlighter yellow on #1 and a softer yellow (halfway to the palest) on 2-4, and past that a shade of their own color close to it, so they read without competing; a tie shows a small raised t (t12).
   Each number is as big as fits in its state (up to a cap), in the biggest box with the number's proportions, pulled toward the state's middle; the Sections map does the same with each whole Section, and a callout's line ends beside its Section's number.
   The smallest states and Hawaii get labeled chips at the edge of the map.
+  The athlete's home State (the State whose list their mark is read from) keeps its rank color and is outlined in the page's ink, over its neighbors' borders; when it has a chip, the chip is ringed too and its abbreviation inked dark.
+  The legend names it ("CA · home state"), and its tooltip says so.
+  Each season marks its own home State, so a season at a school in another State moves the outline.
 - **The Sections map.** With "CA Sections" picked (the switch reads the home State's own word), California's counties are colored by the rank in their Section, with Section borders drawn over the county lines and the rank in each Section roomy enough for it.
   Every Section also has a callout off the State's edge naming it in full, coastal ones to the west and inland ones to the east; a Section too small for its rank has the rank in a pill in its callout instead.
   The Los Angeles City and Oakland Sections, which are one school district's schools each, are drawn as their district outlines over their county, in their own color.
@@ -36,6 +39,7 @@ It lives in `tools/rankmap/` and gets its data from `ath rank` (see [How it rela
 - **Headline numbers.** States (or Sections) at #1, top 3, top 5, and the toughest one.
 - **State by state, Section by section.** Best rank first, with every #1 state merged into one alphabetical row.
   Each other state lists the athletes ahead (mark, grade, team); lists longer than six collapse behind a "N faster" line.
+  The season's home State has a small "home" tag after its name (and "(home)" in the Markdown), whatever its rank (a highlighted row is a picked Section's, not the home State's).
   State names link to the Athletic.net list used, and athlete names link to their Athletic.net profiles.
 
 ![The state-by-state table](images/rankmap-table.png)
@@ -167,10 +171,11 @@ Change a value there and rebuild (`--no-fetch`); nothing else needs to change.
 Everything made from the tokens takes a theme (`styles(theme)`, `chips(theme)`, rankmap's `buckets(theme)` and `build(..., theme)`), `THEME` by default, so a page can also be rendered in another theme.
 The page colors and fonts reach the CSS as custom properties on `:root` (`--bg`, `--fg`, `--accent`, `--display`, and the rest), one per line.
 In `tools/report.py`'s shared CSS the other tokens are written `[[name]]`; in a page template, `{theme.name}`.
-The other color tokens go in as values: the rank colors (`ranks`, best first, each a fill and the ink of the number on it; #1's ink is `highlight`), an Area with no rank (`no_rank`, inked `muted`), a picked row (`highlight_row`), the athlete's own Class card tag (`tag`, `tag_fg`), and the map panel's edge and county lines.
-Five type sizes are tokens too: `copy_px` (copy, the legend's keys, the pick line), `toggle_px` (toggle labels), `chip_px` (a rank in a callout chip), `abbr_px` (a state's abbreviation on the US map, the Class card tag) and `name_px` (an Area's name in a callout or on a Class card).
+The other color tokens go in as values: the rank colors (`ranks`, best first, each a fill and the ink of the number on it; #1's ink is `highlight`), an Area with no rank (`no_rank`, inked `muted`), a picked row (`highlight_row`), the tags on the athlete's own Class card and their home State's row (`tag`, `tag_fg`), and the map panel's edge and county lines.
+The home State's outline on the US map, and the ring on its chip, are `fg`, the ink of every State's outline, only heavier.
+Five type sizes are tokens too: `copy_px` (copy, the legend's keys, the pick line), `toggle_px` (toggle labels), `chip_px` (a rank in a callout chip), `abbr_px` (a state's abbreviation on the US map, the Class card and home row tags) and `name_px` (an Area's name in a callout or on a Class card).
 The callout chips (size, spacing, the gaps and leader lines around them, Hawaii's chip, the US map's room for the callout column) follow `chip_px`, and the State map's callouts follow `name_px`.
-Every other size (headings, headline numbers, table text, the Class cards' ranks, paddings) is the page's layout, in its template in `tools/rankmap/build.py`; the map's rank numbers are sized to fit their state or Area.
+Every other size (headings, headline numbers, table text, the Class cards' ranks, the home State's outline, paddings) is the page's layout, in its template in `tools/rankmap/build.py`; the map's rank numbers are sized to fit their state or Area.
 
 The map's layout is measured in the display font (`tools/report.py`, beside `DIGIT_EM`): the rank digits' advance, the tie's t, the ink's height, side bearings and drop (`DIGIT_EM`, `TIE_EM`, `INK_EM`, `BEARING_EM`, `INK_DROP_EM`, at weight 900 with tabular digits), and the callouts' text (`CHIP_CHAR_EM`, `NAME_CHAR_EM` at 700, `ABBR_CHAR_EM`, `ABBR_TRACKING_EM`).
 A new display font means measuring these again: in a browser with the font loaded, draw each glyph or string as SVG `<text>` at 100px in the right weight, read its advance with `getComputedTextLength()` and its ink with `getBBox()` (the ink drop against a `dominant-baseline: central` anchor), and divide by 100.

@@ -635,6 +635,96 @@ class Sections(AnonymizedAreas):
                          {a["name"] for a in state_areas("CA")["areas"]})
 
 
+RI = 4300  # a made-up list id for Rhode Island
+
+
+def with_rhode_island(season, home_ri):
+    """The saved report for season with a Rhode Island list beside California's (copies of its
+    places, made up), and the Athlete's mark read from Rhode Island's when home_ri: Rhode Island
+    has a callout chip on the US map, as the smallest states do."""
+    r = copy.deepcopy(RANK)
+    r["season"] = season
+    for x in [x for x in r["results"] if x["list"]["kind"] == "state"]:
+        y = copy.deepcopy(x)
+        y["list"].update(id=RI, name="Rhode Island", state="RI")
+        y["url"] = x["url"].replace(str(CA), str(RI))
+        r["results"].append(y)
+    if home_ri:  # and no Areas: Rhode Island has no Area file
+        r["mark"]["list"].update(id=RI, name="Rhode Island", url=r["mark"]["list"]["url"].replace(str(CA), str(RI)))
+        r["results"] = [x for x in r["results"] if x["list"]["kind"] == "state"]
+        r["home_area"] = None
+    return r
+
+
+def two_seasons(newest_home_ri=False):
+    """A page of 2098 and 2099, the Athlete at a school in Rhode Island one season and California
+    the other (Rhode Island in 2098, unless newest_home_ri)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        html, page = build.build({2098: saved(with_rhode_island(2098, not newest_home_ri)),
+                                  2099: saved(with_rhode_island(2099, newest_home_ri))},
+                                 [2098, 2099], Path(tmp), areas_dir=AREAS)
+        return html.read_text(), html.with_suffix(".md").read_text()
+
+
+class HomeState(AnonymizedAreas):
+    """The Athlete's home State, outlined on the US map and tagged in the states table."""
+
+    def test_the_home_state_is_outlined_over_its_neighbors(self):
+        page, _, _ = build_page()
+        shape = re.search(r'<path class="st \w+" data-abbr="CA" d="([^"]+)">', page).group(1)
+        # A copy of its shape, after every state's (so over their borders) and before the numbers.
+        self.assertIn(f'</g><g><path class="home" d="{shape}"/></g><g><text class="lbl', page)
+        self.assertIn("#usmap path.home { fill: none; stroke: var(--fg);", page)
+        # Its fill stays its rank's color.
+        self.assertRegex(page, r'<path class="st b21" data-abbr="CA"')
+        self.assertIn("California: #42 against 9th graders in 2099 (41 faster); Jamie&#x27;s home state", page)
+
+    def test_the_home_states_row_is_tagged_in_the_states_table_only(self):
+        page, _, md = build_page()
+        tagged = re.findall(r'<td class="sn"><a [^>]+>([^<]+)</a> <span class="htag">home</span></td>', page)
+        self.assertEqual(tagged, ["California"] * 4)  # one per grade group; none in the Sections tables
+        self.assertEqual(page.count('class="htag"'), 4)
+        self.assertIn("| 42 | California (home) |", md)
+        self.assertNotIn("Central Coast (home)", md)
+        # The legend's key names it, on the US map only.
+        self.assertIn('<li class="hk" data-season="2099" data-map="us"><span class="sw hsw"></span>'
+                      '<span class="lk">CA</span><span class="lc">&middot; home state</span></li>', page)
+
+    def test_a_home_state_at_first_is_tagged_in_the_firsts_row(self):
+        r = copy.deepcopy(RANK)
+        x = next(x for x in r["results"] if x["list"]["id"] == CA and x["grades"] == [9])
+        x["place"].update(rank=1, label="1", tied=False, ahead=0, ties=0)
+        x["place"]["neighborhood"].update(ahead=[], skipped=0, tied=[])
+        page, _, md = build_page(r)
+        self.assertRegex(page, r'<tr class="firsts" data-pick="CA">.*?<div class="names"><a [^>]+>California</a> '
+                               r'<span class="htag">home</span></div>')
+        self.assertIn("| 1 | California (home) | - |", md)
+
+    def test_each_season_marks_its_own_home_state(self):
+        page, md = two_seasons()
+        self.assertIn('const HOME = {"2098":"RI","2099":"CA"};', page)
+        # The page opens on 2099: California outlined, Rhode Island's callout plain.
+        ca = re.search(r'data-abbr="CA" d="([^"]+)"', page).group(1)
+        self.assertIn(f'<path class="home" d="{ca}"/>', page)
+        self.assertIn('<g class="co" data-abbr="RI">', page)
+        # Switching seasons moves the outline and the ring to that season's home State.
+        self.assertIn('outline.setAttribute("d", home.getAttribute("d"));', page)
+        self.assertIn('g.classList.toggle("home", g.dataset.abbr === HOME[s])', page)
+        # Each season's table tags its own, and the legend's key is the season's.
+        for season, name in (("2098", "Rhode Island"), ("2099", "California")):
+            for body in re.findall(rf'<tbody data-season="{season}" data-view="[\w-]+" data-map="us"[^>]*>(.*?)</tbody>', page):
+                self.assertEqual(re.findall(r'<a [^>]+>([^<]+)</a> <span class="htag">', body), [name])
+        self.assertIn('<li class="hk" data-season="2098" data-map="us" hidden>', page)
+        self.assertIn('<span class="lk">RI</span>', page)
+        self.assertIn("| 42 | Rhode Island (home) |", md)
+
+    def test_a_callout_home_states_chip_is_ringed(self):
+        page, _ = two_seasons(newest_home_ri=True)
+        self.assertIn('<g class="co home" data-abbr="RI">', page)
+        self.assertIn("#usmap .co.home .chip { stroke: var(--fg);", page)
+        self.assertEqual(page.count('<g class="co home"'), 1)
+
+
 class ExampleMode(AnonymizedAreas):
     """`example`: a page built from anonymized data for the published examples (ADR 0010)."""
 
