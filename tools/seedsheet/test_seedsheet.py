@@ -753,6 +753,20 @@ class Run(unittest.TestCase):
             (cfg["data_dir"] / "spring-invitational-girls-400m.json").write_text("{}")
             seedsheet.check_moved_data(cfg, old)  # moved: fine
 
+    def test_a_config_takes_a_theme_file_beside_it(self):
+        import report
+        with tempfile.TemporaryDirectory() as d:
+            self.assertIs(seedsheet.load_config(write_config(d))["theme"], report.THEME)
+            (Path(d) / "look.json").write_text(json.dumps({"highlight_row": "khaki"}))
+            cfg = seedsheet.load_config(write_config(d, theme="look.json"))
+            self.assertEqual(cfg["theme"].highlight_row, "khaki")
+            self.assertEqual(cfg["theme"].bg, report.THEME.bg)
+            (Path(d) / "look.json").write_text(json.dumps({"highlight_rows": "khaki"}))
+            with self.assertRaises(SystemExit) as e:
+                seedsheet.load_config(write_config(d, theme="look.json"))
+            self.assertIn("no design token 'highlight_rows'", str(e.exception))
+            self.assertIn(str(Path(d).resolve() / "look.json"), str(e.exception))
+
     def test_rosters_data_and_output_sit_beside_the_config(self):
         with tempfile.TemporaryDirectory() as d:
             config = Path(d) / "local" / "seedsheet"

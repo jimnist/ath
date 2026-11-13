@@ -15,3 +15,7 @@ python3 -m unittest discover -s tools/rankmap                                   
 ```
 
 Collected seasons go in `data/` and pages in `out/`, both beside the config (`local/rankmap/`); see the README's [`local/` section](../../README.md#your-own-configs-and-data-local).
+
+To restyle the page, add `"theme": "<a theme file>"` to the config (start from [`tools/theme.example.json`](../theme.example.json)).
+A theme with its own display font needs that font's `metrics`, which [`tools/maps/measure_font.html`](../maps/measure_font.html) measures in a browser.
+See [Restyling](../../docs/rankmap.md#restyling).

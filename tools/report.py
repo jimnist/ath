@@ -24,7 +24,8 @@ import shutil
 import subprocess
 import sys
 import threading
-from dataclasses import dataclass, field, fields
+import typing
+from dataclasses import dataclass, field, fields, is_dataclass, replace
 from datetime import date
 from pathlib import Path
 
@@ -474,21 +475,14 @@ def us_map(abbr_of):
 
 # ---------------------------------------------------------------- rank labels
 
-# A rank label's glyphs (Roboto Condensed 900, tabular digits), measured in Chrome, in em: a
-# digit's advance, the tie's small raised t's advance, the ink's height (the t's top is level
-# with the digits'), the side bearings the ink leaves out, and how far the ink's middle sits
-# below an SVG `dominant-baseline: central` anchor (negative: above it).
-DIGIT_EM, TIE_EM, INK_EM, BEARING_EM, INK_DROP_EM = 0.511, 0.188, 0.731, 0.05, -0.019
-# A callout's text, in em of its own size: a chip's width per rank character (a digit and the room
-# around it), an Area name's width per character (Roboto Condensed 700: 10 to 11.1 map units at
-# 22px), and a state abbreviation's capital (700, about half an em) and its letter-spacing.
-CHIP_CHAR_EM, NAME_CHAR_EM, ABBR_CHAR_EM, ABBR_TRACKING_EM = 0.6, 11.2 / 22, 0.5, 0.04
+# A rank label's glyphs and a callout's text are measured in the display font: a theme's metrics
+# (Metrics, with the design tokens below).
 LABEL_DIGITS = 4  # the longest rank spotted; longer ones shrink into its spot (rankmap's spot())
 LABEL_SHAPES = [f"{t}{n}" for t in ("", "t") for n in range(1, LABEL_DIGITS + 1)]
 LABEL_FILL = 0.85  # of the biggest box that fits, so a number keeps clear of the borders
 LABEL_MIN, LABEL_MAX = 10, 80  # font sizes, in map units
 CENTER_PULL = 0.05  # room given up per unit of distance from the shape's center of area
-SPOTS = HERE / "maps" / "label-spots.json"
+SPOTS = HERE / "maps" / "label-spots.json"  # the house theme's (THEME's) spots
 
 
 def label_shape(label):
@@ -496,14 +490,15 @@ def label_shape(label):
     return ("t" if label.startswith("T") else "") + str(len(label.lstrip("T")))
 
 
-def label_width(shape):
-    """Width of a label shape's ink, in em."""
-    return DIGIT_EM * int(shape.lstrip("t")) + (TIE_EM if shape.startswith("t") else 0) - BEARING_EM
+def label_width(shape, metrics=None):
+    """Width of a label shape's ink, in em, in metrics (THEME's by default)."""
+    m = metrics or THEME.metrics
+    return m.digit_em * int(shape.lstrip("t")) + (m.tie_em if shape.startswith("t") else 0) - m.bearing_em
 
 
-def label_aspect(shape):
-    """Width over height of a label shape's ink."""
-    return label_width(shape) / INK_EM
+def label_aspect(shape, metrics=None):
+    """Width over height of a label shape's ink, in metrics (THEME's by default)."""
+    return label_width(shape, metrics) / (metrics or THEME.metrics).ink_em
 
 
 def box_room(px, py, aspect, segs):
@@ -594,12 +589,13 @@ def fit_label(rings, segs, aspect, cap, precision=0.25):
     return best[2], best[3], best[1]
 
 
-def label_spot(rings, segs, shape):
+def label_spot(rings, segs, shape, metrics=None):
     """Where a label of this shape goes and how big: [anchor x, anchor y, font size], the anchor
-    being the SVG text's (centered, dominant-baseline central)."""
-    x, y, room = fit_label(rings, segs, label_aspect(shape), LABEL_MAX * INK_EM / 2 / LABEL_FILL)
-    size = max(LABEL_MIN, min(LABEL_MAX, 2 * room / INK_EM * LABEL_FILL))
-    return [round(x, 1), round(y - INK_DROP_EM * size, 1), round(size, 1)]
+    being the SVG text's (centered, dominant-baseline central), in metrics (THEME's by default)."""
+    m = metrics or THEME.metrics
+    x, y, room = fit_label(rings, segs, label_aspect(shape, m), LABEL_MAX * m.ink_em / 2 / LABEL_FILL)
+    size = max(LABEL_MIN, min(LABEL_MAX, 2 * room / m.ink_em * LABEL_FILL))
+    return [round(x, 1), round(y - m.ink_drop_em * size, 1), round(size, 1)]
 
 
 def us_regions():
@@ -611,17 +607,25 @@ def us_regions():
     return out
 
 
-def spots_inputs():
-    """A hash of everything label-spots.json is computed from: the constants, the display font's
-    metrics and the font they were measured in, the fitting code's own source, the US map and each
-    mapped Area file's map and counties."""
-    h = hashlib.sha256(f"{DIGIT_EM} {TIE_EM} {INK_EM} {BEARING_EM} {INK_DROP_EM} {CHIP_CHAR_EM} "
-                       f"{NAME_CHAR_EM} {ABBR_CHAR_EM} {ABBR_TRACKING_EM} {primary_family(THEME.display)} "
+def spots_key(theme):
+    """What a theme's label spots depend on: the metrics the fitting reads (the Metrics fields
+    marked spots) and the display font they were measured in (its first family)."""
+    m = theme.metrics
+    return (tuple(getattr(m, f.name) for f in fields(m) if f.metadata.get("spots")), primary_family(theme.display))
+
+
+def spots_inputs(theme=None):
+    """A hash of everything a theme's label spots (THEME's: label-spots.json) are computed from: the
+    constants, the display font's metrics and the font they were measured in (spots_key), the
+    fitting code's own source, the US map and each mapped Area file's map and counties."""
+    metrics, family = spots_key(theme or THEME)
+    h = hashlib.sha256(f"{' '.join(map(str, metrics))} {family} "
                        f"{LABEL_SHAPES} {LABEL_FILL} {LABEL_MIN} {LABEL_MAX} {CENTER_PULL}".encode())
     # The functions the spots come from, listed by hand: hashing the whole module would ask for a
     # rerun after every CSS change. A new helper the fitting calls belongs here.
     for f in (_ring, decode_topology, ring_area, seg_dist2, inside, signed_dist, polylabel, label_width,
-              label_aspect, box_room, centroid, edges, fit_label, label_spot, us_regions, area_regions):
+              label_aspect, box_room, centroid, edges, fit_label, label_spot, us_regions, area_regions,
+              compute_spots):
         h.update(inspect.getsource(f).encode())
     h.update(TOPO.read_bytes())
     for path in sorted(AREAS_DIR.glob("*.json")):
@@ -633,11 +637,63 @@ def spots_inputs():
     return h.hexdigest()
 
 
+def compute_spots(theme=None, progress=None):
+    """A theme's label spots (THEME's by default), as label_spots gives them: every label shape's
+    spot (label_spot) in every state on the US map and every Area with counties in an Area file
+    that has a map. progress: called with a line of text as each region is done, or None. Takes
+    about ten seconds."""
+    theme = theme or THEME
+    say = progress or (lambda line: None)
+
+    def spots_for(regions):
+        out = {}
+        for name, (rings, segs) in sorted(regions.items()):
+            out[name] = {shape: label_spot(rings, segs, shape, theme.metrics) for shape in LABEL_SHAPES}
+            say(f"  {name}")
+        return out
+
+    say("US states")
+    data = {"inputs": spots_inputs(theme), "us": spots_for(us_regions()), "areas": {}}
+    for path in sorted(AREAS_DIR.glob("*.json")):
+        areas = json.loads(path.read_text())
+        if areas.get("map"):
+            say(f"{path.stem} {areas['labels']}")
+            data["areas"][path.stem] = spots_for(area_regions(areas))
+    return data
+
+
+def spots_cache():
+    """Where the label spots of a theme other than the house's are kept: local/cache/label-spots/
+    (see local_dir), one file per inputs hash."""
+    return local_dir() / "cache" / "label-spots"
+
+
 @functools.lru_cache(maxsize=None)
-def label_spots():
-    """tools/maps/label-spots.json: {"inputs", "us": {state name: {shape: spot}}, "areas": {ST:
-    {Area name: {shape: spot}}}} (see label_spot), made by tools/maps/label_spots.py."""
-    return json.loads(SPOTS.read_text())
+def label_spots(theme=None, cache_dir=None):
+    """A theme's label spots (THEME's by default): {"inputs", "us": {state name: {shape: spot}},
+    "areas": {ST: {Area name: {shape: spot}}}} (see label_spot).
+
+    THEME's, and any theme's with THEME's spots_key (its display font and fitted metrics), are
+    tools/maps/label-spots.json, made by tools/maps/label_spots.py (a test says when to rerun it).
+    Another theme's are computed once (compute_spots, about ten seconds) and kept in cache_dir
+    (spots_cache() by default) as <inputs hash>.json, so they are computed again when the maps or
+    the fitting change."""
+    theme = theme or THEME
+    if spots_key(theme) == spots_key(THEME):
+        return json.loads(SPOTS.read_text())
+    inputs = spots_inputs(theme)
+    path = Path(cache_dir or spots_cache()) / f"{inputs}.json"
+    try:
+        data = json.loads(path.read_text())
+        if isinstance(data, dict) and data.get("inputs") == inputs:
+            return data
+    except (OSError, ValueError):
+        pass
+    print(f"Fitting the rank labels to {primary_family(theme.display)}'s metrics (about ten seconds, once; "
+          f"kept in {path.parent})", file=sys.stderr, flush=True)
+    data = compute_spots(theme)
+    write_json(path, data)
+    return data
 
 
 def callout_spots(places, theme=None):
@@ -857,11 +913,41 @@ def css_var():
     return field(metadata={"css_var": True})
 
 
+def metric(spots=False, positive=True):
+    """A Metrics field: in em, positive unless said otherwise; spots: the label fitting reads it,
+    so the label spots depend on it (spots_key)."""
+    return field(metadata={"spots": spots, "positive": positive})
+
+
+@dataclass(frozen=True)
+class Metrics:
+    """The display font's metrics the maps are laid out with, in em of the text's size (house:
+    Roboto Condensed, measured in Chrome). A rank label's glyphs (weight 900, tabular digits): a
+    digit's advance, the tie's small raised t's advance (at .6 the size), the ink's height (the t's
+    top is level with the digits'), the side bearings the ink leaves out, how far the ink's middle
+    sits below an SVG `dominant-baseline: central` anchor (negative: above it), and how far the t
+    rises from its own central anchor to the digits' top. A callout's text, in em of its own size: a
+    chip's width per rank character (a digit and the room around it), an Area name's width per
+    character (700), a state abbreviation's capital (700) and its letter-spacing (the CSS's).
+    tools/maps/measure_font.html measures them for another font (docs/rankmap.md, Restyling)."""
+    digit_em: float = metric(spots=True)
+    tie_em: float = metric(spots=True)
+    ink_em: float = metric(spots=True)
+    bearing_em: float = metric(spots=True, positive=False)
+    ink_drop_em: float = metric(spots=True, positive=False)
+    tie_rise_em: float = metric(positive=False)
+    chip_char_em: float = metric()
+    name_char_em: float = metric()
+    abbr_char_em: float = metric()
+    abbr_tracking_em: float = metric(positive=False)
+
+
 @dataclass(frozen=True)
 class Theme:
     """Every color and font the report pages use, and their type sizes for copy, toggles and map
     text, as named tokens: colors are any CSS color, sizes CSS pixels. THEME holds the house values
-    (see house_theme); a fork restyles every page there.
+    (see house_theme); a fork restyles every page there, and a config's theme file (load_theme)
+    restyles its own pages.
 
     Pages read the fields made with css_var as CSS custom properties (see theme_css: --bg, --fg,
     --display, ...). The rest go into a page as values: `[[name]]` in the CSS here (see css),
@@ -888,10 +974,12 @@ class Theme:
     tag_fg: str = field()  # text on tag
     ranks: tuple[Swatch, ...] = field()  # the rank buckets' colors, best first (rankmap's buckets())
     no_rank: Swatch = field()  # an Area with no rank in the view
-    # Fonts, the CSS custom properties, and the stylesheet that loads them.
-    display: str = css_var()  # headings, numbers and the maps' labels (measured: see DIGIT_EM)
+    # Fonts, the CSS custom properties, the display font's metrics, and the stylesheet that loads
+    # them (an https URL), or None for fonts the viewer has (system font stacks).
+    display: str = css_var()  # headings, numbers and the maps' labels (measured: see metrics)
     body: str = css_var()  # copy
-    fonts_url: str = field()
+    metrics: Metrics = field()  # the display font's, for the maps' layout
+    fonts_url: typing.Optional[str] = field(metadata={"url": True})
     # Type sizes, in px.
     copy_px: int = field()  # copy, the legend's keys, the pick line under a map
     toggle_px: int = field()  # a toggle's label
@@ -924,6 +1012,11 @@ def house_theme():
         no_rank=Swatch("#dfe6e1", muted),
         display='"Roboto Condensed", "Arial Narrow", "Helvetica Neue", sans-serif',
         body='"Atkinson Hyperlegible", "Helvetica Neue", Arial, sans-serif',
+        # An Area name's width per character: Roboto Condensed 700 measures 10 to 11.1 map units at
+        # 22px; the abbreviations' capitals about half an em.
+        metrics=Metrics(digit_em=0.511, tie_em=0.188, ink_em=0.731, bearing_em=0.05, ink_drop_em=-0.019,
+                        tie_rise_em=0.191, chip_char_em=0.6, name_char_em=11.2 / 22, abbr_char_em=0.5,
+                        abbr_tracking_em=0.04),
         fonts_url="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400"
                   "&family=Roboto+Condensed:wght@600;700;800;900&display=swap",
         copy_px=15, toggle_px=17, chip_px=15, abbr_px=13, name_px=22,
@@ -938,6 +1031,123 @@ def primary_family(stack):
     return stack.split(",")[0].strip().strip("\"'")
 
 
+# ---------------------------------------------------------------- theme files
+
+class ThemeError(ValueError):
+    """A theme file that cannot be used: the message says why."""
+
+
+# What a CSS value from a theme file may not hold: it would end the declaration or the <style>.
+CSS_UNSAFE = re.compile(r"[;{}<>\\\x00-\x1f\x7f]")
+
+
+def load_theme(path, base=None):
+    """The theme a theme file makes: base (THEME by default) with the tokens the file names in
+    place of base's. The file is a JSON object of Theme's fields (`_`-prefixed keys are comments),
+    each as its type in JSON: a color, a font stack or a URL as text, a size as a whole number of
+    px, a Swatch as {"fill", "ink"}, `ranks` as a list of as many of them as base has (rankmap's
+    buckets), `metrics` as an object with every Metrics field, and `fonts_url` an https URL or null
+    (no web fonts: system font stacks). A file that changes `display`'s first family must give
+    `metrics` too. Raises ThemeError, naming the token."""
+    base = base or THEME
+    try:
+        data = json.loads(Path(path).read_text())
+    except FileNotFoundError:
+        raise ThemeError("no such file") from None
+    except ValueError as e:
+        raise ThemeError(f"not valid JSON ({e})") from None
+    if not isinstance(data, dict):
+        raise ThemeError("a theme file is a JSON object of design tokens")
+    tokens = {f.name: f for f in fields(Theme)}
+    given = {k: v for k, v in data.items() if not k.startswith("_")}
+    unknown = [k for k in given if k not in tokens]
+    if unknown:
+        raise ThemeError(f"no design token {', '.join(repr(k) for k in unknown)}; the tokens are "
+                         f"{', '.join(tokens)}")
+    hints = typing.get_type_hints(Theme)
+    theme = replace(base, **{name: _token_value(name, hints[name], value, getattr(base, name), tokens[name].metadata)
+                             for name, value in given.items()})
+    if "metrics" not in given and primary_family(theme.display) != primary_family(base.display):
+        raise ThemeError(
+            f"'display' is {primary_family(theme.display)}, not {primary_family(base.display)}, so it needs its "
+            f"'metrics' too: the maps are laid out with the display font's measurements ("
+            f"{', '.join(f.name for f in fields(Metrics))}). Measure them: open tools/maps/measure_font.html in a "
+            f"browser, give it the family and its stylesheet, and paste the \"metrics\" it prints into the theme "
+            f"file (docs/rankmap.md, Restyling)")
+    return theme
+
+
+def _token_value(path, kind, value, base, meta):
+    """A theme file's value for one token (path: its name, as an error names it) as kind, base's
+    type annotation for it; base is the value it replaces (a tuple's length comes from it)."""
+    if typing.get_origin(kind) is typing.Union:  # Optional[X]
+        if value is None:
+            return None
+        kind = next(k for k in typing.get_args(kind) if k is not type(None))
+    elif value is None:
+        raise ThemeError(f"{path}: cannot be null")
+    if kind is str:
+        if not isinstance(value, str) or not value.strip():
+            raise ThemeError(f"{path}: must be text, not {json.dumps(value)}")
+        if meta.get("url"):
+            if not re.fullmatch(r"https://[^\s\"'<>]+", value):
+                raise ThemeError(f"{path}: must be an https:// URL (a stylesheet), or null for system fonts only")
+        elif CSS_UNSAFE.search(value):
+            raise ThemeError(f"{path}: {json.dumps(value)} is not a CSS value (no ; {{ }} < > or backslash)")
+        return value
+    if kind is int:
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            raise ThemeError(f"{path}: must be a whole number of px above 0, not {json.dumps(value)}")
+        return value
+    if kind is float:
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+            raise ThemeError(f"{path}: must be a number (in em), not {json.dumps(value)}")
+        if meta.get("positive") and value <= 0:
+            raise ThemeError(f"{path}: must be above 0, not {json.dumps(value)}")
+        return float(value)
+    if typing.get_origin(kind) is tuple:
+        item = typing.get_args(kind)[0]
+        if not isinstance(value, list) or len(value) != len(base):
+            got = f"{len(value)} items" if isinstance(value, list) else json.dumps(value)
+            raise ThemeError(f"{path}: must be a list of exactly {len(base)} {_describe(item)}, not {got}")
+        return tuple(_token_value(f"{path}[{i}]", item, v, b, {}) for i, (v, b) in enumerate(zip(value, base)))
+    if is_dataclass(kind):
+        names = [f.name for f in fields(kind)]
+        if not isinstance(value, dict):
+            raise ThemeError(f"{path}: must be {_describe(kind)}, not {json.dumps(value)}")
+        wrong = [k for k in value if k not in names]
+        missing = [k for k in names if k not in value]
+        if wrong or missing:
+            raise ThemeError(f"{path}: must be {_describe(kind)}"
+                             + (f"; no {', '.join(repr(k) for k in wrong)}" if wrong else "")
+                             + (f"; {', '.join(repr(k) for k in missing)} missing" if missing else ""))
+        hints = typing.get_type_hints(kind)
+        return kind(**{f.name: _token_value(f"{path}.{f.name}", hints[f.name], value[f.name], getattr(base, f.name),
+                                            f.metadata) for f in fields(kind)})
+    raise TypeError(f"{path}: a theme file cannot set a token of type {kind}")
+
+
+def _describe(kind):
+    """How a theme file writes a value of kind, for an error."""
+    if is_dataclass(kind):
+        return "an object of " + ", ".join(f'"{f.name}"' for f in fields(kind))
+    return kind.__name__
+
+
+def config_theme(config, cfg):
+    """The theme a report config names: its `theme`, a theme file's path (from the config's folder,
+    see beside), loaded with load_theme; THEME when it names none. Exits naming the problem."""
+    if "theme" not in cfg:
+        return THEME
+    if not isinstance(cfg["theme"], str) or not cfg["theme"].strip():
+        sys.exit(f"{config}: 'theme' is a theme file's path (text), from the config's folder")
+    path = beside(config, cfg["theme"])
+    try:
+        return load_theme(path)
+    except ThemeError as e:
+        sys.exit(f"{config}: theme {path}: {e}")
+
+
 def theme_css(theme=THEME):
     """The light-only theme's :root block: theme's css_var fields as CSS custom properties, one
     per line in field order, each a token's name with dashes (seg_on: --seg-on). Always light: the
@@ -947,17 +1157,28 @@ def theme_css(theme=THEME):
     return ":root {\n" + props + "  color-scheme: light only;\n}"
 
 
-TOKEN = re.compile(r"\[\[(\w+)\]\]")  # a token in report CSS: [[name]], which CSS and JS never write
+# A token in report CSS: [[name]], or [[name.field]] for a field of one (a metric), which CSS and
+# JS never write.
+TOKEN = re.compile(r"\[\[(\w+(?:\.\w+)*)\]\]")
+
+
+def num(x):
+    """A number for CSS or SVG, as the pages write them: up to three decimals, no trailing zeros,
+    no leading zero (0.04: .04, -0.3183: -.318)."""
+    text = f"{x:.3f}".rstrip("0").rstrip(".")
+    return re.sub(r"^(-?)0\.", r"\1.", text) if text not in ("0", "-0") else "0"
 
 
 def css(text, theme=THEME):
-    """Plain CSS with theme's tokens filled in for [[name]]; an unknown name raises KeyError."""
-    names = {f.name for f in fields(theme)}
-
+    """Plain CSS with theme's tokens filled in for [[name]] (a number as num writes it); an
+    unknown name raises KeyError."""
     def token(m):
-        if m.group(1) not in names:
-            raise KeyError(f"no design token {m.group(1)!r}")
-        return str(getattr(theme, m.group(1)))
+        value = theme
+        for name in m.group(1).split("."):
+            if not is_dataclass(value) or name not in {f.name for f in fields(value)}:
+                raise KeyError(f"no design token {m.group(1)!r}")
+            value = getattr(value, name)
+        return num(value) if isinstance(value, float) else str(value)
     return TOKEN.sub(token, text)
 
 
@@ -1045,7 +1266,7 @@ def chips(theme=THEME):
     """Callout chips sized for theme's chip_px (the numbers here are at 15px)."""
     px = theme.chip_px
     pad, least, half, left, gap, lead, hawaii = (round(n * px / 15) for n in (10, 32, 11, 16, 6, 4, 52))
-    return Chips(char=round(CHIP_CHAR_EM * px), pad=pad, least=least, half=half, left=left, gap=gap,
+    return Chips(char=round(theme.metrics.chip_char_em * px), pad=pad, least=least, half=half, left=left, gap=gap,
                  lead=lead, step=2 * half + 8, hawaii=hawaii)
 
 
@@ -1059,20 +1280,27 @@ def map_viewbox(theme=THEME):
     right for the callout column, widened when theme's chips and abbreviations need it."""
     ch = chips(theme)
     reach = (CALLOUT_X - ch.left + ch.width(WIDEST_CHIP) + ch.gap
-             + 2 * (ABBR_CHAR_EM + ABBR_TRACKING_EM) * theme.abbr_px)
+             + 2 * (theme.metrics.abbr_char_em + theme.metrics.abbr_tracking_em) * theme.abbr_px)
     right = max(MAP_RIGHT, round(reach))
     return f"-10 0 {right + 10} 620"
 
 
 # ---------------------------------------------------------------- page styling
 
+GOOGLE_FONTS = "https://fonts.googleapis.com/"
+
+
 def head(theme=THEME):
-    """<head> lines after the title: the light-only theme and the display and body fonts."""
-    return f"""<meta name="claude:viewport-fit-sides" content="cover">
-<meta name="color-scheme" content="light only">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="{attr_url(theme.fonts_url)}">"""
+    """<head> lines after the title: the light-only theme and the stylesheet that loads the display
+    and body fonts (none when theme.fonts_url is None: system fonts), with Google Fonts' two hosts
+    preconnected when it is theirs."""
+    lines = '<meta name="claude:viewport-fit-sides" content="cover">\n<meta name="color-scheme" content="light only">'
+    if theme.fonts_url is None:
+        return lines
+    if theme.fonts_url.startswith(GOOGLE_FONTS):
+        lines += ('\n<link rel="preconnect" href="https://fonts.googleapis.com">'
+                  '\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>')
+    return lines + f'\n<link rel="stylesheet" href="{attr_url(theme.fonts_url)}">'
 
 
 # Page base: hidden toggling, safe areas, body type and the centered column.
@@ -1106,7 +1334,7 @@ MAP_CSS = """figure { margin: 0; display: grid; gap: 14px; }
 .chip { fill: var(--f); }
 .lead { stroke: var(--muted); stroke-width: .8; fill: none; }
 .dot { fill: var(--muted); }
-.ab { font-family: var(--display); font-weight: 700; font-size: [[abbr_px]]px; fill: var(--muted); letter-spacing: .04em; dominant-baseline: central; }"""
+.ab { font-family: var(--display); font-weight: 700; font-size: [[abbr_px]]px; fill: var(--muted); letter-spacing: [[metrics.abbr_tracking_em]]em; dominant-baseline: central; }"""
 
 
 @dataclass(frozen=True)

@@ -19,3 +19,5 @@ python3 -m unittest discover -s tools/seedsheet                                 
 For roster mode, start from `seedsheet.config.example.json` instead (meet, meet_date, athletes, output_dir, events with rosters).
 Rosters sit beside the config, saved sheets go in `data/` and pages in `out/` (all in `local/seedsheet/`); a meet's index and pages are in `out/<meet id>/`, one config's to a folder.
 See the README's [`local/` section](../../README.md#your-own-configs-and-data-local).
+
+To restyle the pages, add `"theme": "<a theme file>"` to the config (start from [`tools/theme.example.json`](../theme.example.json)); see [Restyling](../../docs/seedsheet.md#restyling).

@@ -21,7 +21,7 @@ import sys
 import tempfile
 import textwrap
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from datetime import date
 from pathlib import Path
 from unittest import mock
@@ -172,7 +172,8 @@ class Pages(AnonymizedAreas):
         x, y, size = build.spot(spots, "Texas", "10234")
         k = build.label_width("4") / build.label_width("5")
         self.assertEqual((x, size), (100.0, round(40 * k, 1)))
-        self.assertAlmostEqual(y + build.INK_DROP_EM * size, 200 + build.INK_DROP_EM * 40, delta=0.1)
+        drop = build.THEME.metrics.ink_drop_em
+        self.assertAlmostEqual(y + drop * size, 200 + drop * 40, delta=0.1)
         self.assertEqual(build.spot(spots, "Texas", "T10234")[2], round(36 * build.label_width("t4") / build.label_width("t5"), 1))
         self.assertEqual(build.spot(spots, "Texas", "1234"), [100.0, 200.0, 40.0])
 
@@ -926,6 +927,200 @@ class Theme(AnonymizedAreas):
         self.assertIn(f"--bg: {THEME.bg};", build_page()[0])  # THEME's page is still THEME's
 
 
+class ThemeFile(AnonymizedAreas):
+    """A theme file (report.load_theme): a config's `theme`, its tokens over the house theme's."""
+
+    def load(self, tokens, raw=None):
+        from report import load_theme
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "theme.json"
+            path.write_text(raw if raw is not None else json.dumps(tokens))
+            return load_theme(path)
+
+    def refused(self, tokens, says, raw=None):
+        from report import ThemeError
+        with self.assertRaises(ThemeError) as e:
+            self.load(tokens, raw)
+        self.assertIn(says, str(e.exception))
+        return str(e.exception)
+
+    def test_the_example_theme_loads(self):
+        from report import THEME, load_theme
+        theme = load_theme(Path(build.__file__).parent.parent / "theme.example.json")
+        self.assertNotEqual(theme.display, THEME.display)
+        self.assertNotEqual(theme.metrics, THEME.metrics)
+        self.assertEqual(len(theme.ranks), len(build.RANK_BUCKETS))
+
+    def test_an_empty_theme_is_the_house_theme(self):
+        from report import THEME
+        self.assertEqual(self.load({}), THEME)
+        self.assertEqual(self.load({"_note": "a comment"}), THEME)
+
+    def test_only_the_named_tokens_change(self):
+        import dataclasses
+        from report import THEME, Swatch
+        theme = self.load({"bg": "#fafafa", "copy_px": 16, "no_rank": {"fill": "#eeeeee", "ink": "#333333"}})
+        self.assertEqual(theme, dataclasses.replace(THEME, bg="#fafafa", copy_px=16,
+                                                    no_rank=Swatch("#eeeeee", "#333333")))
+
+    def test_an_unknown_token_is_named_with_the_valid_ones(self):
+        from report import Theme
+        says = self.refused({"bg": "#fff", "backgrund": "#fff"}, "no design token 'backgrund'")
+        self.assertIn("the tokens are " + ", ".join(f.name for f in dataclasses_fields(Theme)), says)
+
+    def test_wrong_types_are_refused(self):
+        self.refused({"bg": 5}, "bg: must be text")
+        self.refused({"bg": ""}, "bg: must be text")
+        self.refused({"bg": "red; } body { display: none"}, "bg: \"red; } body { display: none\" is not a CSS value")
+        self.refused({"display": None}, "display: cannot be null")
+        self.refused({"copy_px": "15"}, "copy_px: must be a whole number of px")
+        self.refused({"copy_px": True}, "copy_px: must be a whole number of px")
+        self.refused({"copy_px": 0}, "copy_px: must be a whole number of px above 0")
+        self.refused({"copy_px": 15.5}, "copy_px: must be a whole number of px")
+        self.refused({"no_rank": "#eee"}, 'no_rank: must be an object of "fill", "ink"')
+        self.refused({"no_rank": {"fill": "#eee"}}, "no_rank: must be an object of \"fill\", \"ink\"; 'ink' missing")
+        self.refused({"no_rank": {"fill": "#eee", "ink": "#333", "edge": "#000"}}, "no_rank: must be an object of "
+                     "\"fill\", \"ink\"; no 'edge'")
+        self.refused({"fonts_url": "http://fonts.example.com/x.css"}, "fonts_url: must be an https:// URL")
+        self.refused({}, "not valid JSON", raw="{bg: 1}")
+        self.refused({}, "a theme file is a JSON object", raw="[]")
+
+    def test_ranks_are_as_many_swatches_as_the_rank_buckets(self):
+        ranks = [{"fill": f"#00000{i}", "ink": "#ffffff"} for i in range(len(build.RANK_BUCKETS))]
+        self.assertEqual([s.fill for s in self.load({"ranks": ranks}).ranks], [r["fill"] for r in ranks])
+        self.refused({"ranks": ranks[:4]}, 'ranks: must be a list of exactly 5 an object of "fill", "ink", not 4 items')
+        self.refused({"ranks": ranks + ranks[:1]}, "not 6 items")
+        self.refused({"ranks": ranks[:4] + [{"fill": "#000000"}]}, "ranks[4]: must be an object")
+        self.refused({"ranks": ranks[:4] + [{"fill": 3, "ink": "#fff"}]}, "ranks[4].fill: must be text")
+
+    def test_a_new_display_font_needs_every_metric(self):
+        from report import THEME, Metrics
+        says = self.refused({"display": '"Oswald", sans-serif'}, "'display' is Oswald, not Roboto Condensed, so it "
+                            "needs its 'metrics' too")
+        self.assertIn("tools/maps/measure_font.html", says)
+        self.assertIn(", ".join(f.name for f in dataclasses_fields(Metrics)), says)
+        metrics = {f.name: getattr(THEME.metrics, f.name) for f in dataclasses_fields(Metrics)}
+        theme = self.load({"display": '"Oswald", sans-serif', "metrics": dict(metrics, ink_em=0.84)})
+        self.assertEqual(theme.metrics.ink_em, 0.84)
+        self.refused({"display": '"Oswald", sans-serif', "metrics": dict(metrics, ink_em=None)},
+                     "metrics.ink_em: cannot be null")
+        self.refused({"metrics": {k: v for k, v in metrics.items() if k != "tie_em"}}, "metrics: must be an object of "
+                     "\"digit_em\"")
+        self.refused({"metrics": dict(metrics, ink_em=0)}, "metrics.ink_em: must be above 0")
+        self.refused({"metrics": dict(metrics, digit_em="0.5")}, "metrics.digit_em: must be a number")
+        self.assertEqual(self.load({"metrics": dict(metrics, ink_drop_em=-0.02)}).metrics.ink_drop_em, -0.02)
+        # Its fallbacks are not the font the maps are measured in: they need nothing.
+        self.assertEqual(self.load({"display": '"Roboto Condensed", serif'}).metrics, THEME.metrics)
+
+    def test_a_partial_theme_changes_only_its_tokens_in_the_page(self):
+        from report import THEME
+        theme = self.load({"bg": "#fafafa", "map_edge": "#cccccc"})
+        with tempfile.TemporaryDirectory() as tmp:  # as the expected page is built (Pages)
+            html, _ = build.build({SEASON: saved()}, [2099, 2100, 2101, 2102], Path(tmp), theme, areas_dir=AREAS)
+            got = html.read_text()
+        want = (TESTDATA / "expected" / "982389051-400m.html").read_text()
+        want = want.replace(f"--bg: {THEME.bg};", "--bg: #fafafa;").replace(THEME.map_edge, "#cccccc")
+        self.assertEqual(got, want)
+
+    def test_fonts_are_any_stylesheet_or_none(self):
+        from report import THEME, head
+        self.assertIn('<link rel="preconnect" href="https://fonts.googleapis.com">', head(THEME))
+        none = self.load({"fonts_url": None})
+        self.assertIsNone(none.fonts_url)
+        self.assertEqual(head(none), '<meta name="claude:viewport-fit-sides" content="cover">\n'
+                                     '<meta name="color-scheme" content="light only">')
+        other = head(self.load({"fonts_url": "https://fonts.example.com/a.css?x=1&y=2"}))
+        self.assertIn('<link rel="stylesheet" href="https://fonts.example.com/a.css?x=1&y=2">', other)
+        self.assertNotIn("preconnect", other)
+        with tempfile.TemporaryDirectory() as tmp:
+            html, _ = build.build({SEASON: saved()}, [SEASON], Path(tmp), none, areas_dir=AREAS)
+            page = html.read_text()
+        self.assertNotIn("<link", page)
+        self.assertNotIn("fonts.g", page)
+
+    def test_the_metrics_reach_the_page(self):
+        import dataclasses
+        from report import THEME, css, num
+        self.assertEqual(build.tie_dy(THEME.metrics), ("-.318", ".191"))  # the house page's
+        self.assertEqual([num(x) for x in (0.04, -0.3183, 2.0, 0.0, 12.25)], [".04", "-.318", "2", "0", "12.25"])
+        self.assertEqual(css(".ab { letter-spacing: [[metrics.abbr_tracking_em]]em; }"), ".ab { letter-spacing: .04em; }")
+        with self.assertRaisesRegex(KeyError, "metrics.nope"):
+            css("[[metrics.nope]]")
+        metrics = dataclasses.replace(THEME.metrics, tie_rise_em=0.3, abbr_tracking_em=0.1, digit_em=0.6)
+        theme = dataclasses.replace(THEME, metrics=metrics)
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(build, "label_spots", lambda *a: json.loads(
+                (Path(build.__file__).parent.parent / "maps" / "label-spots.json").read_text())):
+            page = build.build({SEASON: saved()}, [SEASON], Path(tmp), theme, areas_dir=AREAS)[0].read_text()
+        self.assertEqual(build.rank_svg("T12", metrics), '<tspan class="sup" dy="-.5em">t</tspan><tspan dy=".3em">12</tspan>')
+        self.assertEqual(build.rank_svg("T12"), '<tspan class="sup" dy="-.318em">t</tspan><tspan dy=".191em">12</tspan>')
+        self.assertIn('sup.setAttribute("dy", "-.5em");', page)
+        self.assertIn("letter-spacing: .1em;", page)
+        self.assertIn("const [DIGIT_EM, TIE_EM, BEARING_EM, INK_DROP_EM] = [0.6, ", page)
+
+    def test_spots_are_fitted_and_kept_for_a_theme_with_its_own_metrics(self):
+        import dataclasses
+        import report
+        committed = json.loads(report.SPOTS.read_text())
+        # A color-only theme, or the house font with other fallbacks, reads the committed spots.
+        for same in (dataclasses.replace(report.THEME, bg="#fafafa"),
+                     dataclasses.replace(report.THEME, display='"Roboto Condensed", serif')):
+            self.assertEqual(report.label_spots(same, "/nonexistent")["inputs"], committed["inputs"])
+        # So does a change to a metric the fitting does not read.
+        wider = dataclasses.replace(report.THEME, metrics=dataclasses.replace(report.THEME.metrics, chip_char_em=0.7))
+        self.assertEqual(report.label_spots(wider, "/nonexistent")["inputs"], committed["inputs"])
+
+        theme = dataclasses.replace(report.THEME, display='"Oswald", sans-serif',
+                                    metrics=dataclasses.replace(report.THEME.metrics, ink_em=0.84))
+        fitted = copy.deepcopy(committed)
+        fitted["us"]["California"] = {shape: [123.4, 456.7, 33.3] for shape in report.LABEL_SHAPES}
+        calls = []
+
+        def compute(t):
+            calls.append(t)
+            return fitted
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(report, "compute_spots", compute), \
+                redirect_stderr(io.StringIO()) as err:
+            # (The inputs hash covers compute_spots' source: here, the stand-in's.)
+            inputs = fitted["inputs"] = report.spots_inputs(theme)
+            self.assertNotEqual(inputs, committed["inputs"])
+            html, _ = build.build({SEASON: saved()}, [SEASON], Path(tmp) / "out", theme, areas_dir=AREAS,
+                                  spots_dir=Path(tmp) / "spots")
+            self.assertIn('x="123.4" y="456.7" style="font-size:33.3px"', html.read_text())
+            self.assertEqual(calls, [theme])
+            self.assertIn("Fitting the rank labels to Oswald's metrics", err.getvalue())
+            kept = Path(tmp) / "spots" / f"{inputs}.json"
+            self.assertEqual(json.loads(kept.read_text()), fitted)
+            # Kept: a later build reads the file (a new process: the in-memory cache cleared).
+            report.label_spots.cache_clear()
+            self.assertEqual(report.label_spots(theme, Path(tmp) / "spots"), fitted)
+            self.assertEqual(len(calls), 1)
+            # A kept file for other inputs (the maps changed) is fitted again.
+            kept.write_text(json.dumps(dict(fitted, inputs="stale")))
+            report.label_spots.cache_clear()
+            report.label_spots(theme, Path(tmp) / "spots")
+            self.assertEqual(len(calls), 2)
+        report.label_spots.cache_clear()
+
+    def test_compute_spots_fits_in_the_themes_metrics(self):
+        import dataclasses
+        import report
+        # The fitting itself, on two states (the whole map takes about ten seconds).
+        taller = dataclasses.replace(report.THEME, metrics=dataclasses.replace(report.THEME.metrics, ink_em=0.9))
+        regions = {k: v for k, v in report.us_regions().items() if k in ("Colorado", "Texas")}
+        with mock.patch.object(report, "us_regions", lambda: regions), mock.patch.object(report, "AREAS_DIR", AREAS):
+            house, tall = report.compute_spots(report.THEME), report.compute_spots(taller)
+            self.assertEqual(tall["inputs"], report.spots_inputs(taller))
+        committed = report.label_spots()
+        self.assertEqual(house["us"], {k: committed["us"][k] for k in regions})
+        # Taller ink in the same box: a smaller font (a four-digit rank: one digit is at its biggest).
+        self.assertLess(tall["us"]["Colorado"]["4"][2], house["us"]["Colorado"]["4"][2])
+
+
+def dataclasses_fields(cls):
+    import dataclasses
+    return dataclasses.fields(cls)
+
+
 class LabelSpots(unittest.TestCase):
     """tools/maps/label-spots.json, where each rank label goes on the maps."""
 
@@ -943,14 +1138,18 @@ class LabelSpots(unittest.TestCase):
             self.assertEqual(set(shapes), set(LABEL_SHAPES))
 
     def test_a_label_fills_a_plain_box_and_sits_in_its_middle(self):
-        from report import INK_DROP_EM, INK_EM, LABEL_FILL, edges, label_spot
+        import dataclasses
+        from report import LABEL_FILL, THEME, edges, label_spot
         # A 300 x 100 box: a one-digit label is as tall as the box allows (capped at LABEL_MAX)
-        # and centered, its anchor raised by the ink's drop.
+        # and centered, its anchor raised by the ink's drop, in the house metrics or any other.
         ring = [(0, 0), (300, 0), (300, 100), (0, 100)]
-        x, y, size = label_spot([ring], edges([ring + ring[:1]]), "1")
-        self.assertAlmostEqual(x, 150, delta=0.5)
-        self.assertAlmostEqual(size, min(80, 100 / INK_EM * LABEL_FILL), delta=0.5)
-        self.assertAlmostEqual(y, 50 - INK_DROP_EM * size, delta=0.5)
+        taller = dataclasses.replace(THEME.metrics, ink_em=0.9, ink_drop_em=0.05)
+        for metrics in (None, THEME.metrics, taller):
+            m = metrics or THEME.metrics
+            x, y, size = label_spot([ring], edges([ring + ring[:1]]), "1", metrics)
+            self.assertAlmostEqual(x, 150, delta=0.5)
+            self.assertAlmostEqual(size, min(80, 100 / m.ink_em * LABEL_FILL), delta=0.5)
+            self.assertAlmostEqual(y, 50 - m.ink_drop_em * size, delta=0.5)
 
 
 class Config(unittest.TestCase):
@@ -1015,8 +1214,24 @@ class Config(unittest.TestCase):
         self.assertEqual(report.config_path("rankmap", "/a/x.config.json", local), Path("/a/x.config.json").resolve())
 
     def test_a_config_loads(self):
+        import report
         cfg = rankmap.load_config(TESTDATA / "rankmap.config.json")
         self.assertEqual(cfg["data_dir"], TESTDATA.resolve() / "data" / "982389051-400m")
+        self.assertIs(cfg["theme"], report.THEME)
+
+    def test_a_config_takes_a_theme_file_from_its_folder(self):
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "local" / "themes").mkdir(parents=True)
+            theme = Path(d) / "local" / "themes" / "look.json"
+            theme.write_text(json.dumps({"accent": "#0055aa"}))
+            cfg = rankmap.load_config(self.write(d, theme="../themes/look.json"))
+            self.assertEqual(cfg["theme"].accent, "#0055aa")
+            for i, (value, says) in enumerate(((5, "'theme' is a theme file's path"),
+                                               ("", "'theme' is a theme file's path"),
+                                               ("none.json", "none.json: no such file"))):
+                with self.assertRaises(SystemExit) as e:
+                    rankmap.load_config(self.write(Path(d) / str(i), theme=value))
+                self.assertIn(says, str(e.exception))
 
     def test_the_example_config_asks_for_an_athlete(self):
         example = Path(__file__).parent / "rankmap.config.example.json"
