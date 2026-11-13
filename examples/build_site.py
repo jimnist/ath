@@ -189,7 +189,11 @@ def main(out=SITE):
         cards.append(card(key, title, about, facts))
     (out / "index.html").write_text(index(cards))
     (out / DEMO_PAGE).write_text(demo())
-    print(f"Wrote {os.path.relpath(out / 'index.html')} and {len(cards)} rankmap examples")
+    # The page relative to here when it is under here (examples/site/index.html), else in full.
+    shown = os.path.relpath(out / "index.html")
+    if shown.startswith(".."):
+        shown = (out / "index.html").resolve()
+    print(f"Wrote {shown} and {len(cards)} rankmap examples")
 
 
 if __name__ == "__main__":
