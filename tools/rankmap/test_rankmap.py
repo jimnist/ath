@@ -725,6 +725,32 @@ class HomeState(AnonymizedAreas):
         self.assertIn("#usmap .co.home .chip { stroke: var(--fg);", page)
         self.assertEqual(page.count('<g class="co home"'), 1)
 
+    def test_a_phone_lists_the_callouts_under_the_map(self):
+        page, _ = two_seasons(newest_home_ri=True)
+        # Each callout State's rank in a chip of its rank's color, with its abbreviation and tooltip, the
+        # home State's ringed; on the US map only.
+        self.assertIn('</svg>\n    <ul class="calls" data-map="us" aria-label="Jamie Uddumcombe\'s rank in the '
+                      'states too small to label on the map"><li class="home" data-abbr="RI" title="Rhode Island: '
+                      '#42 against 9th graders in 2099 (41 faster); Jamie&#x27;s home state"><span class="cchip b21">42'
+                      '</span><span class="cab">RI</span></li></ul>', page)
+        self.assertIn(".calls .home .cchip { box-shadow: inset 0 0 0 1.5px var(--fg); }", page)
+        # Shown at phone width only, in place of the map's callouts, the map fitted to the States.
+        self.assertIn(".calls { display: none; ", page)
+        phone = re.search(r"@media \(max-width: 560px\) \{(.*)\}\n", page).group(1)
+        self.assertIn("#usmap .co { display: none; } .calls { display: grid; }", phone)
+        self.assertIn('viewBox="-10 0 1060 620" data-wide="-10 0 1060 620" data-tight="-10 0 978 620"', page)
+        self.assertIn("usmap.setAttribute(\"viewBox\", narrow.matches ? usmap.dataset.tight : usmap.dataset.wide)", page)
+        # The page script keeps it in step with the season and grade group, the ring with the season's home.
+        self.assertIn('document.querySelectorAll(".calls li").forEach(li => {', page)
+        self.assertIn('li.classList.toggle("home", li.dataset.abbr === HOME[s]);', page)
+        # The 2098 page opens on California at home: Rhode Island's chip is plain.
+        self.assertIn('<li data-abbr="RI" title=', two_seasons()[0])
+
+    def test_no_callout_list_without_a_callout_state(self):
+        page, _, _ = build_page()  # California only
+        self.assertNotIn('<ul class="calls"', page)
+        self.assertIn('data-tight="-10 0 978 620"', page)
+
 
 class ExampleMode(AnonymizedAreas):
     """`example`: a page built from anonymized data for the published examples (ADR 0010)."""
@@ -909,6 +935,24 @@ class Theme(AnonymizedAreas):
         self.assertEqual((chips(big).half, chips(big).width("T12")), (22, 74))
         self.assertGreater(int(map_viewbox(big).split()[2]), 1060)  # the callout column still fits
         self.assertEqual(build.callouts(big).step, chips(big).step)  # stacked pills cannot overlap
+        # The map without its callout column, as a phone shows it: the same in every theme.
+        from report import map_viewbox_tight
+        self.assertEqual(map_viewbox_tight(), "-10 0 978 620")
+
+    def test_the_phone_callout_list_follows_the_chip_and_abbreviation_sizes(self):
+        import dataclasses
+        from report import THEME
+        page = build_page()[0]
+        self.assertIn(".cchip { min-width: 32px; height: 22px; line-height: 22px; padding: 0 5px;", page)
+        self.assertIn("font-weight: 900; font-size: 15px;", page)
+        self.assertIn("minmax(max(57px, (100% - 4 * 8px) / 5), 1fr)", page)
+        big = dataclasses.replace(THEME, chip_px=18, abbr_px=15)
+        with tempfile.TemporaryDirectory() as tmp:
+            html, _ = build.build({SEASON: saved()}, [SEASON], Path(tmp), big, areas_dir=AREAS)
+            page = html.read_text()
+        self.assertIn(".cchip { min-width: 38px; height: 26px; line-height: 26px; padding: 0 6px;", page)
+        self.assertIn(".cab { font-family: var(--display); font-weight: 700; font-size: 15px;", page)
+        self.assertIn("minmax(max(68px, (100% - 4 * 8px) / 5), 1fr)", page)
 
     def test_a_page_renders_in_another_theme(self):
         import dataclasses

@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from report import (  # noqa: E402
     CALLOUTS, callout_spots, chips, esc, label_shape, label_spots, label_width, map_viewbox, num, outline_extent,
-    pretty_date, styles, LABEL_DIGITS, THEME, WIDEST_CHIP,
+    map_viewbox_tight, pretty_date, styles, LABEL_DIGITS, THEME, WIDEST_CHIP,
     state_areas, state_map, us_map, write_csv,
     DEMO_PAGE, FOOTER_CSS, ROBOTS, example_footer, meet_kind, page_link,
 )
@@ -677,10 +677,37 @@ class Page:
                 f'<rect class="chip {cls}" data-abbr="{abbr}" data-cx="{cx}" x="{cx - ch.left}" y="{cy - ch.half}" width="{w}" height="{2 * ch.half}" rx="4"/>'
                 f'<text class="lbl {cls}" data-abbr="{abbr}" x="{cx - ch.left + w / 2}" y="{cy}" style="font-size:{self.theme.chip_px}px">{rank_svg(lab, self.metrics)}</text>'
                 f'<text class="ab" x="{cx - ch.left + w + ch.gap}" y="{cy + 1}">{abbr}</text></g>')
-        return (f'<svg class="map" id="usmap" data-map="us" viewBox="{map_viewbox(self.theme)}" role="img" '
+        # A phone fits the map to the States alone (data-tight), its callouts listed under it (us_calls).
+        wide = map_viewbox(self.theme)
+        return (f'<svg class="map" id="usmap" data-map="us" viewBox="{wide}" data-wide="{wide}" '
+                f'data-tight="{map_viewbox_tight()}" role="img" '
                 f'aria-label="US map with {esc(self.meta["name"])}\'s rank in each state">'
                 f'<g>{"".join(svg_shapes)}</g><g>{outline}</g><g>{"".join(svg_labels)}</g>'
                 f'<g>{"".join(svg_callouts)}</g></svg>')
+
+    def calls_col(self):
+        """The least width of a column of us_calls, in px: a chip for a three-character rank (T12,
+        123), the gap and a State's abbreviation, measured as the map's callout column is."""
+        m = self.metrics
+        abbr = 2 * (m.abbr_char_em + m.abbr_tracking_em) * self.theme.abbr_px
+        return round(self.chips.width("T12") + self.chips.gap + abbr)
+
+    def us_calls(self, start, places):
+        """The US map's callouts as a list under it, for a phone, where the whole map is too small
+        for its chips to read: each callout State's rank in a chip of its rank's color at chip_px,
+        its abbreviation beside it, in the callouts' order, the home State's chip ringed. Hidden at
+        wider widths (the page's CSS); the page script keeps it in step with the map."""
+        home = self.seasons[self.default_season]["home"]
+        items = []
+        for abbr, _, _ in callout_spots(places, self.theme):
+            lab, cls, _, tip = start[abbr][:4]
+            mark = ' class="home"' if abbr == home else ""
+            items.append(f'<li{mark} data-abbr="{abbr}" title="{esc(tip)}"><span class="cchip {cls}">'
+                         f'{rank_html(lab)}</span><span class="cab">{abbr}</span></li>')
+        if not items:
+            return ""  # no callout State on the map
+        return (f'\n    <ul class="calls" data-map="us" aria-label="{esc(self.meta["name"])}\'s rank in the states '
+                f'too small to label on the map">{"".join(items)}</ul>')
 
     def area_svg(self, start, smap):
         """The home State's county map, colored by Area, with a rank in each roomy Area, district
@@ -797,7 +824,8 @@ class Page:
             lambda s: [None, None, self.theme.chip_px] if s["abbr"] in CALLOUTS
             else spot(self.spots["us"], s["name"], s["label"], self.metrics),
             lambda season, s: f"; {meta['first']}'s home state" if s["abbr"] == seasons[season]["home"] else "")
-        us_svg = self.us_svg(us[self.default_season][self.default_view], places, shapes)
+        us_start = us[self.default_season][self.default_view]
+        us_svg = self.us_svg(us_start, places, shapes) + self.us_calls(us_start, places)
 
         maps = [("us", "US states")]
         areas_data, area_figure, area_notes, map_lede = {}, "", "", ""
@@ -898,7 +926,8 @@ class Page:
             label_em=json.dumps([self.metrics.digit_em, self.metrics.tie_em, self.metrics.bearing_em,
                                  self.metrics.ink_drop_em]),
             tie_dy=tie_dy(self.metrics),
-            chip=self.chips, blank_px=BLANK_PX,
+            chip=self.chips, chip_height=2 * self.chips.half, chip_inset=num(self.chips.pad / 2),
+            calls_col=self.calls_col(), blank_px=BLANK_PX,
             default_season=self.default_season, default_view=self.default_view)
 
     def csv(self, path):
@@ -1053,6 +1082,15 @@ h1 a:hover, h1 a:focus-visible {{ text-decoration: underline; text-decoration-th
 #usmap path.home {{ fill: none; stroke: var(--fg); stroke-width: 2px; stroke-linejoin: round; vector-effect: non-scaling-stroke; pointer-events: none; }}
 #usmap .co.home .chip {{ stroke: var(--fg); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }}
 #usmap .co.home .ab {{ fill: var(--fg); }}
+/* At phone width the map's callouts are a list under it (us_calls), on the map's water in a panel like the
+   map's, each rank in a chip at its size on a wide map: at most five columns (ten States in two rows), each
+   wide enough for a three-character rank's callout; the home State's chip ringed, its abbreviation inked. */
+.calls {{ display: none; grid-template-columns: repeat(auto-fill, minmax(max({calls_col}px, (100% - 4 * 8px) / 5), 1fr)); gap: 8px; list-style: none; margin: 0; padding: 10px 12px; background: var(--map-bg); border: 1px solid {theme.map_edge}; border-radius: 10px; }}
+.calls li {{ display: flex; align-items: center; gap: {chip.gap}px; }}
+.cchip {{ min-width: {chip.least}px; height: {chip_height}px; line-height: {chip_height}px; padding: 0 {chip_inset}px; border-radius: 4px; text-align: center; background: var(--f); color: var(--i); font-family: var(--display); font-weight: 900; font-size: {theme.chip_px}px; font-variant-numeric: tabular-nums; }}
+.cab {{ font-family: var(--display); font-weight: 700; font-size: {theme.abbr_px}px; letter-spacing: {theme.metrics.abbr_tracking_em}em; color: var(--muted); }}
+.calls .home .cchip {{ box-shadow: inset 0 0 0 1.5px var(--fg); }}
+.calls .home .cab {{ color: var(--fg); }}
 .hsw {{ background: transparent; box-shadow: inset 0 0 0 2px var(--fg); }}
 .htag {{ display: inline-block; margin-left: 6px; font-family: var(--display); font-weight: 700; font-size: {theme.abbr_px}px; line-height: 1.35; letter-spacing: .04em; padding: 0 6px; border-radius: 4px; background: {theme.tag}; color: {theme.tag_fg}; vertical-align: 1px; }}
 h2 {{ font-family: var(--display); font-weight: 800; font-size: 26px; margin: 0; letter-spacing: .01em; }}
@@ -1118,7 +1156,7 @@ tbody tr.on td {{ background: {theme.highlight_row}; }}
 .smnotes {{ color: var(--muted); font-size: 13px; max-width: 72ch; }}
 .smnotes ul {{ margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; }}
 .smnotes a {{ color: inherit; }}
-@media (max-width: 560px) {{ #usmap path.home {{ stroke-width: 1.25px; }} #usmap .co.home .chip {{ stroke-width: 1px; }} .acard {{ min-height: 0; grid-template-columns: 1fr auto; grid-template-rows: auto auto; align-items: center; }} .crank {{ grid-row: 1 / 3; grid-column: 2; font-size: 64px; }} .amap {{ height: auto; width: 100%; }} .amap.tight .co {{ display: none; }} .legend .grp {{ width: 100%; }} td, th {{ padding: 8px 10px; }} .sn {{ width: auto; }} .stats b {{ font-size: 28px; }} .seg button {{ padding: 8px 11px; }} }}
+@media (max-width: 560px) {{ #usmap path.home {{ stroke-width: 1.25px; }} #usmap .co {{ display: none; }} .calls {{ display: grid; }} .acard {{ min-height: 0; grid-template-columns: 1fr auto; grid-template-rows: auto auto; align-items: center; }} .crank {{ grid-row: 1 / 3; grid-column: 2; font-size: 64px; }} .amap {{ height: auto; width: 100%; }} .amap.tight .co {{ display: none; }} .legend .grp {{ width: 100%; }} td, th {{ padding: 8px 10px; }} .sn {{ width: auto; }} .stats b {{ font-size: 28px; }} .seg button {{ padding: 8px 11px; }} }}
 @media (prefers-reduced-motion: reduce) {{ .st {{ transition: none; }} }}
 </style>
 </head>
@@ -1253,6 +1291,13 @@ function show(s, v, m) {{
   if (home) outline.setAttribute("d", home.getAttribute("d"));
   outline.toggleAttribute("hidden", !home);
   document.querySelectorAll("#usmap .co").forEach(g => g.classList.toggle("home", g.dataset.abbr === HOME[s]));
+  document.querySelectorAll(".calls li").forEach(li => {{  // the callouts listed under the map, for a phone
+    const [lab, cls, , tip] = d[li.dataset.abbr], c = li.querySelector(".cchip");
+    c.className = "cchip " + cls;
+    rankHtml(c, lab);
+    li.title = tip;
+    li.classList.toggle("home", li.dataset.abbr === HOME[s]);
+  }});
   document.querySelectorAll("#areamap .ct, #areamap .dist").forEach(p => {{
     const e = a[p.dataset.area], kind = p.classList.contains("dist") ? "dist" : "ct";
     p.setAttribute("class", kind + " " + (e ? e[1] : "none") + (pick === p.dataset.area ? " on" : ""));
@@ -1323,6 +1368,11 @@ function fitAreaMap() {{
 }}
 fitAreaMap();
 if (narrow.addEventListener) narrow.addEventListener("change", fitAreaMap);
+// And the US map to the States, its callouts listed under it instead (the CSS: .calls).
+const usmap = document.getElementById("usmap");
+function fitUsMap() {{ usmap.setAttribute("viewBox", narrow.matches ? usmap.dataset.tight : usmap.dataset.wide); }}
+fitUsMap();
+if (narrow.addEventListener) narrow.addEventListener("change", fitUsMap);
 [amap, acards].forEach(el => {{ if (el) el.addEventListener("click", pickArea); }});
 function pickArea(e) {{
   const el = e.target.closest("[data-area]");
