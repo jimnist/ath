@@ -1,6 +1,6 @@
 ---
 name: rankmap
-description: Build or update a rankmap page - where an athlete's season-best mark would rank on every state's Athletic.net high school list - collecting new seasons with `ath rank` through the browser relay (a Claude in Chrome tab), building the page, and asking whether to republish it when the config has a shared page (`artifact_url`). Use when the user asks to add, refresh, or rebuild a season of state rankings or the rankings map.
+description: Build or update a rankmap page - where an athlete's season-best mark would rank on every state's Athletic.net high school list - collecting new seasons with `ath rank` through the browser relay (a Claude in Chrome tab), building the page (restyled by a theme file when the config names one), and asking whether to republish it when the config has a shared page (`artifact_url`). Use when the user asks to add, refresh, or rebuild a season of state rankings or the rankings map, or to restyle the page.
 ---
 
 # rankmap
@@ -16,6 +16,16 @@ Never pass a relative path such as `local/rankmap/...`: in a worktree it points 
 To see which configs exist, list `local/rankmap/*.config.json` in the main checkout: the first `worktree` line of `git worktree list --porcelain` (or `$ATH_LOCAL/rankmap/` when that is set).
 If there is none for the athlete and event, ask the user for the athlete's Athletic.net id (or profile URL), event and graduation year, and write it from `tools/rankmap/rankmap.config.example.json` into the main checkout's `local/rankmap/`.
 Pages go to the config's `output_dir` (required, relative to the config's folder, e.g. `out` for `local/rankmap/out/`), and collected seasons to its `data_dir` (`data` beside the config when it has none).
+
+### Restyling (optional)
+
+To change the page's colors, fonts or type sizes, give the config a `theme`: a path, relative to the config file, to a theme file, so keep it beside the configs in the main checkout's `local/rankmap/`.
+Start from `tools/theme.example.json`; a theme file needs only the tokens it changes, and the rest keep the house look.
+Read "Restyling" in `docs/rankmap.md` for what each token takes.
+Restyle through a theme file, never by editing `house_theme()` in `tools/report.py`, which is every page's default look.
+The file is checked strictly: a bad token or value stops the build and says what is wrong, so fix the theme file and rebuild with `--no-fetch`.
+A new display font (another first family in `display`) also needs that font's `metrics`: open `tools/maps/measure_font.html` in a browser (from the file, or `measure_font.html?family=<family>&url=<stylesheet, URL-encoded>`), and paste the `metrics` object it prints into the theme file.
+The page stays light-only with any theme: there is no dark mode to configure.
 
 rankmap gets its data from `ath rank --in all,areas --ahead all` (every State, and every Area of the home State when `areas/<ST>.json` has it, such as California's CIF Sections), which fetches through the browser relay.
 Run `cargo build --release` first (a no-op when the build is current), as the `ath` skill says.
@@ -45,6 +55,8 @@ If `ath` says a list is capped, the browser session has no paid subscription; te
 If `ath` says the athlete has no mark yet, the season has not started for them; tell the user rather than guessing.
 
 ## 3. Check and open it
+
+With a theme file whose display font or metrics differ from the house theme's, the first build takes about ten seconds longer while it fits where the map's rank numbers go, then keeps them in `local/cache/label-spots/` for later builds.
 
 `rankmap.py` prints one line per season and grade group (#1 count, top 5 count, toughest state) and the output path.
 Spot-check one number against the live Athletic.net list.
