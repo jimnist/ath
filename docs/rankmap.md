@@ -7,6 +7,7 @@ It lives in `tools/rankmap/` and gets its data from `ath rank` (see [How it rela
 ![The rankmap page: a US map with the athlete's rank in each state](images/rankmap-map.png)
 
 *Screenshots use anonymized data (ADR 0010): invented people, schools and marks in the fictional season 2099.*
+*They are the California example's page, shot by `python3 examples/screenshots.py` ([`docs/anonymize.md`](anonymize.md#the-examples)); rerun it after a change to the page.*
 
 ## What the page shows
 
