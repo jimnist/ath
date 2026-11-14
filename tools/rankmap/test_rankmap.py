@@ -676,6 +676,9 @@ class HomeState(AnonymizedAreas):
         # A copy of its shape, after every state's (so over their borders) and before the numbers.
         self.assertIn(f'</g><g><path class="home" d="{shape}"/></g><g><text class="lbl', page)
         self.assertIn(".map path.home { fill: none; stroke: var(--fg);", page)
+        # Heavier than the other borders but in their tone: the outline ink at an opacity, the legend key too.
+        self.assertIn(".map path.home { fill: none; stroke: var(--fg); stroke-opacity: 0.6; stroke-width: 2px;", page)
+        self.assertIn(".hsw::after { content: \"\"; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 2px var(--fg); opacity: 0.6; }", page)
         # Its fill stays its rank's color.
         self.assertRegex(page, r'<path class="st b21" data-abbr="CA"')
         self.assertIn("California: #42 against 9th graders in 2099 (41 faster); Jamie&#x27;s home state", page)
