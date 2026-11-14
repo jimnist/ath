@@ -2,6 +2,7 @@
 
 Where an athlete's season-best mark would rank on every US state's Athletic.net high school list, as a map page.
 The athlete's home State is outlined on the map, keeping its rank color, and tagged "home" in the state-by-state table.
+Their own Area (Section) is marked the same way on the Areas map and in its table; a Class card keeps its own tag.
 The smallest states' ranks are in chips beside the map, listed under it at phone width so they stay readable.
 Its data comes from `ath rank --in all --ahead all`, through the browser relay.
 

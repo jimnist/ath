@@ -675,14 +675,15 @@ class HomeState(AnonymizedAreas):
         shape = re.search(r'<path class="st \w+" data-abbr="CA" d="([^"]+)">', page).group(1)
         # A copy of its shape, after every state's (so over their borders) and before the numbers.
         self.assertIn(f'</g><g><path class="home" d="{shape}"/></g><g><text class="lbl', page)
-        self.assertIn("#usmap path.home { fill: none; stroke: var(--fg);", page)
+        self.assertIn(".map path.home { fill: none; stroke: var(--fg);", page)
         # Its fill stays its rank's color.
         self.assertRegex(page, r'<path class="st b21" data-abbr="CA"')
         self.assertIn("California: #42 against 9th graders in 2099 (41 faster); Jamie&#x27;s home state", page)
 
     def test_the_home_states_row_is_tagged_in_the_states_table_only(self):
         page, _, md = build_page()
-        tagged = re.findall(r'<td class="sn"><a [^>]+>([^<]+)</a> <span class="htag">home</span></td>', page)
+        tagged = re.findall(r'<td class="sn"><span class="hn"><span><a [^>]+>([^<]+)</a></span>'
+                            r'<span class="htag">home</span></span></td>', page)
         self.assertEqual(tagged, ["California"] * 4)  # one per grade group; none in the Sections tables
         self.assertEqual(page.count('class="htag"'), 4)
         self.assertIn("| 42 | California (home) |", md)
@@ -697,8 +698,8 @@ class HomeState(AnonymizedAreas):
         x["place"].update(rank=1, label="1", tied=False, ahead=0, ties=0)
         x["place"]["neighborhood"].update(ahead=[], skipped=0, tied=[])
         page, _, md = build_page(r)
-        self.assertRegex(page, r'<tr class="firsts" data-pick="CA">.*?<div class="names"><a [^>]+>California</a> '
-                               r'<span class="htag">home</span></div>')
+        self.assertRegex(page, r'<tr class="firsts" data-pick="CA">.*?<div class="names"><span class="hn"><span>'
+                               r'<a [^>]+>California</a></span><span class="htag">home</span></span></div>')
         self.assertIn("| 1 | California (home) | - |", md)
 
     def test_each_season_marks_its_own_home_state(self):
@@ -714,7 +715,7 @@ class HomeState(AnonymizedAreas):
         # Each season's table tags its own, and the legend's key is the season's.
         for season, name in (("2098", "Rhode Island"), ("2099", "California")):
             for body in re.findall(rf'<tbody data-season="{season}" data-view="[\w-]+" data-map="us"[^>]*>(.*?)</tbody>', page):
-                self.assertEqual(re.findall(r'<a [^>]+>([^<]+)</a> <span class="htag">', body), [name])
+                self.assertEqual(re.findall(r'<a [^>]+>([^<]+)</a></span><span class="htag">', body), [name])
         self.assertIn('<li class="hk" data-season="2098" data-map="us" hidden>', page)
         self.assertIn('<span class="lk">RI</span>', page)
         self.assertIn("| 42 | Rhode Island (home) |", md)
@@ -722,7 +723,7 @@ class HomeState(AnonymizedAreas):
     def test_a_callout_home_states_chip_is_ringed(self):
         page, _ = two_seasons(newest_home_ri=True)
         self.assertIn('<g class="co home" data-abbr="RI">', page)
-        self.assertIn("#usmap .co.home .chip { stroke: var(--fg);", page)
+        self.assertIn("#usmap .co.home .chip, #areamap .co.home .achip { stroke: var(--fg);", page)
         self.assertEqual(page.count('<g class="co home"'), 1)
 
     def test_a_phone_lists_the_callouts_under_the_map(self):
@@ -750,6 +751,145 @@ class HomeState(AnonymizedAreas):
         page, _, _ = build_page()  # California only
         self.assertNotIn('<ul class="calls"', page)
         self.assertIn('data-tight="-10 0 978 620"', page)
+
+    def test_a_long_home_name_and_its_tag_stay_together(self):
+        # One line on a wide page (no break inside .hn), the tag under the name on a phone, not
+        # indented: a flex gap, not a margin, between them.
+        page, _, _ = build_page()
+        self.assertIn(".hn { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; "
+                      "white-space: nowrap; }", page)
+        self.assertIn(".hn { white-space: normal; }", page)
+        self.assertNotIn("margin-left", re.search(r"\.htag \{[^}]*\}", page).group(0))
+
+
+def at_home(area, rank=None, season=SEASON):
+    """The saved report (or rank) with the Athlete's school in the CA Area named area for season
+    (Athletic.net's name, as areas/CA.json has it), or in none."""
+    r = copy.deepcopy(rank or RANK)
+    r["home_area"] = area and {"id": CCS if area == "Central Coast" else 4500, "name": area, "level": "Section",
+                               "state": "CA", "season": season,
+                               "url": f"https://www.athletic.net/TrackAndField/rankings/list/{CCS}/f/400m"}
+    return r
+
+
+def ca_edges():
+    from report import state_areas, state_map
+    return state_map(state_areas("CA"))["edges"]
+
+
+class HomeArea(AnonymizedAreas):
+    """The Athlete's home Area, outlined on the Areas map and tagged in the Areas table, as the US
+    map marks the home State."""
+
+    def test_the_home_area_is_outlined_over_its_neighbors(self):
+        page, _, _ = build_page(at_home("Central Coast"))
+        edge = ca_edges()["Central Coast"]
+        # Its edge, after every county, border and district (so over them) and before the numbers.
+        self.assertIn(f'</g><g><path class="home" data-area="CCS" d="{edge}"/></g><g><text class="albl', page)
+        self.assertIn(".map path.home { fill: none; stroke: var(--fg);", page)
+        # Its fill stays its rank's color, its counties' tooltips name it, its callout is inked.
+        self.assertRegex(page, r'<path class="ct b5" data-area="CCS" d="[^"]+"><title>Monterey County: '
+                               r'Central Coast; Jamie&#x27;s home section</title>')
+        self.assertIn('<g class="co home" data-area="CCS"', page)
+        self.assertEqual(page.count('<g class="co home"'), 1)
+        self.assertIn(".map .co.home .ab { fill: var(--fg); }", page)
+        # And so does its pick line.
+        self.assertIn("Central Coast: #6 against 9th graders in 2099 (5 faster); State Meet: its top 3 go; "
+                      "Jamie's home section", page)
+
+    def test_an_areas_edge_is_its_border_not_its_county_lines(self):
+        edges = ca_edges()
+        from report import state_areas, state_map
+        smap = state_map(state_areas("CA"))
+        segments = lambda d: set(re.findall(r"M[^M]+", d))
+        # Every piece of an Area's edge is an Area border or the State's outline, never a county
+        # line inside it; a district's edge is its outline.
+        for name, d in edges.items():
+            self.assertTrue(d, name)
+            if name in smap["districts"]:
+                self.assertEqual(d, smap["districts"][name])
+            else:
+                self.assertLessEqual(segments(d), segments(smap["borders"]), name)
+                self.assertFalse(segments(d) & segments(smap["lines"]), name)
+
+    def test_the_home_areas_row_is_tagged_in_the_areas_table(self):
+        page, _, md = build_page(at_home("Central Coast"))
+        bodies = re.findall(r'<tbody data-season="2099" data-view="[\w-]+" data-map="(\w+)"[^>]*>(.*?)</tbody>', page)
+        for map_, body in bodies:
+            name = "California" if map_ == "us" else "Central Coast"
+            self.assertEqual(re.findall(r'<a [^>]+>([^<]+)</a></span><span class="htag">home</span>', body), [name])
+        self.assertEqual(page.count('class="htag"'), 8)  # four grade groups, two maps
+        self.assertIn("| 6 | Central Coast (home) |", md)
+        self.assertIn("| 42 | California (home) |", md)
+        # The legend's key names it with the page's noun, on the Areas map only.
+        self.assertIn('<li class="hk" data-season="2099" data-map="areas" hidden><span class="sw hsw"></span>'
+                      '<span class="lk">Central Coast</span><span class="lc">&middot; home section</span></li>', page)
+
+    def test_a_home_area_at_first_is_tagged_in_the_firsts_row(self):
+        page, _, md = build_page(at_home("Central Coast", first_in_ccs()))
+        self.assertRegex(page, r'<tr class="firsts" data-pick="CCS">.*?<div class="names"><span class="hn"><span>'
+                               r'<a [^>]+>Central Coast</a></span><span class="htag">home</span></span></div>')
+        self.assertIn("| 1 | Central Coast (home) | - |", md)
+
+    def test_no_home_area_no_marker(self):
+        # The saved report has no home Area: no outline, callout, tag, key or tooltip.
+        for r in (RANK, at_home("Central Coast", season=2098)):
+            page, _, md = build_page(r)
+            self.assertIn('const HOME_AREA = {"2099":null}', page)
+            self.assertIn("</g><g></g><g><text class=\"albl", page)
+            self.assertNotIn('<path class="home" data-area', page)
+            self.assertNotIn('<g class="co home"', page)
+            self.assertNotIn('data-map="areas" hidden><span class="sw hsw">', page)
+            self.assertNotIn("home section</title>", page)
+            self.assertNotIn("Central Coast (home)", md)
+            self.assertEqual(page.count('class="htag"'), 4)  # the home State's only
+
+    def test_a_callout_district_home_area_is_outlined_and_its_pill_ringed(self):
+        page, _, _ = build_page(at_home("Oakland"))
+        # Oakland's district outline, over Alameda County (North Coast), and its callout's pill ringed.
+        self.assertIn(f'<g><path class="home" data-area="OS" d="{ca_edges()["Oakland"]}"/></g>', page)
+        self.assertRegex(page, r'<g class="co home" data-area="OS" [^>]+>(?:(?!</g>).)*<rect class="achip ')
+        self.assertIn("#usmap .co.home .chip, #areamap .co.home .achip { stroke: var(--fg);", page)
+        self.assertRegex(page, r'<path class="dist \w+" data-area="OS" d="[^"]+"><title>Oakland: [^<]*; '
+                               r'Jamie&#x27;s home section</title>')
+        # No Oakland list in the saved report: nothing to tag.
+        self.assertEqual(page.count('class="htag"'), 4)
+
+    def test_each_season_marks_its_own_home_area(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            html, _ = build.build({2097: saved(with_rhode_island(2097, True)),
+                                   2098: saved(at_home("Oakland", with_rhode_island(2098, False), 2098)),
+                                   2099: saved(at_home("Central Coast", with_rhode_island(2099, False)))},
+                                  [2097, 2098, 2099], Path(tmp), areas_dir=AREAS)
+            page, md = html.read_text(), html.with_suffix(".md").read_text()
+        # 2097 at a school in Rhode Island: no home Area on California's map.
+        self.assertIn('const HOME_AREA = {"2097":null,"2098":"OS","2099":"CCS"}', page)
+        # The page opens on 2099: Central Coast outlined, Oakland's outline there but hidden.
+        self.assertIn(f'<path class="home" data-area="CCS" d="{ca_edges()["Central Coast"]}"/>', page)
+        self.assertIn(f'<path class="home" data-area="OS" d="{ca_edges()["Oakland"]}" hidden/>', page)
+        # Switching seasons shows that season's outline, callout and tooltips.
+        self.assertIn('document.querySelectorAll("#areamap path.home").forEach(p => p.toggleAttribute("hidden", '
+                      'p.dataset.area !== HOME_AREA[s]));', page)
+        self.assertIn('g.classList.toggle("home", g.dataset.area === HOME_AREA[s])', page)
+        self.assertIn("t.textContent.replace(HOME_AREA_TIP, \"\") + (p.dataset.area === HOME_AREA[s] ? HOME_AREA_TIP : \"\")", page)
+        self.assertIn('HOME_AREA_TIP = "; Jamie\'s home section"', page)
+        # Each season's key names its own.
+        self.assertIn('<li class="hk" data-season="2098" data-map="areas" hidden><span class="sw hsw"></span>'
+                      '<span class="lk">Oakland</span>', page)
+        self.assertNotIn('data-season="2097" data-map="areas" hidden><span class="sw hsw">', page)
+        self.assertIn("| 6 | Central Coast (home) |", md)
+
+    def test_class_cards_keep_their_own_tag(self):
+        # Maine's Classes are cards, each season's own tagged already: no outline, key or tooltip
+        # note there; the Classes table tags it as the Sections table does.
+        page, _, md = build_page(maine())
+        self.assertNotIn('<path class="home" data-area', page)
+        self.assertNotIn('data-map="areas" hidden><span class="sw hsw">', page)
+        self.assertNotIn("home class", page)
+        self.assertEqual(page.count('<span class="ctag"'), 1)
+        self.assertEqual(re.findall(r'<a [^>]+>([^<]+)</a></span><span class="htag">home</span>', page),
+                         ["Maine", "Class A"] * 4)  # each grade group's two tables
+        self.assertIn("Class A (home)", md)
 
 
 class ExampleMode(AnonymizedAreas):
