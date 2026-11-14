@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Measure a display font</title>
+<!--
+  Measures a display font for a report theme's "metrics" (docs/rankmap.md, "Restyling").
+  Open it in a browser (file:// is fine), give the font's family and the stylesheet that loads it,
+  and press Measure; or pass both in the address: measure_font.html?family=...&url=...
+  It prints the "metrics" object to paste into the theme file.
+
+  How it measures, in a 100px font: advances are SVG <text> getComputedTextLength() with tabular
+  digits; the ink is canvas measureText()'s actual bounding box (the glyphs' ink, which an SVG
+  getBBox() does not give: that is the font's whole line box); the anchor is SVG's, read from
+  getBBox() with dominant-baseline central against alphabetic. The rank digits and the tie's t
+  are weight 900, names and abbreviations 700, as the pages draw them.
+-->
+<style>
+:root { color-scheme: light; }
+body { font: 15px/1.5 system-ui, sans-serif; margin: 24px; max-width: 760px; }
+label { display: block; margin: 10px 0 4px; font-weight: 600; }
+input { width: 100%; font: inherit; padding: 6px 8px; }
+button { margin-top: 14px; font: inherit; padding: 6px 16px; }
+pre { padding: 12px; border: 1px solid; border-radius: 6px; white-space: pre-wrap; }
+svg { position: absolute; left: -10000px; top: 0; }
+</style>
+</head>
+<body>
+<h1>Measure a display font</h1>
+<p>For a report theme that changes <code>display</code>: the family (its first family) and the stylesheet that loads it, with weights 700 and 900.
+Leave the stylesheet empty for a font installed on this computer.</p>
+<form id="form">
+  <label for="family">Font family</label>
+  <input id="family" name="family" placeholder="Roboto Condensed" required>
+  <label for="url">Stylesheet URL (https)</label>
+  <input id="url" name="url" placeholder="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700;900&amp;display=swap">
+  <button type="submit">Measure</button>
+</form>
+<p id="status" aria-live="polite"></p>
+<pre id="out" hidden></pre>
+<svg id="svg" width="2000" height="400" aria-hidden="true"></svg>
+<script>
+"use strict";
+const SIZE = 100;  // measured at 100px, so a length / SIZE is in em
+const TIE_SCALE = 0.6;  // the tie's t is .6em of the rank (tspan.sup in tools/rankmap/build.py)
+const DIGITS = "0123456789";
+// Area names of the kind a State map's callouts show, for their width per character.
+const NAMES = ["Southern Section", "Central Coast", "North Coast", "Sac-Joaquin", "San Diego",
+               "Los Angeles City", "Northern", "Oakland", "Central", "San Francisco"];
+// Three metrics are a layout's room more than a glyph's size: a chip's width per rank character,
+// an Area name's and a state abbreviation's width per character. Each is this font's measurement
+// scaled as the house font's was: Roboto Condensed measures 0.511 (a digit), 0.4663 (the widest
+// NAMES) and 0.56 (a capital) here, and the house values are 0.6, 11.2 / 22 and 0.5.
+const CHIP_ROOM = 0.6 / 0.511, NAME_ROOM = (11.2 / 22) / 0.4663, ABBR_ROOM = 0.5 / 0.56;
+const ABBR_TRACKING_EM = 0.04;  // the abbreviations' letter-spacing (.ab in tools/report.py's MAP_CSS)
+
+const svg = document.getElementById("svg");
+const status = document.getElementById("status");
+const out = document.getElementById("out");
+const NS = "http://www.w3.org/2000/svg";
+
+function quoted(family) {
+  return `"${family.replace(/["\\]/g, "")}"`;
+}
+
+// The family, then a fallback: a CSS font-family list.
+function stack(family, fallback) {
+  return `${quoted(family)}, ${fallback || "sans-serif"}`;
+}
+
+function svgText(family, weight, size, text, baseline, fallback) {
+  const t = document.createElementNS(NS, "text");
+  t.setAttribute("x", "100");
+  t.setAttribute("y", "200");
+  t.style.fontFamily = stack(family, fallback);
+  t.style.fontWeight = weight;
+  t.style.fontSize = `${size}px`;
+  t.style.fontVariantNumeric = "tabular-nums";
+  t.style.dominantBaseline = baseline || "alphabetic";
+  t.textContent = text;
+  svg.appendChild(t);
+  return t;
+}
+
+function advance(family, weight, size, text, fallback) {
+  const t = svgText(family, weight, size, text, "alphabetic", fallback);
+  const w = t.getComputedTextLength();
+  t.remove();
+  return w;
+}
+
+// Where the alphabetic baseline sits below a dominant-baseline: central anchor, in px.
+function centralShift(family, weight, size, text) {
+  const a = svgText(family, weight, size, text, "alphabetic");
+  const c = svgText(family, weight, size, text, "central");
+  const shift = c.getBBox().y - a.getBBox().y;
+  a.remove();
+  c.remove();
+  return shift;
+}
+
+const ctx = document.createElement("canvas").getContext("2d");
+
+// The ink of text, from the alphabetic baseline and the start of its advance, in px.
+function ink(family, weight, size, text) {
+  ctx.font = `${weight} ${size}px ${stack(family)}`;
+  ctx.textBaseline = "alphabetic";
+  const m = ctx.measureText(text);
+  return {ascent: m.actualBoundingBoxAscent, descent: m.actualBoundingBoxDescent,
+          left: -m.actualBoundingBoxLeft, right: m.actualBoundingBoxRight};
+}
+
+const round = (x, n) => Number(x.toFixed(n));
+
+function measure(family) {
+  const digit = advance(family, 900, SIZE, DIGITS) / DIGITS.length;
+  const tie = advance(family, 900, SIZE * TIE_SCALE, "t");
+  // The digits' ink: the tallest and, for the bearings, the widest digit's.
+  const inks = [...DIGITS].map(d => ink(family, 900, SIZE, d));
+  const ascent = Math.max(...inks.map(i => i.ascent));
+  const descent = Math.max(...inks.map(i => i.descent));
+  const widest = Math.max(...inks.map(i => i.right - i.left));
+  const shift = centralShift(family, 900, SIZE, DIGITS);
+  // The ink's middle below the anchor; the t's ink top against the digits' (it sits on the same
+  // central anchor at .6 the size, then rises to the digits' top).
+  const drop = shift + (descent - ascent) / 2;
+  const t = ink(family, 900, SIZE * TIE_SCALE, "t");
+  const rise = (TIE_SCALE * shift - t.ascent) - (shift - ascent);
+  const nameChar = Math.max(...NAMES.map(n => advance(family, 700, SIZE, n) / n.length));
+  const caps = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const abbrChar = advance(family, 700, SIZE, caps) / caps.length;
+  return {
+    digit_em: round(digit / SIZE, 3),
+    tie_em: round(tie / SIZE, 3),
+    ink_em: round((ascent + descent) / SIZE, 3),
+    bearing_em: round((digit - widest) / SIZE, 3),
+    ink_drop_em: round(drop / SIZE, 3),
+    tie_rise_em: round(rise / SIZE, 3),
+    chip_char_em: round(digit / SIZE * CHIP_ROOM, 3),
+    name_char_em: round(nameChar / SIZE * NAME_ROOM, 4),
+    abbr_char_em: round(abbrChar / SIZE * ABBR_ROOM, 3),
+    abbr_tracking_em: ABBR_TRACKING_EM,
+  };
+}
+
+function loadSheet(url) {
+  if (!url) return Promise.resolve();
+  if (!/^https:\/\//.test(url)) return Promise.reject(new Error("the stylesheet URL must start with https://"));
+  return new Promise((resolve, reject) => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = url;
+    link.onload = resolve;
+    link.onerror = () => reject(new Error(`could not load ${url}`));
+    document.head.appendChild(link);
+  });
+}
+
+async function run(family, url) {
+  out.hidden = true;
+  status.textContent = `Loading ${family}...`;
+  try {
+    await loadSheet(url);
+    for (const w of [700, 900]) await document.fonts.load(`${w} ${SIZE}px ${quoted(family)}`, DIGITS);
+    await document.fonts.ready;
+    // A family the browser does not have falls back: then two different fallbacks measure apart.
+    const missing = [700, 900].filter(w => advance(family, w, SIZE, NAMES[0] + DIGITS, "monospace")
+                                           !== advance(family, w, SIZE, NAMES[0] + DIGITS, "serif"));
+    if (missing.length) throw new Error(`${family} is not available at weight ${missing.join(" and ")}`);
+    const metrics = measure(family);
+    out.textContent = JSON.stringify({metrics}, null, 2);
+    out.hidden = false;
+    status.textContent = `Measured ${family}. Paste "metrics" into the theme file, beside its "display".`;
+    document.body.dataset.done = "1";
+  } catch (e) {
+    status.textContent = `Not measured: ${e.message}`;
+    document.body.dataset.done = "error";
+  }
+}
+
+const form = document.getElementById("form");
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  run(form.family.value.trim(), form.url.value.trim());
+});
+const params = new URLSearchParams(location.search);
+if (params.get("family")) {
+  form.family.value = params.get("family");
+  form.url.value = params.get("url") || "";
+  run(form.family.value.trim(), form.url.value.trim());
+}
+</script>
+</body>
+</html>

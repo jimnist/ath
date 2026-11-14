@@ -12,9 +12,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from report import (  # noqa: E402
-    CALLOUTS, callout_spots, chips, esc, label_shape, label_spots, label_width, map_viewbox, outline_extent,
-    pretty_date, styles, LABEL_DIGITS, NAME_CHAR_EM, THEME, WIDEST_CHIP,
-    state_areas, state_map, us_map, write_csv, BEARING_EM, DIGIT_EM, INK_DROP_EM, TIE_EM,
+    CALLOUTS, callout_spots, chips, esc, label_shape, label_spots, label_width, map_viewbox, num, outline_extent,
+    pretty_date, styles, LABEL_DIGITS, THEME, WIDEST_CHIP,
+    state_areas, state_map, us_map, write_csv,
     DEMO_PAGE, FOOTER_CSS, ROBOTS, example_footer, meet_kind, page_link,
 )
 
@@ -68,7 +68,7 @@ def callouts(theme=THEME):
     """Callouts for theme's name_px and chip_px (the numbers here are at 22px)."""
     ch = chips(theme)
     step, clear = (round(n / 22 * theme.name_px) for n in (30, 12))
-    return Callouts(name_em=NAME_CHAR_EM * theme.name_px, step=max(step, ch.step), clear=clear,
+    return Callouts(name_em=theme.metrics.name_char_em * theme.name_px, step=max(step, ch.step), clear=clear,
                     slot=ch.width(WIDEST_CHIP) + ch.gap)
 
 
@@ -373,47 +373,64 @@ def rank_html(label):
     return esc(label)
 
 
-def rank_svg(label):
+TIE_SCALE = 0.6  # the tie's t, of the rank's size (tspan.sup, span.sup)
+
+
+def tie_dy(metrics):
+    """The dy of a tie's t and of the number after it (rank_svg), in each tspan's own em: the t
+    (TIE_SCALE em) rises metrics.tie_rise_em of the text's em and the number comes back down by as
+    much."""
+    return num(-metrics.tie_rise_em / TIE_SCALE), num(metrics.tie_rise_em)
+
+
+def rank_svg(label, metrics=None):
     """A rank label inside an SVG <text>: a tie's T as a small raised t, its top level with the
     digits' tops (so the label is no taller than its digits, as report.fit_label assumes). The
-    text's central baseline already lifts the smaller t; dy is in each tspan's own em: the t
-    (.6em) rises .191 of the text's em more and the number comes back down by as much (from the
-    glyph metrics in report.py). rankTspans in the page script builds the same."""
+    text's central baseline already lifts the smaller t; it rises the rest of the way by tie_dy,
+    from the display font's metrics (THEME's by default). rankTspans in the page script builds the
+    same."""
     if label.startswith("T"):
-        return f'<tspan class="sup" dy="-.318em">t</tspan><tspan dy=".191em">{esc(label[1:])}</tspan>'
+        up, down = tie_dy(metrics or THEME.metrics)
+        return f'<tspan class="sup" dy="{up}em">t</tspan><tspan dy="{down}em">{esc(label[1:])}</tspan>'
     return esc(label)
 
 
-def spot(spots, name, label):
-    """A label's [x, y, font size] in a shape, from tools/maps/label-spots.json. A label longer
-    than the longest spotted shape (a rank of 10000 or worse) takes that shape's spot, its size
-    scaled down to the extra width."""
+def spot(spots, name, label, metrics=None):
+    """A label's [x, y, font size] in a shape, from the label spots (report.label_spots) fitted in
+    metrics (THEME's by default). A label longer than the longest spotted shape (a rank of 10000 or
+    worse) takes that shape's spot, its size scaled down to the extra width."""
+    metrics = metrics or THEME.metrics
     shape = label_shape(label)
     longest = ("t" if shape.startswith("t") else "") + str(LABEL_DIGITS)
     try:
         if int(shape.lstrip("t")) <= LABEL_DIGITS:
             return spots[name][shape]
         x, y, size = spots[name][longest]
-        k = label_width(longest) / label_width(shape)
+        k = label_width(longest, metrics) / label_width(shape, metrics)
         # Same middle: the anchor moves with the ink's drop at the smaller size.
-        return [x, round(y + INK_DROP_EM * size * (1 - k), 1), round(size * k, 1)]
+        return [x, round(y + metrics.ink_drop_em * size * (1 - k), 1), round(size * k, 1)]
     except KeyError:
-        raise SystemExit(f"tools/maps/label-spots.json has no {shape} spot for {name}: "
+        raise SystemExit(f"the label spots have no {shape} spot for {name}: "
                          "run python3 -I tools/maps/label_spots.py") from None
 
 
-def lead_target(entry, side):
+def lead_target(entry, side, metrics=None):
     """Where a callout's lead meets the rank on its Area: just beside the number, on the side of
-    the name. leadTarget in the page script does the same when the view changes."""
+    the name, in the display font's metrics (THEME's by default). leadTarget in the page script
+    does the same when the view changes."""
+    metrics = metrics or THEME.metrics
     lab, size, x, y = entry[0], entry[2], entry[5], entry[6]
-    half = label_width(label_shape(lab)) * size / 2 + 4
-    return (x - half if side == "west" else x + half), y + INK_DROP_EM * size
+    half = label_width(label_shape(lab), metrics) * size / 2 + 4
+    return (x - half if side == "west" else x + half), y + metrics.ink_drop_em * size
 
 
 class Page:
-    def __init__(self, meta, seasons, all_seasons, theme=THEME, example=False):
+    def __init__(self, meta, seasons, all_seasons, theme=THEME, example=False, spots_dir=None):
         self.meta = meta  # name, first, gender, event, event_name, athlete_id, url
         self.theme, self.chips, self.callouts = theme, chips(theme), callouts(theme)
+        self.metrics = theme.metrics
+        # Where each rank goes on the maps, fitted to the theme's display font (report.label_spots).
+        self.spots = label_spots(theme, spots_dir)
         self.example = example  # an example page (see build)
         self.seasons = seasons
         self.all_seasons = all_seasons
@@ -424,8 +441,8 @@ class Page:
         self.areas = seasons[self.default_season]["area_file"]
         # Areas that are places get a county map; others (Maine's Classes) a row of cards.
         self.mapped = bool(self.areas and self.areas.get("map"))
-        # This State's Areas in tools/maps/label-spots.json (where each rank goes on its map).
-        self.area_spots = label_spots()["areas"].get(self.areas["state"], {}) if self.areas else {}
+        # This State's Areas in the label spots (where each rank goes on its map).
+        self.area_spots = self.spots["areas"].get(self.areas["state"], {}) if self.areas else {}
         self.state_name = self.areas and next(
             (r["name"] for sd in seasons.values() for r in sd["views"][0]["rows"] if r["abbr"] == self.areas["state"]),
             self.areas["state"])
@@ -478,7 +495,7 @@ class Page:
         fits there at FIT_MIN or bigger (tools/maps/label-spots.json)."""
         if not next(a for a in self.areas["areas"] if a["name"] == name)["counties"]:
             return False  # a city's schools, drawn over its county: always a pill
-        return spot(self.area_spots, name, "T12")[2] >= FIT_MIN
+        return spot(self.area_spots, name, "T12", self.metrics)[2] >= FIT_MIN
 
     def noun(self, map_):
         """(singular, plural) for the lists a map shows: state(s), or the home State's Area word."""
@@ -647,7 +664,7 @@ class Page:
             if abbr not in CALLOUTS:
                 svg_labels.append(
                     f'<text class="lbl {cls}" data-abbr="{abbr}" x="{x:.1f}" y="{y:.1f}" '
-                    f'style="font-size:{size}px">{rank_svg(lab)}</text>')
+                    f'style="font-size:{size}px">{rank_svg(lab, self.metrics)}</text>')
         ch = self.chips
         for abbr, cx, cy in callout_spots(places, self.theme):
             x, y, _ = places[abbr]
@@ -658,7 +675,7 @@ class Page:
                 f'<path class="lead" d="M{x:.1f},{y:.1f}L{cx - ch.left},{cy}"/>'
                 f'<circle class="dot" cx="{x:.1f}" cy="{y:.1f}" r="1.8"/>'
                 f'<rect class="chip {cls}" data-abbr="{abbr}" data-cx="{cx}" x="{cx - ch.left}" y="{cy - ch.half}" width="{w}" height="{2 * ch.half}" rx="4"/>'
-                f'<text class="lbl {cls}" data-abbr="{abbr}" x="{cx - ch.left + w / 2}" y="{cy}" style="font-size:{self.theme.chip_px}px">{rank_svg(lab)}</text>'
+                f'<text class="lbl {cls}" data-abbr="{abbr}" x="{cx - ch.left + w / 2}" y="{cy}" style="font-size:{self.theme.chip_px}px">{rank_svg(lab, self.metrics)}</text>'
                 f'<text class="ab" x="{cx - ch.left + w + ch.gap}" y="{cy + 1}">{abbr}</text></g>')
         return (f'<svg class="map" id="usmap" data-map="us" viewBox="{map_viewbox(self.theme)}" role="img" '
                 f'aria-label="US map with {esc(self.meta["name"])}\'s rank in each state">'
@@ -687,7 +704,7 @@ class Page:
                 if x is None:  # no rank in this view: where a one-digit rank would go
                     x, y, _ = self.area_spots[a["name"]]["1"]
                 labels.append(f'<text class="albl {cls}" data-area="{a["abbr"]}" x="{x:.1f}" y="{y:.1f}" '
-                              f'style="font-size:{size}px">{rank_svg(lab)}</text>')
+                              f'style="font-size:{size}px">{rank_svg(lab, self.metrics)}</text>')
         _, _, width, height = (float(n) for n in smap["viewBox"].split())
         sides = {side: sorted((a for a in self.areas["areas"] if smap["sides"].get(a["name"]) == side),
                               key=lambda a: smap["spots"][a["name"]][1])
@@ -707,11 +724,11 @@ class Page:
                 pill = abbr not in fits  # a rank that fits is on the map: the callout only names it
                 if not pill:  # the middle of where a one-digit rank goes, for a view without one
                     x, y, size1 = self.area_spots[a["name"]]["1"]
-                    y += INK_DROP_EM * size1
+                    y += self.metrics.ink_drop_em * size1
                 sx, sy = x, y
                 e = start.get(abbr)
                 if not pill and e and e[0] and e[5] is not None:
-                    x, y = lead_target(e, side)
+                    x, y = lead_target(e, side, self.metrics)
                 # Each callout follows the State's edge at its own height, CALLOUT_GAP off it (the edge
                 # over a name's height, so a bulge cannot touch it): its pill (if any) nearest the
                 # State, room for the widest pill, then its name.
@@ -730,7 +747,7 @@ class Page:
                 chip = (f'<rect class="achip {cls}" data-area="{abbr}" x="{x0:.1f}" y="{cy - ch.half:.1f}" width="{w}" '
                         f'height="{2 * ch.half}" rx="4"/>'
                         f'<text class="albl {cls}" data-area="{abbr}" data-chip="1" x="{x0 + w / 2:.1f}" y="{cy:.1f}" '
-                        f'style="font-size:{self.theme.chip_px}px">{rank_svg(lab)}</text>') if pill else ""
+                        f'style="font-size:{self.theme.chip_px}px">{rank_svg(lab, self.metrics)}</text>') if pill else ""
                 callouts.append(
                     f'<g class="co" data-area="{abbr}" data-side="{side}" data-x0="{x0:.1f}" data-x="{x:.1f}" '
                     f'data-y="{y:.1f}" data-cy="{cy:.1f}" data-end="{lead_end:.1f}" data-sx="{sx:.1f}" '
@@ -775,10 +792,10 @@ class Page:
         meta, seasons = self.meta, self.seasons
         abbr_of = {s["name"]: s["abbr"] for sd in seasons.values() for s in sd["views"][0]["rows"]}
         places, shapes = us_map(abbr_of)
-        spots = label_spots()
         us = self.map_data(
             lambda season, v: v["rows"],
-            lambda s: [None, None, self.theme.chip_px] if s["abbr"] in CALLOUTS else spot(spots["us"], s["name"], s["label"]),
+            lambda s: [None, None, self.theme.chip_px] if s["abbr"] in CALLOUTS
+            else spot(self.spots["us"], s["name"], s["label"], self.metrics),
             lambda season, s: f"; {meta['first']}'s home state" if s["abbr"] == seasons[season]["home"] else "")
         us_svg = self.us_svg(us[self.default_season][self.default_view], places, shapes)
 
@@ -788,7 +805,7 @@ class Page:
             name_of = {a["abbr"]: a["name"] for a in self.areas["areas"]}
             areas_data = self.map_data(
                 self.area_rows,
-                lambda s: spot(self.area_spots, name_of[s["abbr"]], s["label"])
+                lambda s: spot(self.area_spots, name_of[s["abbr"]], s["label"], self.metrics)
                 if self.mapped and self.fits(name_of[s["abbr"]]) else [None, None, self.theme.chip_px],
                 self.meet_note)
             start = areas_data[self.default_season][self.default_view]
@@ -878,7 +895,9 @@ class Page:
             area_nouns=esc(self.noun("areas")[1]) if self.areas else "",
             data=json.dumps(us, separators=(",", ":")), areas=json.dumps(areas_data, separators=(",", ":")),
             home=json.dumps({s: sd["home"] for s, sd in seasons.items()}, separators=(",", ":")),
-            label_em=json.dumps([DIGIT_EM, TIE_EM, BEARING_EM, INK_DROP_EM]),
+            label_em=json.dumps([self.metrics.digit_em, self.metrics.tie_em, self.metrics.bearing_em,
+                                 self.metrics.ink_drop_em]),
+            tie_dy=tie_dy(self.metrics),
             chip=self.chips, blank_px=BLANK_PX,
             default_season=self.default_season, default_view=self.default_view)
 
@@ -968,8 +987,9 @@ def slug(meta):
     return re.sub(r"[^A-Za-z0-9]+", "-", f"{meta['athlete_id']}-{meta['event']}").strip("-")
 
 
-def build(saved_seasons, all_seasons, out_dir, theme=THEME, example=False, areas_dir=None):
+def build(saved_seasons, all_seasons, out_dir, theme=THEME, example=False, areas_dir=None, spots_dir=None):
     """Write <slug>.html/.md/.csv into out_dir, in theme. saved_seasons: {season: saved season}.
+    spots_dir: where label spots fitted to a theme's own display font are kept (report.label_spots).
 
     example: an example page, built from anonymized data (ADR 0010): every link goes to the demo
     page beside it (report.DEMO_PAGE), in the same tab, the CSV has no links, search engines may
@@ -985,7 +1005,7 @@ def build(saved_seasons, all_seasons, out_dir, theme=THEME, example=False, areas
         "name": a["name"], "first": a["first_name"], "gender": latest["gender"], "url": a["url"],
         "event": latest["event"], "event_name": latest["event_name"] or latest["event"], "athlete_id": a["id"],
     }
-    page = Page(meta, prepare(saved_seasons, areas_dir), [str(s) for s in all_seasons], theme, example)
+    page = Page(meta, prepare(saved_seasons, areas_dir), [str(s) for s in all_seasons], theme, example, spots_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     base = out_dir / slug(meta)
     base.with_suffix(".html").write_text(page.html())
@@ -1153,9 +1173,9 @@ function rankTspans(t, label) {{  // as rank_svg: a tie's T as a small raised t
   if (!label.startsWith("T")) {{ t.textContent = label; return; }}
   const sup = document.createElementNS(SVG, "tspan"), rest = document.createElementNS(SVG, "tspan");
   sup.setAttribute("class", "sup");
-  sup.setAttribute("dy", "-.318em");
+  sup.setAttribute("dy", "{tie_dy[0]}em");
   sup.textContent = "t";
-  rest.setAttribute("dy", ".191em");
+  rest.setAttribute("dy", "{tie_dy[1]}em");
   rest.textContent = label.slice(1);
   t.append(sup, rest);
 }}

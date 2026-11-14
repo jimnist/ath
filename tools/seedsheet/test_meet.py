@@ -784,9 +784,9 @@ class Run(unittest.TestCase):
 
 
 class Index(unittest.TestCase):
-    def build_saved(self, d):
+    def build_saved(self, d, config=None):
         """A data_dir as a run on PULLED left it: the meet, the two 800m sheets, the boys' 4x800m
-        and ath's reasons for the rest."""
+        and ath's reasons for the rest, built with config's keys added to the meet config."""
         data = Path(d) / "data"
         data.mkdir()
         (data / "900700.meet.json").write_text(json.dumps({"format": 1, "pulled": PULLED, "meet": MEET}))
@@ -800,7 +800,7 @@ class Index(unittest.TestCase):
             if ev["event"] in REFUSALS:
                 (data / f"{ev['stem']}.not-seeded.json").write_text(
                     json.dumps({"reason": REFUSALS[ev["event"]], "pulled": PULLED}))
-        run_main(d, args=["--no-fetch"])
+        run_main(d, args=["--no-fetch"], config=config)
         return Path(d) / "out" / "900700"
 
     def test_pages_match_the_expected_ones(self):
@@ -813,6 +813,19 @@ class Index(unittest.TestCase):
                     want.parent.mkdir(parents=True, exist_ok=True)
                     want.write_text(got)
                 self.assertEqual(got, want.read_text(), f"{name} differs; SEEDSHEET_BLESS=1 rewrites it")
+
+    def test_a_theme_file_changes_only_its_tokens_on_every_page(self):
+        from report import THEME
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "themes").mkdir()
+            (Path(d) / "themes" / "t.json").write_text(json.dumps({"bg": "#fafafa", "highlight_row": "#e8f0ff",
+                                                                   "fonts_url": None}))
+            folder = self.build_saved(d, {"theme": "themes/t.json"})
+            for name in ("index.html", "boys-13-800m.html", "boys-13-4x800m.html"):
+                want = (EXPECTED / name).read_text().replace(f"--bg: {THEME.bg};", "--bg: #fafafa;")
+                want = want.replace(THEME.highlight_row, "#e8f0ff")
+                want = "".join(line for line in want.splitlines(keepends=True) if "fonts.g" not in line)
+                self.assertEqual((folder / name).read_text(), want, name)
 
     def test_the_index_keeps_out_of_search_names_no_source_and_is_light_only(self):
         from report import THEME

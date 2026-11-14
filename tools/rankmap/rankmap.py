@@ -13,8 +13,8 @@ from datetime import date
 from pathlib import Path
 
 import build  # puts tools/ on sys.path for report
-from report import (RELAY_HINT, beside, check_moved, config_path, find_ath, no_config, older_place,
-                    run_ath_report, write_json)
+from report import (RELAY_HINT, beside, check_moved, config_path, config_theme, find_ath, no_config,
+                    older_place, run_ath_report, write_json)
 
 HERE = Path(__file__).parent
 LISTS = "all,areas"  # every State, and every Area of the home State (`ath rank --in`)
@@ -35,6 +35,8 @@ def load_config(path):
 
     cfg["output_dir"] = beside(path, cfg["output_dir"])
     cfg["data_dir"] = beside(path, cfg.get("data_dir", "data")) / f"{cfg['athlete_id']}-{cfg['event']}"
+    # The page's look: the house theme, or a theme file's tokens over it (report.load_theme).
+    cfg["theme"] = config_theme(path, cfg)
     month, day = map(int, cfg.get("season_end", "07-31").split("-"))
     cfg["season_end"] = (month, day)
     cfg["example"] = cfg.get("example", False)
@@ -205,7 +207,7 @@ def collect(cfg, season, refresh, today):
 def render(cfg, have):
     """Build this config's page from its saved seasons ({season: saved}) into its output_dir.
     Returns (html path, build.Page)."""
-    return build.build(have, high_school_seasons(cfg), cfg["output_dir"], example=cfg["example"],
+    return build.build(have, high_school_seasons(cfg), cfg["output_dir"], cfg["theme"], example=cfg["example"],
                        areas_dir=cfg["areas_dir"])
 
 

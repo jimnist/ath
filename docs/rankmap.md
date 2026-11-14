@@ -84,6 +84,7 @@ It prefers this checkout's build because the JSON it reads is versioned with `to
 | `data_dir` | no | Where collected seasons are kept (default `data`, beside the config). Relative paths are relative to the config file. |
 | `season_end` | no | `MM-DD` after which a season counts as finished (default `07-31`). |
 | `artifact_url` | no | A Claude artifact the page is shared at; rankmap prints it after a build, and the page is republished there only when you share it. |
+| `theme` | no | A theme file (a path, relative to the config file) whose design tokens replace the house look's: see [Restyling](#restyling) and `tools/theme.example.json`. Without it the pages are the house theme's, byte for byte. |
 | `example` | no | `true` builds an example page from anonymized data (see [Publishing](#publishing)); it never collects, as if `--no-fetch` were given. Default `false`. |
 | `areas_dir` | with `example` | An example's own State Meet standards: a folder (relative to the config file) with one file, named exactly `<ST>.json`, for each State whose Area file has a State Meet, holding only `{"state_meet": {...}}` with the anonymizer's mapped standards of the meet's kind (`at_large` for a meet by places, `standards` for one by standards) and any `notes`, `sources` and `checked` about them; everything else in an Area file is the repo's `areas/`. A missing, misnamed or stray file, or one of another shape, stops the build. Empty for a State without an Area file. Required for an example, refused otherwise: a real page always reads the published standards. |
 
@@ -167,8 +168,63 @@ A change to the `ath rank` JSON shows up as a new `schema`, which rankmap refuse
 ## Restyling
 
 Every color and font the page uses is a named token in `THEME`, in `tools/report.py` (`house_theme()`), shared with the seed sheet page.
-Change a value there and rebuild (`--no-fetch`); nothing else needs to change.
 Everything made from the tokens takes a theme (`styles(theme)`, `chips(theme)`, rankmap's `buckets(theme)` and `build(..., theme)`), `THEME` by default, so a page can also be rendered in another theme.
+
+### A theme file
+
+To restyle without touching code, give a config a `theme`: a path, relative to the config file, to a theme file.
+Both reports take it (a rankmap config, and a seedsheet config of either kind, which styles the event pages and the meet's index alike).
+`tools/theme.example.json` is a whole theme to start from; a theme file needs only the tokens it changes, and every token it leaves out keeps the house value.
+Keys starting with `_` are comments.
+
+```json
+{
+  "bg": "#f7f9fc",
+  "highlight_row": "#fff3cc",
+  "ranks": [
+    {"fill": "#08519c", "ink": "#ffd166"},
+    {"fill": "#3182bd", "ink": "#ffe9ad"},
+    {"fill": "#6baed6", "ink": "#1d4f75"},
+    {"fill": "#bdd7e7", "ink": "#4f7593"},
+    {"fill": "#eff3ff", "ink": "#8094ad"}
+  ],
+  "fonts_url": null
+}
+```
+
+The tokens are `Theme`'s fields in `tools/report.py`, each written as its type in JSON.
+A color or a font stack is text, any CSS value without `;`, `{`, `}`, `<`, `>` or a backslash.
+A type size (`copy_px` and the rest) is a whole number of px.
+`no_rank` is one `{"fill", "ink"}` object, and `ranks` is a list of exactly five of them, best first, one for each of the legend's rank buckets (#1, #2-4, #5-10, #11-20, #21+).
+Two inks follow other tokens in the house theme (#1's ink is `highlight`, an Area with no rank is inked `muted`); in a theme file each is its own value, so set it too when it should follow.
+`fonts_url` is the stylesheet that loads the fonts, any `https://` URL, or `null` for no web fonts at all: then the page loads no stylesheet and connects to no font host, and `display` and `body` should be font stacks the viewer has (system fonts).
+Google Fonts' hosts are preconnected only when the stylesheet is theirs.
+The file is checked strictly: an unknown token (named, with the list of valid ones), a value of the wrong type, a `ranks` of another length, or a missing or extra key in an object stops the build, saying what is wrong.
+
+Changing `display`'s first family needs the new font's `metrics` too, every one of them (below): a theme file without them is refused, saying how to measure them.
+Changing only its fallbacks, or any other token, needs nothing more.
+
+### Display font metrics
+
+The map's layout is measured in the display font: a theme's `metrics`.
+For the rank labels (weight 900, tabular digits): the digits' advance (`digit_em`), the tie's small t's advance (`tie_em`), the ink's height (`ink_em`), the side bearings the ink leaves out (`bearing_em`), how far the ink's middle sits below a `dominant-baseline: central` anchor (`ink_drop_em`), and how far the tie's t rises to the digits' top (`tie_rise_em`).
+For the callouts: a chip's width per rank character (`chip_char_em`), an Area name's width per character (`name_char_em`, weight 700), a state abbreviation's capital (`abbr_char_em`, 700) and its letter-spacing (`abbr_tracking_em`, which the page's CSS uses too).
+All are in em of the text's size; the house values are Roboto Condensed's.
+
+To measure a font, open `tools/maps/measure_font.html` in a browser (straight from the file is fine), give it the family and its stylesheet URL, and paste the `metrics` object it prints into the theme file.
+It draws each glyph or string as SVG `<text>` at 100px in the right weight with tabular digits, reads advances with `getComputedTextLength()`, the anchor with `getBBox()` (central against alphabetic), and the ink with canvas `measureText()`'s actual bounding box (an SVG `getBBox()` gives the font's line box, not the ink).
+The three room metrics (`chip_char_em`, `name_char_em`, `abbr_char_em`) are its measurement scaled as the house font's were.
+On Roboto Condensed it gives the house values to within about 0.015 em (the house bearings and drop were measured by hand, a little more conservatively).
+It can also run headless: `measure_font.html?family=Oswald&url=<the stylesheet, URL-encoded>` fills in and prints the result.
+
+Where each rank goes on the maps and how big is fitted to these metrics (the label spots).
+The house theme's are `tools/maps/label-spots.json`, made by `tools/maps/label_spots.py`; its inputs hash covers the fitted metrics and the display font's first family, so a test fails until it is rerun after a change to the house theme's.
+A theme with its own display font or fitted metrics gets its spots fitted on its first build (about ten seconds) and kept in `local/cache/label-spots/<inputs hash>.json`, so later builds read them, and a change to the maps or the fitting fits them again.
+The committed file is never written for a theme file.
+
+### In the page
+
+Changing a value in `house_theme()` and rebuilding (`--no-fetch`) restyles every page that has no theme file; nothing else needs to change.
 The page colors and fonts reach the CSS as custom properties on `:root` (`--bg`, `--fg`, `--accent`, `--display`, and the rest), one per line.
 In `tools/report.py`'s shared CSS the other tokens are written `[[name]]`; in a page template, `{theme.name}`.
 The other color tokens go in as values: the rank colors (`ranks`, best first, each a fill and the ink of the number on it; #1's ink is `highlight`), an Area with no rank (`no_rank`, inked `muted`), a picked row (`highlight_row`), the tags on the athlete's own Class card and their home State's row (`tag`, `tag_fg`), and the map panel's edge and county lines.
@@ -177,11 +233,8 @@ Five type sizes are tokens too: `copy_px` (copy, the legend's keys, the pick lin
 The callout chips (size, spacing, the gaps and leader lines around them, Hawaii's chip, the US map's room for the callout column) follow `chip_px`, and the State map's callouts follow `name_px`.
 Every other size (headings, headline numbers, table text, the Class cards' ranks, the home State's outline, paddings) is the page's layout, in its template in `tools/rankmap/build.py`; the map's rank numbers are sized to fit their state or Area.
 
-The map's layout is measured in the display font (`tools/report.py`, beside `DIGIT_EM`): the rank digits' advance, the tie's t, the ink's height, side bearings and drop (`DIGIT_EM`, `TIE_EM`, `INK_EM`, `BEARING_EM`, `INK_DROP_EM`, at weight 900 with tabular digits), and the callouts' text (`CHIP_CHAR_EM`, `NAME_CHAR_EM` at 700, `ABBR_CHAR_EM`, `ABBR_TRACKING_EM`).
-A new display font means measuring these again: in a browser with the font loaded, draw each glyph or string as SVG `<text>` at 100px in the right weight, read its advance with `getComputedTextLength()` and its ink with `getBBox()` (the ink drop against a `dominant-baseline: central` anchor), and divide by 100.
-Then rerun `tools/maps/label_spots.py`: the spots' inputs hash covers these metrics and the display font's first family, so a test fails until it is rerun.
 A test fails when a color (hex, a color function or a named color as a value) is written out anywhere else in the page code, so new styling becomes a token too.
-The page stays light-only.
+The page stays light-only, with or without a theme file: there is no dark mode, and the page ignores the viewer's dark-mode setting.
 
 ## Files
 
@@ -193,7 +246,9 @@ The page stays light-only.
 | `tools/us-states-albers.topo.json` | State shapes: us-atlas@3.0.1 `states-albers-10m` (pre-projected Albers USA). |
 | `areas/<ST>.json` | A State's Areas: Athletic.net's level, names, abbreviations, the label pages use, and which counties the map colors for each ([`docs/areas.md`](areas.md)). |
 | `tools/maps/<ST>-counties.json`, `tools/maps/extract_counties.py` | A State's county shapes, cut from us-atlas@3.0.1 `counties-albers-10m` (same projection) with the script. |
-| `tools/maps/label-spots.json`, `tools/maps/label_spots.py` | Where each rank number goes on the maps and how big, per label shape: the biggest box with the number's proportions that fits in the state or Section, pulled toward its middle. Rerun the script (about ten seconds) when a map file, an Area file's counties or the fitting change; a test says when. |
+| `tools/maps/label-spots.json`, `tools/maps/label_spots.py` | Where each rank number goes on the maps and how big, per label shape, in the house theme's display font: the biggest box with the number's proportions that fits in the state or Section, pulled toward its middle. Rerun the script (about ten seconds) when a map file, an Area file's counties, the house display font's metrics or the fitting change; a test says when. |
+| `tools/maps/measure_font.html` | Measures a display font's `metrics` for a theme file, in a browser. |
+| `tools/theme.example.json` | An example theme file (every token, with Oswald's metrics). |
 | `tools/rankmap/test_rankmap.py` | Tests, on a saved `ath rank` report (`testdata/ath-rank-2099.json`) with the expected pages in `testdata/expected/`. |
 | `tools/rankmap/rankmap.config.example.json` | Example config. |
 | `.claude/skills/rankmap/SKILL.md` | The `/rankmap` agent skill. |

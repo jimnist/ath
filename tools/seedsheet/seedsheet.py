@@ -21,8 +21,8 @@ from pathlib import Path
 
 import build  # puts tools/ on sys.path for report
 import meet_index
-from report import (RELAY_HINT, beside, check_moved, config_path, find_ath, older_place, pretty_date,
-                    run_ath_report, write_json)
+from report import (RELAY_HINT, beside, check_moved, config_path, config_theme, find_ath, older_place,
+                    pretty_date, run_ath_report, write_json)
 
 HERE = Path(__file__).parent
 EXAMPLES = "seedsheet.meet.config.example.json (meet mode) or seedsheet.config.example.json (rosters)"
@@ -84,6 +84,8 @@ def load_config(path):
     cfg["data_dir"] = beside(path, cfg.get("data_dir", "data"))
     if cfg.get("fixtures_dir"):
         cfg["fixtures_dir"] = beside(path, cfg["fixtures_dir"])
+    # The pages' look: the house theme, or a theme file's tokens over it (report.load_theme).
+    cfg["theme"] = config_theme(path, cfg)
     return cfg
 
 
@@ -563,7 +565,7 @@ def run_rosters(cfg, args, today):
         if not saved:
             print(f"  {ev['label']}: no saved sheet yet, so no page")
             continue
-        path, s = build.build(saved, meta(cfg, ev), cfg["output_dir"])
+        path, s = build.build(saved, meta(cfg, ev), cfg["output_dir"], cfg["theme"])
         built.append(path)
         print(built_line(cfg, ev, s))
         if ev.get("artifact_url"):
@@ -680,10 +682,10 @@ def run_meet(cfg, args, today):
             continue
         page_meta = {"meet": meet["name"], "label": ev["label"], "athletes": cfg["athletes"], "name": ev["name"],
                      "index": meet_index.INDEX}
-        _, s = build.build(saved, page_meta, folder)
+        _, s = build.build(saved, page_meta, folder, cfg["theme"])
         print(built_line(cfg, ev, s))
         rows.append({**ev, "page": ev["name"], "sheet": s, "pulled": saved["pulled"]})
-    index = meet_index.write(meet, rows, cfg["athletes"], folder)
+    index = meet_index.write(meet, rows, cfg["athletes"], folder, cfg["theme"])
     wrote = [meet_index.INDEX] + [f"{r['page']}.{ext}" for r in rows if r.get("sheet") is not None
                                   for ext in ("html", "csv")]
     for gone in manifest.replace(wrote):
