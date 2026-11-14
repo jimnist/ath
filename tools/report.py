@@ -1285,6 +1285,16 @@ def map_viewbox(theme=THEME):
     return f"-10 0 {right + 10} 620"
 
 
+@functools.lru_cache(maxsize=None)
+def map_viewbox_tight():
+    """The US map's viewBox without the callout column, for a page that lists the callouts beside
+    the map instead (rankmap's at phone width): map_viewbox's, ending as far past the easternmost
+    State as it starts before the map's left edge. The same in every theme."""
+    geo = decode_topology(json.loads(TOPO.read_text()))
+    east = max(x for polys in geo.values() for poly in polys for ring in poly for x, _ in ring)
+    return f"-10 0 {math.ceil(east) + 20} 620"
+
+
 # ---------------------------------------------------------------- page styling
 
 GOOGLE_FONTS = "https://fonts.googleapis.com/"

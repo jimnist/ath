@@ -20,6 +20,7 @@ It lives in `tools/rankmap/` and gets its data from `ath rank` (see [How it rela
   Numbers are the header's highlighter yellow on #1 and a softer yellow (halfway to the palest) on 2-4, and past that a shade of their own color close to it, so they read without competing; a tie shows a small raised t (t12).
   Each number is as big as fits in its state (up to a cap), in the biggest box with the number's proportions, pulled toward the state's middle; the Sections map does the same with each whole Section, and a callout's line ends beside its Section's number.
   The smallest states and Hawaii get labeled chips at the edge of the map.
+  At phone width, where the whole map is too small for the chips to read, they are listed under the map instead, at the size they have on a wide map (ten states in two rows), and the map is fitted to the states without its callout column.
   The athlete's home State (the State whose list their mark is read from) keeps its rank color and is outlined in the page's ink, over its neighbors' borders; when it has a chip, the chip is ringed too and its abbreviation inked dark.
   The legend names it ("CA · home state"), and its tooltip says so.
   Each season marks its own home State, so a season at a school in another State moves the outline.
@@ -231,6 +232,7 @@ The other color tokens go in as values: the rank colors (`ranks`, best first, ea
 The home State's outline on the US map, and the ring on its chip, are `fg`, the ink of every State's outline, only heavier.
 Five type sizes are tokens too: `copy_px` (copy, the legend's keys, the pick line), `toggle_px` (toggle labels), `chip_px` (a rank in a callout chip), `abbr_px` (a state's abbreviation on the US map, the Class card and home row tags) and `name_px` (an Area's name in a callout or on a Class card).
 The callout chips (size, spacing, the gaps and leader lines around them, Hawaii's chip, the US map's room for the callout column) follow `chip_px`, and the State map's callouts follow `name_px`.
+The phone's list of the US map's callouts is drawn from the same tokens: its chips follow `chip_px`, its abbreviations `abbr_px`, its columns both, and its panel is the map's (`map_bg`, `map_edge`).
 Every other size (headings, headline numbers, table text, the Class cards' ranks, the home State's outline, paddings) is the page's layout, in its template in `tools/rankmap/build.py`; the map's rank numbers are sized to fit their state or Area.
 
 A test fails when a color (hex, a color function or a named color as a value) is written out anywhere else in the page code, so new styling becomes a token too.
