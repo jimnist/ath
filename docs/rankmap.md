@@ -31,8 +31,13 @@ It lives in `tools/rankmap/` and gets its data from `ath rank` (see [How it rela
   Clicking a Section dims the others, highlights its row in the table, and names its place with a link to its list; clicking it again clears the pick.
   The season and grade group carry over between the two maps, and a link with `#areas-2026-9-10` opens on the Sections map.
   Counties are colored by the Section most of their schools play in; membership is by school, so the map is an illustration (see [`docs/areas.md`](areas.md)).
+  The athlete's own Section (`home_area` in the season: their school's) is marked as the US map marks the home State: it keeps its rank color and is outlined in the page's ink over its neighbors' borders, and its callout's name is inked dark.
+  A district Section (Los Angeles City, Oakland) has its district outlined over its county, and its callout's pill is ringed like a US chip; San Francisco's single county is outlined, and its pill ringed, the same way.
+  The legend names it ("Central Coast · home section", in the State's own word for its Areas), and its tooltip and pick line say so.
+  Each season marks its own: a season with no home Section, or at a school in another State, marks none.
 - **The Classes cards.** For a home State whose Areas are not places (Maine), "ME Classes" shows one card per Class with the rank on its rank color, the athlete's own Class marked ("Gwen's class"), the note on what Classes are, and the class-by-class table.
   Clicking a card highlights its row and names its place with a link to its list, as picking a Section does; there are no headline numbers or legend for the cards.
+  The own Class's card tag is its mark: no outline, legend key or tooltip note on top of it.
   At phone width the cards stack, each with its number on the right.
   Under the cards, the athlete's own Class's MPA State Meet for the season: its automatic and provisional standards, which the season best meets, and the seed the athlete's place on the Class list suggests in the grade group picked (no panel for a season without published standards).
 - **The State Meet.** Under the Sections map, the CIF State Meet for the season: how many each Section sends per event against the athlete's place there in the grade group picked (checked where it is within them), and the season's at-large mark for the event.
@@ -41,7 +46,8 @@ It lives in `tools/rankmap/` and gets its data from `ath rank` (see [How it rela
 - **Headline numbers.** States (or Sections) at #1, top 3, top 5, and the toughest one.
 - **State by state, Section by section.** Best rank first, with every #1 state merged into one alphabetical row.
   Each other state lists the athletes ahead (mark, grade, team); lists longer than six collapse behind a "N faster" line.
-  The season's home State has a small "home" tag after its name (and "(home)" in the Markdown), whatever its rank (a highlighted row is a picked Section's, not the home State's).
+  The season's home State has a small "home" tag after its name (and "(home)" in the Markdown), whatever its rank (a highlighted row is a picked Section's, not the home State's); so does its home Section or Class in the Areas table.
+  A name and its tag stay on one line; at phone width the tag goes under a name too long for both.
   State names link to the Athletic.net list used, and athlete names link to their Athletic.net profiles.
 
 ![The state-by-state table](images/rankmap-table.png)
@@ -229,12 +235,13 @@ The committed file is never written for a theme file.
 Changing a value in `house_theme()` and rebuilding (`--no-fetch`) restyles every page that has no theme file; nothing else needs to change.
 The page colors and fonts reach the CSS as custom properties on `:root` (`--bg`, `--fg`, `--accent`, `--display`, and the rest), one per line.
 In `tools/report.py`'s shared CSS the other tokens are written `[[name]]`; in a page template, `{theme.name}`.
-The other color tokens go in as values: the rank colors (`ranks`, best first, each a fill and the ink of the number on it; #1's ink is `highlight`), an Area with no rank (`no_rank`, inked `muted`), a picked row (`highlight_row`), the tags on the athlete's own Class card and their home State's row (`tag`, `tag_fg`), and the map panel's edge and county lines.
-The home State's outline on the US map, and the ring on its chip, are `fg`, the ink of every State's outline, only heavier.
+The other color tokens go in as values: the rank colors (`ranks`, best first, each a fill and the ink of the number on it; #1's ink is `highlight`), an Area with no rank (`no_rank`, inked `muted`), a picked row (`highlight_row`), the tags on the athlete's own Class card and their home State's and home Area's rows (`tag`, `tag_fg`), and the map panel's edge and county lines.
+The home State's outline on the US map and the home Area's on the Areas map, and the rings on their chip or pill, are `fg`, the ink of every State's and Area's outline, only heavier; the home Area's callout name is `fg` too, in place of `muted`.
+No token is new for them.
 Five type sizes are tokens too: `copy_px` (copy, the legend's keys, the pick line), `toggle_px` (toggle labels), `chip_px` (a rank in a callout chip), `abbr_px` (a state's abbreviation on the US map, the Class card and home row tags) and `name_px` (an Area's name in a callout or on a Class card).
 The callout chips (size, spacing, the gaps and leader lines around them, Hawaii's chip, the US map's room for the callout column) follow `chip_px`, and the State map's callouts follow `name_px`.
 The phone's list of the US map's callouts is drawn from the same tokens: its chips follow `chip_px`, its abbreviations `abbr_px`, its columns both, and its panel is the map's (`map_bg`, `map_edge`).
-Every other size (headings, headline numbers, table text, the Class cards' ranks, the home State's outline, paddings) is the page's layout, in its template in `tools/rankmap/build.py`; the map's rank numbers are sized to fit their state or Area.
+Every other size (headings, headline numbers, table text, the Class cards' ranks, the home State's and home Area's outlines, paddings) is the page's layout, in its template in `tools/rankmap/build.py`; the map's rank numbers are sized to fit their state or Area.
 
 A test fails when a color (hex, a color function or a named color as a value) is written out anywhere else in the page code, so new styling becomes a token too.
 The page stays light-only, with or without a theme file: there is no dark mode, and the page ignores the viewer's dark-mode setting.

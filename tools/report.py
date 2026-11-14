@@ -809,7 +809,8 @@ def state_map(areas):
     """A State's county map drawn by Area, from its Area file (`map`, `areas[].counties`).
 
     Returns {"viewBox", "counties": [(county, Area name, path d)], "borders": d (Area borders and
-    the State's outline), "lines": d (county lines inside an Area), "places": {Area name:
+    the State's outline), "lines": d (county lines inside an Area), "edges": {Area name: d} (each
+    Area's own border, around all its counties; a district's is its outline), "places": {Area name:
     (x, y, radius)} (the label spot in its roomiest county), "anchors": {Area name: (x, y)} for
     Areas with no counties of their own (a city's schools: the spot in the county they are in)}."""
     m = json.loads((REPO / areas["map"]).read_text())
@@ -846,6 +847,9 @@ def state_map(areas):
     borders = "".join(_line(arcs[i]) for i, u in sorted(users.items()) if len(u) == 1 or len(set(u)) > 1)
     lines = "".join(_line(arcs[i]) for i, u in sorted(users.items()) if len(u) > 1 and len(set(u)) == 1)
     outline = [arcs[i] for i, u in users.items() if len(u) == 1]
+    # An arc two of an Area's own counties share is inside it; the rest are its edge.
+    edges = {a["name"]: "".join(_line(arcs[i]) for i, u in sorted(users.items()) if u.count(a["name"]) == 1)
+             for a in areas["areas"] if a["counties"]} | districts
 
     def side(x, y):
         """West or east: the nearer edge of the State's outline at height y."""
@@ -855,7 +859,7 @@ def state_map(areas):
 
     spots = {name: p[:2] for name, p in places.items()} | anchors
     return {"viewBox": m["viewBox"], "counties": counties, "borders": borders, "lines": lines,
-            "places": places, "anchors": anchors, "districts": districts, "outline": outline,
+            "places": places, "anchors": anchors, "districts": districts, "edges": edges, "outline": outline,
             "sides": {name: side(*xy) for name, xy in spots.items()}, "spots": spots}
 
 
@@ -970,7 +974,7 @@ class Theme:
     map_edge: str = field()  # the map panel's border
     county_line: str = field()  # county lines inside an Area, over its fill
     highlight_row: str = field()  # the configured Athlete's row in a list, a picked Area's
-    tag: str = field()  # the tag on the athlete's own Class card and on their home State's row
+    tag: str = field()  # the tag on the athlete's own Class card and on their home State's and Area's rows
     tag_fg: str = field()  # text on tag
     ranks: tuple[Swatch, ...] = field()  # the rank buckets' colors, best first (rankmap's buckets())
     no_rank: Swatch = field()  # an Area with no rank in the view
