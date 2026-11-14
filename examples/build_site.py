@@ -38,7 +38,8 @@ RANKMAPS = [
     ("or", "Oregon", "A State without an Area file: the US map and the state-by-state list only."),
 ]
 
-# Each rankmap example's screenshot (docs/images/, also in the README), copied beside the pages.
+# Each rankmap example's screenshot (docs/images/, shot by screenshots.py, also in the README), copied
+# beside the pages.
 SHOT = "example-rankmap-{key}.png"
 
 PAGE = """<!doctype html>
