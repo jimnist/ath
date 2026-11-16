@@ -25,6 +25,7 @@ import subprocess
 import sys
 import threading
 import typing
+import urllib.parse
 from dataclasses import dataclass, field, fields, is_dataclass, replace
 from datetime import date
 from pathlib import Path
@@ -1303,12 +1304,44 @@ def map_viewbox_tight():
 
 GOOGLE_FONTS = "https://fonts.googleapis.com/"
 
+# The favicon: a #1 swatch as the maps draw it, a "1" in the rank ink on the rank fill, in a square
+# with slightly rounded corners. A favicon cannot load web fonts, so the house display font's "1" is
+# its outline: Roboto Condensed at weight 900, in font units (2048 per em, y up), its ink spanning
+# x 157-751 and y 0-1456 (the cap height).
+ONE_OUTLINE = ((751, 1456), (751, 0), (422, 0), (422, 1076), (157, 979), (157, 1235), (722, 1456))
+ONE_FAMILY, ONE_INK = "Roboto Condensed", (157, 751, 1456)
+ICON_SIZE, ICON_RADIUS, ICON_INK = 32, 2, 22  # the square, its corners' radius and the 1's ink height
+
+
+def favicon_svg(theme=THEME):
+    """The favicon's SVG: the #1 rank colors (theme.ranks[0]), the 1 as the house display font's
+    outline when theme's display font is that font, otherwise as text in theme's display stack (the
+    viewer's first installed family of it: a favicon loads no web fonts)."""
+    one, half = theme.ranks[0], ICON_SIZE / 2
+    if primary_family(theme.display) == ONE_FAMILY:
+        left, right, top = ONE_INK
+        k = ICON_INK / top
+        ox, base = half - (left + right) / 2 * k, half + ICON_INK / 2
+        d = "M" + "L".join(f"{ox + x * k:.2f} {base - y * k:.2f}" for x, y in ONE_OUTLINE) + "Z"
+        glyph = f'<path fill="{one.ink}" d="{d}"/>'
+    else:
+        glyph = (f'<text x="{half:g}" y="{half + ICON_INK / 2:g}" fill="{one.ink}" text-anchor="middle" '
+                 f'font-family="{html.escape(theme.display)}" font-weight="900" font-size="{ICON_INK / 0.72:.1f}">1</text>')
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {ICON_SIZE} {ICON_SIZE}">'
+            f'<rect width="{ICON_SIZE}" height="{ICON_SIZE}" rx="{ICON_RADIUS}" fill="{one.fill}"/>{glyph}</svg>')
+
+
+def favicon_link(theme=THEME):
+    """The <link> that gives a page its favicon, the SVG inline as a data URL (pages are single files)."""
+    return f'<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,{urllib.parse.quote(favicon_svg(theme))}">'
+
 
 def head(theme=THEME):
-    """<head> lines after the title: the light-only theme and the stylesheet that loads the display
-    and body fonts (none when theme.fonts_url is None: system fonts), with Google Fonts' two hosts
-    preconnected when it is theirs."""
-    lines = '<meta name="claude:viewport-fit-sides" content="cover">\n<meta name="color-scheme" content="light only">'
+    """<head> lines after the title: the light-only theme, the favicon, and the stylesheet that loads
+    the display and body fonts (none when theme.fonts_url is None: system fonts), with Google Fonts'
+    two hosts preconnected when it is theirs."""
+    lines = ('<meta name="claude:viewport-fit-sides" content="cover">\n<meta name="color-scheme" content="light only">\n'
+             + favicon_link(theme))
     if theme.fonts_url is None:
         return lines
     if theme.fonts_url.startswith(GOOGLE_FONTS):

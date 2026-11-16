@@ -28,10 +28,13 @@ WEB = re.compile(r"""(?:\bhttps?:)?//[a-z0-9.-]+[^\s"'<>)\\]*""", re.I)
 
 def kind(target):
     """What an href or src is: "page" (a path in the site, or an in-page #anchor), "web" (http,
-    https or //host: outside the site) or "bad" (any other scheme: mailto:, javascript:, data:...)."""
+    https or //host: outside the site), "inline" (an SVG image in the page itself, as the favicon is)
+    or "bad" (any other scheme: mailto:, javascript:, other data:...)."""
     target = target.strip()
     if target.startswith("//"):
         return "web"
+    if target.startswith("data:image/svg+xml,"):
+        return "inline"
     m = SCHEME.match(target)
     if not m:
         return "page"
@@ -65,6 +68,7 @@ class Kinds(unittest.TestCase):
                              ("https://github.com/jimnist/ath", "web"), ("//www.athletic.net/x", "web"),
                              ("HTTP://x.org", "web"), ("mailto:someone@example.org", "bad"),
                              ("javascript:alert(1)", "bad"), ("data:text/html,x", "bad"), ("tel:5551234", "bad"),
+                             ("data:image/svg+xml,%3Csvg%3E", "inline"), ("data:image/svg+xml;base64,x", "bad"),
                              ("vbscript:x", "bad"), (" JavaScript:x", "bad")):
             self.assertEqual(kind(target), want, target)
         self.assertEqual(host("//www.athletic.net/x"), "www.athletic.net")
@@ -115,7 +119,7 @@ class Site(unittest.TestCase):
                 self.assertNotEqual(k, "bad", f"{path.name}: {target}")
                 if k == "web":
                     self.assertIn(host(target), ALLOWED_HOSTS, f"{path.name}: {target}")
-                elif not target.startswith("#"):
+                elif k == "page" and not target.startswith("#"):
                     local = target.split("#")[0]
                     self.assertTrue((path.parent / local).is_file(), f"{path.name}: {target} is missing")
 

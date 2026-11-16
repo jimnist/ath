@@ -239,6 +239,8 @@ The other color tokens go in as values: the rank colors (`ranks`, best first, ea
 The home State's outline on the US map and the home Area's on the Areas map, and the rings on their chip or pill, are `fg`, the ink of every State's and Area's outline, only heavier; the home Area's callout name is `fg` too, in place of `muted`.
 The outline and its legend key are drawn at `HOME_EDGE_OPACITY` (0.6, in `tools/rankmap/build.py`), so the heavier line reads in the same tone as the thin borders, which blend into their fills.
 No token is new for them.
+The favicon, on every report page (`favicon_svg` in `tools/report.py`), is a #1 swatch: the first rank's fill in a slightly rounded square, with a 1 in its ink.
+A favicon cannot load web fonts, so the house display font's 1 is drawn as its outline; a theme with another display font gets a text 1 in its own stack, which the viewer's installed fonts draw.
 Five type sizes are tokens too: `copy_px` (copy, the legend's keys, the pick line), `toggle_px` (toggle labels), `chip_px` (a rank in a callout chip), `abbr_px` (a state's abbreviation on the US map, the Class card and home row tags) and `name_px` (an Area's name in a callout or on a Class card).
 The callout chips (size, spacing, the gaps and leader lines around them, Hawaii's chip, the US map's room for the callout column) follow `chip_px`, and the State map's callouts follow `name_px`.
 The phone's list of the US map's callouts is drawn from the same tokens: its chips follow `chip_px`, its abbreviations `abbr_px`, its columns both, and its panel is the map's (`map_bg`, `map_edge`).

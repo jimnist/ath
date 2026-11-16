@@ -1209,20 +1209,44 @@ class ThemeFile(AnonymizedAreas):
         want = want.replace(f"--bg: {THEME.bg};", "--bg: #fafafa;").replace(THEME.map_edge, "#cccccc")
         self.assertEqual(got, want)
 
+    def test_the_favicon_is_a_number_one_swatch(self):
+        from dataclasses import asdict
+        from report import THEME, favicon_link, favicon_svg
+        # The house theme: the #1 fill, a slightly rounded square, the display font's 1 as its outline
+        # (a favicon loads no web fonts) in the #1 ink, centered.
+        svg = favicon_svg(THEME)
+        self.assertIn(f'<rect width="32" height="32" rx="2" fill="{THEME.ranks[0].fill}"/>', svg)
+        self.assertIn(f'<path fill="{THEME.ranks[0].ink}" d="M20.49 5.00L20.49 27.00L15.52 27.00', svg)
+        self.assertNotIn("<text", svg)
+        # Another theme's #1 colors, and its own display font as text (no outline of it is known).
+        ranks = [{"fill": "#08519c", "ink": "#ffd166"}, {"fill": "#3182bd", "ink": "#ffe9ad"},
+                 {"fill": "#6baed6", "ink": "#1d4f75"}, {"fill": "#bdd7e7", "ink": "#4f7593"},
+                 {"fill": "#eff3ff", "ink": "#8094ad"}]
+        theme = self.load({"ranks": ranks, "display": '"Oswald", sans-serif', "metrics": asdict(THEME.metrics)})
+        svg = favicon_svg(theme)
+        self.assertIn('fill="#08519c"', svg)
+        self.assertIn('<text x="16" y="27" fill="#ffd166" text-anchor="middle" font-family="&quot;Oswald&quot;, '
+                      'sans-serif" font-weight="900"', svg)
+        # Inline in every page's head, once.
+        page, _, _ = build_page()
+        self.assertEqual(page.count('rel="icon"'), 1)
+        self.assertIn(favicon_link(THEME), page.split("</head>")[0])
+
     def test_fonts_are_any_stylesheet_or_none(self):
-        from report import THEME, head
+        from report import THEME, favicon_link, head
         self.assertIn('<link rel="preconnect" href="https://fonts.googleapis.com">', head(THEME))
         none = self.load({"fonts_url": None})
         self.assertIsNone(none.fonts_url)
         self.assertEqual(head(none), '<meta name="claude:viewport-fit-sides" content="cover">\n'
-                                     '<meta name="color-scheme" content="light only">')
+                                     '<meta name="color-scheme" content="light only">\n' + favicon_link(none))
         other = head(self.load({"fonts_url": "https://fonts.example.com/a.css?x=1&y=2"}))
         self.assertIn('<link rel="stylesheet" href="https://fonts.example.com/a.css?x=1&y=2">', other)
         self.assertNotIn("preconnect", other)
         with tempfile.TemporaryDirectory() as tmp:
             html, _ = build.build({SEASON: saved()}, [SEASON], Path(tmp), none, areas_dir=AREAS)
             page = html.read_text()
-        self.assertNotIn("<link", page)
+        # No stylesheet and no font host: the favicon is the page's only link, inline.
+        self.assertEqual(re.findall(r"<link [^>]*>", page), [favicon_link(none)])
         self.assertNotIn("fonts.g", page)
 
     def test_the_metrics_reach_the_page(self):
