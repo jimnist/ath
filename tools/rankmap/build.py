@@ -49,6 +49,9 @@ FIT_MIN = 20  # an Area whose fitted size for a two-digit tie (t12) is under thi
 CALLOUT_GAP = 28  # a callout's distance from the State's edge at its height, in map units
 CALLOUT_PAD = 36  # room between the farthest callout name and the panel's edge
 BLANK_PX = 12  # the size of a label with no rank in it; nothing shows
+# The home State's and home Area's outline (and its legend key) are drawn in the outline ink at this
+# opacity: heavier than the other borders, which are thin enough to blend into their fills, but in their tone.
+HOME_EDGE_OPACITY = 0.6
 
 
 @dataclass(frozen=True)
@@ -964,7 +967,7 @@ class Page:
                                  self.metrics.ink_drop_em]),
             tie_dy=tie_dy(self.metrics),
             chip=self.chips, chip_height=2 * self.chips.half, chip_inset=num(self.chips.pad / 2),
-            calls_col=self.calls_col(), blank_px=BLANK_PX,
+            calls_col=self.calls_col(), blank_px=BLANK_PX, home_edge_opacity=HOME_EDGE_OPACITY,
             default_season=self.default_season, default_view=self.default_view)
 
     def csv(self, path):
@@ -1116,8 +1119,10 @@ h1 a:hover, h1 a:focus-visible {{ text-decoration: underline; text-decoration-th
 /* The home State, and the home Area on the Areas map: outlined over its neighbors' borders in the outline
    ink, its fill left to its rank (a stroke in screen pixels, so it reads at any map size); its callout chip
    or pill ringed, its abbreviation or name inked; a tag on its row. An Area's edge is loose arcs: round caps
-   join them. */
-.map path.home {{ fill: none; stroke: var(--fg); stroke-width: 2px; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; pointer-events: none; }}
+   join them. The outline is heavier than the other borders but no darker: those are thin enough to blend
+   into their fills, so at full ink it would read black beside them, and at HOME_EDGE_OPACITY it reads in
+   their tone. */
+.map path.home {{ fill: none; stroke: var(--fg); stroke-opacity: {home_edge_opacity}; stroke-width: 2px; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; pointer-events: none; }}
 #usmap .co.home .chip, #areamap .co.home .achip {{ stroke: var(--fg); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }}
 .map .co.home .ab {{ fill: var(--fg); }}
 /* At phone width the map's callouts are a list under it (us_calls), on the map's water in a panel like the
@@ -1129,7 +1134,8 @@ h1 a:hover, h1 a:focus-visible {{ text-decoration: underline; text-decoration-th
 .cab {{ font-family: var(--display); font-weight: 700; font-size: {theme.abbr_px}px; letter-spacing: {theme.metrics.abbr_tracking_em}em; color: var(--muted); }}
 .calls .home .cchip {{ box-shadow: inset 0 0 0 1.5px var(--fg); }}
 .calls .home .cab {{ color: var(--fg); }}
-.hsw {{ background: transparent; box-shadow: inset 0 0 0 2px var(--fg); }}
+.hsw {{ position: relative; background: transparent; box-shadow: none; }}
+.hsw::after {{ content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 2px var(--fg); opacity: {home_edge_opacity}; }}
 .hn {{ display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; white-space: nowrap; }}
 .htag {{ display: inline-block; font-family: var(--display); font-weight: 700; font-size: {theme.abbr_px}px; line-height: 1.35; letter-spacing: .04em; padding: 0 6px; border-radius: 4px; background: {theme.tag}; color: {theme.tag_fg}; }}
 h2 {{ font-family: var(--display); font-weight: 800; font-size: 26px; margin: 0; letter-spacing: .01em; }}

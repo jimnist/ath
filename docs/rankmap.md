@@ -237,6 +237,7 @@ The page colors and fonts reach the CSS as custom properties on `:root` (`--bg`,
 In `tools/report.py`'s shared CSS the other tokens are written `[[name]]`; in a page template, `{theme.name}`.
 The other color tokens go in as values: the rank colors (`ranks`, best first, each a fill and the ink of the number on it; #1's ink is `highlight`), an Area with no rank (`no_rank`, inked `muted`), a picked row (`highlight_row`), the tags on the athlete's own Class card and their home State's and home Area's rows (`tag`, `tag_fg`), and the map panel's edge and county lines.
 The home State's outline on the US map and the home Area's on the Areas map, and the rings on their chip or pill, are `fg`, the ink of every State's and Area's outline, only heavier; the home Area's callout name is `fg` too, in place of `muted`.
+The outline and its legend key are drawn at `HOME_EDGE_OPACITY` (0.6, in `tools/rankmap/build.py`), so the heavier line reads in the same tone as the thin borders, which blend into their fills.
 No token is new for them.
 Five type sizes are tokens too: `copy_px` (copy, the legend's keys, the pick line), `toggle_px` (toggle labels), `chip_px` (a rank in a callout chip), `abbr_px` (a state's abbreviation on the US map, the Class card and home row tags) and `name_px` (an Area's name in a callout or on a Class card).
 The callout chips (size, spacing, the gaps and leader lines around them, Hawaii's chip, the US map's room for the callout column) follow `chip_px`, and the State map's callouts follow `name_px`.
