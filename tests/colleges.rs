@@ -77,12 +77,12 @@ async fn ranks_her_personal_record_against_each_team_and_season() -> anyhow::Res
     assert_eq!(
         summary(&r),
         [
-            (HARROWGATE, 2099, "T4".into(), 5, 3),
+            (HARROWGATE, 2099, "T5".into(), 6, 4),
             (HARROWGATE, 2098, "2".into(), 2, 1),
             (WRENMOOR, 2099, "8".into(), 9, 7),
             (WRENMOOR, 2098, "1".into(), 0, 0),
             (OSTRANDER, 2099, "1".into(), 1, 0),
-            (OSTRANDER, 2098, "2".into(), 1, 1),
+            (OSTRANDER, 2098, "2".into(), 2, 1),
         ]
     );
     let first = &r.results[0];
@@ -90,14 +90,14 @@ async fn ranks_her_personal_record_against_each_team_and_season() -> anyhow::Res
     assert_eq!(first.team.level, Some(8));
     assert_eq!(first.tied.len(), 1);
     assert_eq!(first.tied[0].mark, "58.98");
-    // Best first; the hand time (57.0h) is not among them.
+    // Best first; the hand time (57.0h) counts too, as every college mark does.
     assert_eq!(
         first
             .ahead
             .iter()
             .map(|a| a.mark.as_str())
             .collect::<Vec<_>>(),
-        ["53.41", "55.02", "56.10"]
+        ["53.41", "55.02", "56.10", "57.0"]
     );
     assert_eq!(
         first.url,
@@ -110,7 +110,7 @@ async fn ranks_her_personal_record_against_each_team_and_season() -> anyhow::Res
 #[tokio::test]
 async fn the_event_is_matched_by_its_full_name_too() -> anyhow::Result<()> {
     let by_name = run("400 Meters", &[HARROWGATE], &[2099]).await?;
-    assert_eq!(summary(&by_name)[0].2, "T4");
+    assert_eq!(summary(&by_name)[0].2, "T5");
     Ok(())
 }
 
@@ -292,7 +292,7 @@ fn ath_colleges_prints_a_table() -> anyhow::Result<()> {
     );
     let text = String::from_utf8(out.stdout)?;
     assert!(text.contains("58.98 (Personal record, 2099)"), "{text}");
-    assert!(text.contains("Harrowgate      2099    T4"), "{text}");
+    assert!(text.contains("Harrowgate      2099    T5"), "{text}");
     assert!(text.contains("Wrenmoor State  2098    no marks"), "{text}");
     Ok(())
 }

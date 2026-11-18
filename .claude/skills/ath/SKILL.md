@@ -93,7 +93,7 @@ Notes that change answers:
   A team with a leg missing, a runner with no mark, or one runner on two legs has no aggregate (`no_aggregate_reason`, e.g. `Leg 4 has no 800 Meters mark`, `Leg 3 has no runner`, `Same runner on legs 1 and 3`) and goes to the bottom.
   An individual sheet has no `kind` and is unchanged.
 - `ath rank --in all` is about 200 lists; `--in all,areas` adds the home State's Areas.
-- `ath colleges` ranks the outdoor FAT Personal record against each team's FAT season bests of the athlete's gender, matching the event by name; a team only has the meets entered on Athletic.net, so few or no marks (`marks` 0) is common. Running events only; `--event` is a flat race or the Profile's full event name (`"100m Hurdles"`), not a code like `100mH`.
+- `ath colleges` ranks the outdoor FAT Personal record against each team's season bests of the athlete's gender (FAT or not: imported college results often lose the flag), matching the event by name; a team only has the meets entered on Athletic.net, so few or no marks (`marks` 0) is common. Running events only; `--event` is a flat race or the Profile's full event name (`"100m Hurdles"`), not a code like `100mH`.
 - `ath profile` reports field events with `event.status` `field_event`: v1 reads running events only for bests and seeding.
 
 Offline, on made-up data in `tests/fixtures` (no transport needed):

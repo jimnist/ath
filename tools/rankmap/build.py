@@ -823,7 +823,7 @@ class Page:
                     f'<tbody>{rows}</tbody></table></div>')
         return (f'\n  <section class="list colleges" aria-labelledby="colleges-h">'
                 f'<h2 id="colleges-h">Colleges</h2>{body}'
-                f'<p class="mapnote">Rank is 1 plus the number of the team&rsquo;s athletes with a faster FAT {event} '
+                f'<p class="mapnote">Rank is 1 plus the number of the team&rsquo;s athletes with a faster {event} '
                 f'season best, against {first}&rsquo;s best ever (a tie shares the rank). Only results entered on '
                 f'Athletic.net count, and some college meets are missing, so a team can show few marks.</p></section>')
 
@@ -1159,7 +1159,7 @@ class Page:
                         continue
                     who = "; ".join(f"{a['name']} {a['mark']} ({a['meet']}" + ("" if self.example else f", {a['url']}")
                                     + ")" for a in x["ahead"] + x["ties"])
-                    rows.append([season, c["mark"]["mark"], "college season bests (FAT)", "College",
+                    rows.append([season, c["mark"]["mark"], "college season bests", "College",
                                  college_rank_text(x), r["name"], r["team"], len(x["ahead"]), len(x["ties"]), who,
                                  "" if self.example else x["url"]])
         write_csv(path, ["Season", "Mark", "Against", "List", "Rank", "Name", "Abbr", "Faster", "Tied",
@@ -1239,7 +1239,7 @@ class Page:
         if c["mark"] is None:
             return lines + [f"{meta['first']} has no {meta['event_name']} mark to compare with the colleges yet."]
         lines += [f"Where {meta['first']}'s best, {c['mark']['mark']}, would rank on each college team's "
-                  f"{meta['event_name']} season bests (FAT; out of the team's marks and hers).",
+                  f"{meta['event_name']} season bests (out of the team's marks and hers).",
                   "Only results entered on Athletic.net count, and some college meets are missing.",
                   "", "| College | " + " | ".join(c["seasons"]) + " |",
                   "| --- | " + " | ".join("---" for _ in c["seasons"]) + " |"]
