@@ -18,7 +18,7 @@ from unittest import mock
 import build
 import college_marks as cm
 import rankmap
-from test_rankmap import AREAS, COLLEGES, SEASON, TEAMS, college_files, saved
+from test_rankmap import AREAS, COLLEGES, SEASON, TEAMS, college_files, saved, season_rank
 
 EVENT = "400 Meters"
 
@@ -214,7 +214,8 @@ class Files(unittest.TestCase):
         _, out = self.run_cm("list")
         self.assertIn("for women's 400 Meters:", out)
         self.assertRegex(out, r"Harrowgate +2099 +2 +2099-10-30 +the team's season list")
-        self.assertRegex(out, r"Harrowgate +2098 +- +none entered")
+        # The seasons the page shows (her saved 2099), and any with a list.
+        self.assertNotRegex(out, r"Harrowgate +2098")
         self.assertRegex(out, r"Wrenmoor State +2099 +- +none entered")
         self.assertIn("Other lists (another college, gender or event):", out)
         self.assertIn("team 960000002 (Wrenmoor State) 2098 m 400 Meters: 1 rows", out)
@@ -230,25 +231,34 @@ def hand(rows, team=960000001, season=2099, gender="f", event=EVENT):
                                                "2099-10-30", "pasted", marks))
 
 
-def page_with(*lists, files=None):
-    """The page, CSV and Markdown built with hand-entered lists, and the prepared Colleges section."""
+def page_with(*lists, files=None, both=False):
+    """The page, CSV and Markdown built with hand-entered lists, and the prepared Colleges section:
+    of 2099, or with both 2099 and 2098 (her 2098 best the same 58.98)."""
     merged = {}
     for h in lists:
         merged.setdefault((h["team"], h["season"]), []).append(h)
+    states = {SEASON: saved()}
+    if both:
+        states[2098] = saved(season_rank(2098, "58.98", 58980))
     with tempfile.TemporaryDirectory() as tmp:
-        html, page = build.build({SEASON: saved()}, [SEASON], Path(tmp), areas_dir=AREAS, colleges=TEAMS,
+        html, page = build.build(states, sorted(states), Path(tmp), areas_dir=AREAS, colleges=TEAMS,
                                  college_seasons=college_files() if files is None else files, college_marks=merged)
         return (html.read_text(), html.with_suffix(".csv").read_text(), html.with_suffix(".md").read_text(),
                 page.colleges)
 
 
+def college(colleges, team=960000001, season="2099"):
+    """A college's row in a season's Colleges."""
+    return next(r for r in colleges["seasons"][season]["rows"] if r["team"] == team)
+
+
 def cell(colleges, team=960000001, season="2099"):
-    return next(r for r in colleges["rows"] if r["team"] == team)["cells"][season]
+    return college(colleges, team, season)["cell"]
 
 
-def names_cell(page):
-    section = page[page.index('<section class="list colleges"'):]
-    return re.findall(r'<td class="sn">(.*?)</td>', section[:section.index("</section>")])
+def names_cell(page, season="2099"):
+    section = page[page.index(f'<div class="cseason" data-season="{season}"'):]
+    return re.findall(r'<td class="sn">(.*?)</td>', section[:section.index("</table>")])
 
 
 class Merge(unittest.TestCase):
@@ -268,7 +278,7 @@ class Merge(unittest.TestCase):
         x = cell(c)
         self.assertEqual((x["label"], x["marks"], len(x["ahead"]), len(x["ties"])), ("T4", 5, 3, 1))
         self.assertEqual(x["ahead"][0]["url"], "https://www.athletic.net/athlete/960100001/track-and-field")
-        self.assertFalse(c["rows"][0]["hand"], "every hand-entered mark was already counted")
+        self.assertFalse(college(c)["hand"], "every hand-entered mark was already counted")
         self.assertEqual((page, table, md), page_with()[:3])
 
     def test_a_new_faster_mark_moves_the_rank_and_marks_the_college(self):
@@ -278,7 +288,7 @@ class Merge(unittest.TestCase):
         self.assertEqual([a["name"] for a in x["ahead"]],
                          ["Maren Quillfeather", "Tessa Brackwood", "Ines Corrowmere", "Odile Larkspur"])
         self.assertIsNone(x["ahead"][3]["url"])
-        self.assertTrue(c["rows"][0]["hand"])
+        self.assertTrue(college(c)["hand"])
         # The page: a bare asterisk after the name, outside its link, and nothing else.
         self.assertEqual(names_cell(page)[0], '<a href="https://www.athletic.net/team/960000001/track-and-field-outdoor/2099/event-records"'
                          ' target="_blank" rel="noopener">Harrowgate</a><span class="hm">*</span>')
@@ -287,10 +297,10 @@ class Merge(unittest.TestCase):
         self.assertNotIn("private note", page + table + md)
         self.assertNotIn("hand", page.lower().replace("handle", ""))
         self.assertIn('<span class="pill b5"><span class="sup">t</span>5</span><span class="of">of 7</span>', page)
-        self.assertIn("<summary>4 faster, 1 tied</summary>", page)
+        self.assertIn('<summary>4 faster, 1 tied <span class="tm">&middot; fastest 53.41</span></summary>', page)
         # A hand-entered mark, unlinked, with its meet.
-        self.assertIn('<li><span class="mk">57.40</span> <span class="nm">Odile Larkspur</span> '
-                      '<span class="tm">Fernhollow Invitational</span></li>', page)
+        self.assertIn('<li><span class="mk">57.40</span> <span class="nt"><span class="nm">Odile Larkspur</span> '
+                      '<span class="tm">Fernhollow Invitational</span></span></li>', page)
         # The Markdown: the same asterisk; the CSV: the same columns, its ranks merged.
         self.assertIn("| Harrowgate\\* | T5 of 7, led by Maren Quillfeather 53.41 |", md)
         self.assertIn("| Wrenmoor State | #8 of 10", md)
@@ -306,13 +316,13 @@ class Merge(unittest.TestCase):
         # Her mark and meet are the hand-entered ones; her name and profile link stay Athletic.net's.
         self.assertEqual((liv["name"], liv["mark"], liv["meet"]), ("Liv Ashcombe", "58.10", "Fernhollow Invitational"))
         self.assertEqual(liv["url"], COLLEGES[2099]["results"][0]["behind"][0]["url"])
-        self.assertTrue(c["rows"][0]["hand"])
+        self.assertTrue(college(c)["hand"])
 
     def test_a_slower_new_mark_counts_in_of_n_only(self):
         page, _, _, c = page_with(hand([("Odile Larkspur", "1:02.00")]))
         self.assertEqual((cell(c)["label"], cell(c)["marks"]), ("T4", 6))
         self.assertIn('<span class="of">of 7</span>', page)
-        self.assertTrue(c["rows"][0]["hand"])
+        self.assertTrue(college(c)["hand"], "it changes the count")
 
     def test_an_equal_mark_to_the_hundredth_is_a_tie(self):
         _, _, _, c = page_with(hand([("Odile Larkspur", "58.98")]))
@@ -321,10 +331,10 @@ class Merge(unittest.TestCase):
     def test_a_team_without_marks_on_athletic_net_takes_them(self):
         # Wrenmoor State has no 2098 marks on Athletic.net.
         _, _, md, c = page_with(hand([("Odile Larkspur", "57.00"), ("Quenby, Marisol", "1:00.04")],
-                                     team=960000002, season=2098))
+                                     team=960000002, season=2098), both=True)
         self.assertEqual((cell(c, 960000002, "2098")["label"], cell(c, 960000002, "2098")["marks"]), ("2", 2))
-        self.assertIn("| Wrenmoor State\\* | #8 of 10, led by Sable Ondrejka 52.80 | #2 of 3, led by Odile Larkspur 57.00 |",
-                      md)
+        self.assertIn("| Wrenmoor State\\* | #2 of 3, led by Odile Larkspur 57.00 |", md)
+        self.assertIn("| Wrenmoor State | #8 of 10, led by Sable Ondrejka 52.80 |", md)
 
     def test_another_gender_event_or_season_never_counts(self):
         for h in (hand([("Odile Larkspur", "50.00")], gender="m"),
@@ -332,7 +342,7 @@ class Merge(unittest.TestCase):
                   hand([("Odile Larkspur", "50.00")], season=2097)):
             _, _, _, c = page_with(h)
             self.assertEqual(cell(c)["label"], "T4")
-            self.assertFalse(any(r["hand"] for r in c["rows"]))
+            self.assertFalse(any(r["hand"] for r in c["seasons"]["2099"]["rows"]))
         # The event by its code is the same event.
         _, _, _, c = page_with(hand([("Odile Larkspur", "50.00")], event="400m"))
         self.assertEqual(cell(c)["label"], "T5")
@@ -340,19 +350,28 @@ class Merge(unittest.TestCase):
     def test_the_athletes_own_row_is_left_out(self):
         _, _, _, c = page_with(hand([("Uddumcombe, Jamie", "58.98")]))
         self.assertEqual(cell(c)["marks"], 5)
-        self.assertFalse(c["rows"][0]["hand"])
+        self.assertFalse(college(c)["hand"])
 
-    def test_a_season_saved_without_every_team_mark_takes_none(self):
-        old = copy.deepcopy(COLLEGES)
-        for r in old.values():
-            r["schema"] = 1
-            for x in r["results"]:
-                del x["behind"]
-        _, _, _, c = page_with(hand([("Odile Larkspur", "50.00")]), files=college_files(old))
-        self.assertEqual(cell(c)["label"], "T4")
-        self.assertEqual(c["unmerged"], [("Harrowgate", "2099")])
-        self.assertEqual(rankmap.partial_seasons(college_files(old), {(960000001, 2099): []}), {2099})
-        self.assertEqual(rankmap.partial_seasons(college_files(), {(960000001, 2099): []}), set())
+    def test_the_asterisk_is_the_season_picked(self):
+        # A list for 2099 marks Harrowgate in 2099 only; one that changes nothing (2098's, a mark
+        # already counted) marks nothing.
+        page, _, md, c = page_with(hand([("Larkspur, Odile", "57.40")]),
+                                   hand([("Holloway-Prynne, Bea", "59.10")], season=2098), both=True)
+        self.assertEqual((college(c)["hand"], college(c, season="2098")["hand"]), (True, False))
+        self.assertTrue(names_cell(page, "2099")[0].endswith('Harrowgate</a><span class="hm">*</span>'))
+        self.assertTrue(names_cell(page, "2098")[0].endswith("Harrowgate</a>"))
+        self.assertEqual(md.count("\\*"), 1)
+        self.assertLess(md.index("| Harrowgate\\* |"), md.index("## 2098 season"))
+
+    def test_a_hand_entered_mark_ranks_each_seasons_best(self):
+        # The same 2098 list against a slower 2098 best: the hand-entered 59.50 is now ahead of her.
+        merged = {(960000001, 2098): [hand([("Odile Larkspur", "59.50")], season=2098)]}
+        with tempfile.TemporaryDirectory() as tmp:
+            _, page = build.build({2098: saved(season_rank(2098, "1:00.10", 60100)), SEASON: saved()}, [2098, SEASON],
+                                  Path(tmp), areas_dir=AREAS, colleges=TEAMS, college_seasons=college_files(),
+                                  college_marks=merged)
+        x = cell(page.colleges, season="2098")
+        self.assertEqual((x["label"], x["marks"], [a["mark"] for a in x["ahead"]]), ("4", 3, ["54.20", "59.10", "59.50"]))
 
     def test_a_bad_file_is_refused_saying_why(self):
         good = hand([("Odile Larkspur", "57.00")])
@@ -395,7 +414,7 @@ class Rebuild(unittest.TestCase):
                     mock.patch.object(rankmap, "STATE_LISTS", 1), \
                     mock.patch.object(rankmap, "find_ath", side_effect=AssertionError("nothing is collected")):
                 rankmap.main(["--config", str(folder / "c.config.json"), "--no-fetch"])
-            self.assertIn("colleges Harrowgate       2099 T5 of 7  2098 #2 of 3  (counts hand-entered marks)",
+            self.assertIn("colleges 2099 Harrowgate          58.98 T5 of 7  (counts hand-entered marks)",
                           out.getvalue())
             self.assertIn("2098-f-400-meters.json is not valid JSON", out.getvalue())
             page = (folder / "out" / "982389051-400m.html").read_text()

@@ -23,9 +23,6 @@ STATE_LISTS = 51  # the 50 states and DC
 # The college teams a page ranks the athlete against when its config names none (`colleges`).
 DEFAULT_COLLEGES = [{"name": "UC Berkeley", "team": 21484}, {"name": "Colorado", "team": 20765},
                     {"name": "Virginia", "team": 21507}]
-# The day a college outdoor season counts as started (month, day): before it, "this season" is the
-# latest finished one.
-COLLEGE_SEASON_START = (3, 1)
 # The folder, beside the config, of hand-entered college marks: <team id>/<season>-<gender>-<event>.json.
 COLLEGE_MARKS = "college-marks"
 
@@ -158,11 +155,10 @@ def load_data(cfg):
 
 # ---------------------------------------------------------------- colleges
 
-def college_seasons(today):
-    """The college seasons a page shows, newest first: this one (the current outdoor season once it
-    has started, COLLEGE_SEASON_START, else the latest finished one) and the one before."""
-    latest = today.year if today >= date(today.year, *COLLEGE_SEASON_START) else today.year - 1
-    return [latest, latest - 1]
+def college_seasons(have):
+    """The college seasons a page shows, newest first: the years of its State seasons (have, the
+    saved high school seasons), since each season's Colleges rank that season's best."""
+    return sorted(have, key=int, reverse=True)
 
 
 def college_path(cfg, season):
@@ -188,13 +184,14 @@ def check_college_season(cfg, season, saved, have):
                                         "events": [cfg["event"], college_event(cfg, have)]})
 
 
-def load_colleges(cfg, have, today):
+def load_colleges(cfg, have):
     """Saved college seasons that build ({season: saved}), and the ones to collect again ({season:
-    why}): not valid JSON, another shape, or for other teams than the config's."""
+    why}): not valid JSON, another shape (an older ath colleges schema too), or for other teams than
+    the config's. Only the page's seasons (college_seasons) are read."""
     got, stale = {}, {}
     if not cfg["colleges"]:
         return got, stale
-    for season in college_seasons(today):
+    for season in college_seasons(have):
         p = college_path(cfg, season)
         if not p.exists():
             continue
@@ -207,16 +204,17 @@ def load_colleges(cfg, have, today):
     return got, stale
 
 
-def plan_colleges(cfg, saved, args, today, collected, partial=()):
-    """College seasons to collect now: none with --no-fetch or no colleges; otherwise one not saved
-    (or saved for other teams), one in progress, one asked for with --refresh, one saved without
-    every team mark that hand-entered marks are to be merged into (partial), and every one when
-    this run collected a State season (so the Personal record they rank stays the newest; a finished
-    season's team records come from ath's cache)."""
+def plan_colleges(cfg, saved, have, args, today, collected=()):
+    """College seasons to collect now, newest first: none with --no-fetch or no colleges; otherwise,
+    of the page's seasons (college_seasons), one not saved (or saved unreadable, for other teams, or
+    with an older ath colleges schema: load_colleges leaves those out of saved), one whose State
+    season is in progress, one asked for with --refresh, and one whose State season this run
+    collected (collected), so its ranks go with the season best just collected. A finished season
+    saved whole stays as it is."""
     if args.no_fetch or not cfg["colleges"]:
         return []
-    return [s for s in college_seasons(today)
-            if s not in saved or s in args.refresh or s in partial or collected
+    return [s for s in college_seasons(have)
+            if s not in saved or s in args.refresh or s in collected
             or season_status(cfg, s, today) == "in progress"]
 
 
@@ -256,24 +254,17 @@ def read_college_marks(folder, teams=None, seasons=None):
     return got, bad
 
 
-def load_college_marks(cfg, today):
+def load_college_marks(cfg, have):
     """This config's hand-entered lists: of its colleges, in the college seasons the page shows
     (read_college_marks; build.prepare_colleges keeps the athlete's gender and event). Files that
     cannot be read are left out, saying why."""
     if not cfg["colleges"]:
         return {}
     got, bad = read_college_marks(cfg["college_marks_dir"], {c["team"] for c in cfg["colleges"]},
-                                  set(college_seasons(today)))
+                                  set(college_seasons(have)))
     for path, why in bad.items():
         print(f"hand-entered marks: left out, {path} {why}")
     return got
-
-
-def partial_seasons(colleges, hand):
-    """Saved college seasons that do not list every team mark (ath colleges schema 1) while
-    hand-entered marks are kept for one of their teams: collecting them again lets those merge."""
-    return {s for s, saved in colleges.items()
-            if saved["colleges"].get("schema") == 1 and any(season == s for _, season in hand)}
 
 
 def colleges_command(cfg, season, event, refresh):
@@ -427,18 +418,20 @@ def main(argv=None):
     todo = plan(cfg, have, stale, args, today, short)
     if todo:
         print(RELAY_HINT)
+    collected = set()
     for season in todo:
         got = collect(cfg, season, wants_fresh(season, have, args, short), today)
         if got:
             have[season] = got
+            collected.add(season)
     for season in sorted(set(stale) - set(have)):
         print(f"{season}: left out, {data_path(cfg, season)} {stale[season]}")
 
     if not have:
         sys.exit("No collected seasons yet, so nothing to build.")
-    colleges, college_stale = load_colleges(cfg, have, today)
-    college_marks = load_college_marks(cfg, today)
-    college_todo = plan_colleges(cfg, colleges, args, today, bool(todo), partial_seasons(colleges, college_marks))
+    colleges, college_stale = load_colleges(cfg, have)
+    college_marks = load_college_marks(cfg, have)
+    college_todo = plan_colleges(cfg, colleges, have, args, today, collected)
     if college_todo and not todo:
         print(RELAY_HINT)
     for season in college_todo:
@@ -462,14 +455,13 @@ def main(argv=None):
             if v["areas"]:
                 places = "  ".join(f"{s['abbr']} {s['label']}" for s in v["areas"])
                 print(f"{'':>14} {sd['area_file']['labels']}: {places}")
-    if page.colleges and page.colleges["mark"]:
-        for r in page.colleges["rows"]:
-            print(f"colleges {r['name']:16} " + "  ".join(f"{s} {build.college_rank_text(r['cells'][s])}"
-                                                         for s in page.colleges["seasons"])
+    for season, c in (page.colleges or {"seasons": {}})["seasons"].items():
+        if c is None:
+            print(f"colleges {season}: no college data yet (a run without --no-fetch collects it)")
+            continue
+        for r in c["rows"]:
+            print(f"colleges {season} {r['name']:16} {c['mark']['mark']:>8} {build.college_rank_text(r['cell'])}"
                   + ("  (counts hand-entered marks)" if r["hand"] else ""))
-        for name, season in page.colleges["unmerged"]:
-            print(f"colleges {season}: {name}'s hand-entered marks are left out until the season is collected "
-                  "again (it was saved before ath listed every team mark); run rankmap without --no-fetch")
     print(f"\nWrote {html_path} (+ .md, .csv)")
     if cfg.get("artifact_url"):
         print(f"This config's shared page: {cfg['artifact_url']} (republish it there only if you share this page)")

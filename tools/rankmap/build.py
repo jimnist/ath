@@ -300,11 +300,11 @@ def _whole(r, expect):
 
 # ---------------------------------------------------------------- colleges
 
-# The saved college season format this build reads, and the `ath colleges` JSON schemas inside it
-# it reads: 2 lists every team mark (`behind` too), which merging hand-entered marks needs; 1 does
-# not, so a season saved with it builds without its hand-entered marks until it is collected again.
+# The saved college season format this build reads, and the `ath colleges` JSON schema inside it it
+# reads: 2, which lists every counted team mark (`ahead`, `tied` and `behind`), so the page can rank
+# any season's mark on the team's list (rank_on_team). A season saved with schema 1 is collected again.
 COLLEGES_FORMAT = 1
-ATH_COLLEGES_SCHEMAS = (1, 2)
+ATH_COLLEGES_SCHEMA = 2
 
 
 def college_file(report, pulled):
@@ -330,9 +330,9 @@ def check_colleges(saved, expect=None):
         raise SeasonError(f"is not a saved college season (format {COLLEGES_FORMAT})")
     try:
         r = saved["colleges"]
-        if r.get("schema") not in ATH_COLLEGES_SCHEMAS:
+        if r.get("schema") != ATH_COLLEGES_SCHEMA:
             raise SeasonError(f"ath colleges JSON schema {r.get('schema')}; this rankmap reads "
-                              f"{' or '.join(map(str, ATH_COLLEGES_SCHEMAS))}")
+                              f"{ATH_COLLEGES_SCHEMA}")
         if len(r["seasons"]) != 1:
             raise SeasonError(f"has seasons {r['seasons']}, not one")
         failed = sorted({x["team"]["id"] for x in r["results"] if x["status"] == "lookup_failed"})
@@ -429,29 +429,33 @@ def hand_counts_for(hand, report):
     return hand["gender"] == report["gender"] and event_key(hand["event"]) in events
 
 
-def merge_hand(x, mine, athlete, rows):
-    """A team's season bests on Athletic.net (x, an `ath colleges` result) merged with hand-entered
-    rows of the same team, season, gender and event, against the athlete's mark (mine, the report's
-    `mark`; athlete, their name). Returns (the marks counted, the marks ahead and tied as the page
-    shows them, whether a hand-entered mark counts), or None when x does not list every team mark
-    (schema 1).
+def rank_on_team(x, mine, athlete, rows=()):
+    """Where a mark (mine: {"mark", "sort_int"}, the Athlete's season best) ranks on a team's season
+    bests on Athletic.net (x, an `ath colleges` result listing every counted team mark) merged with
+    hand-entered rows of the same team, season, gender and event. Returns the cell the page shows:
+    {"marks": the team's athletes counted, "label", "rank", "bucket", "ahead", "ties"} (the marks
+    faster and tied, as the page shows them); label, rank and bucket are None when x does not list
+    every team mark (ath lists none for an Athlete without a Personal record), so it cannot rank.
 
+    rank is 1 plus the number of counted marks strictly faster; an equal mark shares it ("T4").
     Each person counts once, with their best mark: a hand-entered row is the same person as a row
     from Athletic.net (or an earlier hand-entered one) when their names match by name_key, and it
     counts only when it is faster to the hundredth; an equal mark is the same mark, counted once.
-    Hand-entered marks are compared with the athlete's to the hundredth, as they are shown, and
-    Athletic.net's on SortInt, as ath compares them. The athlete's own row is left out."""
-    if "behind" not in x:
-        return None
+    Hand-entered marks are compared with the Athlete's to the hundredth, as they are shown, and
+    Athletic.net's on SortInt, as ath compares them. The Athlete's own row is left out (ath leaves
+    out theirs on Athletic.net)."""
+    listed = x["ahead"] + x["tied"] + x["behind"]
+    if len(listed) != x["marks"]:
+        return {"marks": x["marks"], "label": None, "rank": None, "bucket": None, "ahead": [], "ties": []}
 
     def side(a, b):
         return (a > b) - (a < b)
 
     mine_hund = time_hundredths(mine["mark"]) or -(-mine["sort_int"] // 10)
     people, index = [], {}
-    for a in x["ahead"] + x["tied"] + x["behind"]:
+    for a in listed:
         p = {"person": college_person(a), "hund": time_hundredths(a["mark"]) or -(-a["sort_int"] // 10),
-             "sort": a["sort_int"], "hand": False, "side": side(a["sort_int"], mine["sort_int"])}
+             "sort": a["sort_int"], "side": side(a["sort_int"], mine["sort_int"])}
         index.setdefault(name_key(a["name"]), p)
         people.append(p)
     me = name_key(athlete)
@@ -461,7 +465,7 @@ def merge_hand(x, mine, athlete, rows):
             continue
         p = {"person": {"name": shown_name(row["name"]), "mark": row["mark"], "meet": row.get("meet") or "",
                         "url": None},
-             "hund": hund, "sort": hund * 10, "hand": True, "side": side(hund, mine_hund)}
+             "hund": hund, "sort": hund * 10, "side": side(hund, mine_hund)}
         known = index.get(key)
         if known is None:
             index[key] = p
@@ -472,54 +476,48 @@ def merge_hand(x, mine, athlete, rows):
             p["person"].update(name=known["person"]["name"], url=known["person"]["url"])
             known.update(p)
     order = sorted(people, key=lambda p: (p["hund"], p["sort"], p["person"]["name"]))
-    return (len(people), [p["person"] for p in order if p["side"] < 0],
-            [p["person"] for p in order if p["side"] == 0], any(p["hand"] for p in people))
+    ahead = [p["person"] for p in order if p["side"] < 0]
+    ties = [p["person"] for p in order if p["side"] == 0]
+    rank = len(ahead) + 1
+    return {"marks": len(people), "label": f"T{rank}" if ties else str(rank), "rank": rank,
+            "bucket": bucket(rank), "ahead": ahead, "ties": ties}
 
 
-def prepare_colleges(teams, files, hand=None):
-    """The Colleges section from the config's colleges ([{"name", "team"}], in display order) and
-    the saved college seasons ({season: saved}), newest season first; None without either.
+def prepare_colleges(teams, files, marks, hand=None):
+    """The Colleges section from the config's colleges ([{"name", "team"}], in display order), the
+    saved college seasons ({season: saved}) and the Athlete's season best in each season the page
+    shows ({season: {"mark", "sort_int"}}, the mark its headline shows); None without colleges or
+    saved college seasons.
 
-    hand: hand-entered lists ({(team id, season): [saved list, ...]}, see check_hand_marks), merged
-    into the team's marks of the same season when they are of the athlete's gender and event
-    (merge_hand). A college row is `hand` when its shown ranks count a hand-entered mark; a season
-    whose saved report cannot take them (schema 1) is listed in `unmerged`, as (college, season)."""
+    Each season the page shows has its own Colleges: the college season of the same year, each
+    team's list ranking that season's mark (rank_on_team), or None when that college season is not
+    saved. hand: hand-entered lists ({(team id, season): [saved list, ...]}, see check_hand_marks),
+    merged into the team's list of the same season when they are of the Athlete's gender and event.
+    A college row is `hand` when the hand-entered marks change what that season shows for it."""
     if not teams or not files:
         return None
     hand = hand or {}
-    seasons = sorted(files, key=int, reverse=True)
-    reports = {s: check_colleges(files[s]) for s in seasons}
-    rows, unmerged = [], []
-    for t in teams:
-        cells, url, counted = {}, None, False
-        for s in seasons:
-            r = reports[s]
+    by_season = {str(s): f for s, f in files.items()}
+    out = {}
+    for s in sorted(marks, key=int, reverse=True):
+        f = by_season.get(str(s))
+        if f is None:
+            out[str(s)] = None
+            continue
+        r = check_colleges(f)
+        rows = []
+        for t in teams:
             x = next((x for x in r["results"] if x["team"]["id"] == t["team"]), None)
-            if x is None:
-                cells[str(s)] = None
-                continue
-            url = url or x["url"]
-            p = x["place"]
-            cell = {"marks": x["marks"], "url": x["url"],
-                    "label": p and p["label"], "rank": p and p["rank"], "bucket": p and bucket(p["rank"]),
-                    "ahead": [college_person(a) for a in x["ahead"]],
-                    "ties": [college_person(a) for a in x["tied"]]}
-            lists = [h for h in hand.get((t["team"], int(s)), []) if hand_counts_for(h, r)]
-            if lists and r["mark"] is not None:
-                merged = merge_hand(x, r["mark"], r["athlete"]["name"], [m for h in lists for m in h["marks"]])
-                if merged is None:
-                    unmerged.append((t["name"], str(s)))
-                elif merged[3]:
-                    marks, ahead, ties, _ = merged
-                    rank = len(ahead) + 1
-                    cell.update(marks=marks, label=f"T{rank}" if ties else str(rank), rank=rank, bucket=bucket(rank),
-                                ahead=ahead, ties=ties)
-                    counted = True
-            cells[str(s)] = cell
-        rows.append({"name": t["name"], "team": t["team"], "url": url, "cells": cells, "hand": counted})
-    newest = reports[seasons[0]]
-    return {"seasons": [str(s) for s in seasons], "mark": newest["mark"], "rows": rows,
-            "pulled": {str(s): files[s]["pulled"] for s in seasons}, "unmerged": unmerged}
+            row = {"name": t["name"], "team": t["team"], "url": x and x["url"], "cell": None, "hand": False}
+            if x is not None:
+                row["cell"] = rank_on_team(x, marks[s], r["athlete"]["name"])
+                lists = [h for h in hand.get((t["team"], int(s)), []) if hand_counts_for(h, r)]
+                if lists and row["cell"]["label"] is not None:
+                    merged = rank_on_team(x, marks[s], r["athlete"]["name"], [m for h in lists for m in h["marks"]])
+                    row.update(cell=merged, hand=merged != row["cell"])
+            rows.append(row)
+        out[str(s)] = {"mark": marks[s], "rows": rows, "pulled": f["pulled"]}
+    return {"seasons": out}
 
 
 def college_rank_text(c):
@@ -587,7 +585,8 @@ def prepare(saved_seasons, areas_dir=None):
                 rs.sort(key=lambda s: (s["rank"], s["name"]))
             views.append({"key": key, "label": label, "phrase": phrase, "grades": grades, "rows": rows,
                           "areas": area_rows})
-        seasons[str(season)] = {"pr": r["mark"]["mark"], "grade": r["mark"].get("grade"),
+        seasons[str(season)] = {"pr": r["mark"]["mark"], "sort_int": r["mark"]["sort_int"],
+                                "grade": r["mark"].get("grade"),
                                 "pulled": saved["pulled"], "views": views,
                                 "home": home, "area_file": areas, "short": lacks_areas(saved),
                                 "home_area": abbr.get(home_area),
@@ -869,10 +868,14 @@ class Page:
         return max((len(a["mark"]) for sd in self.seasons.values() for v in sd["views"]
                     for s in v["rows"] + v["areas"] for a in s["ahead"] + s["ties"]), default=5)
 
+    def college_rows(self):
+        """Every season's college rows (prepare_colleges), for what is the same across seasons."""
+        return [r for c in self.colleges["seasons"].values() if c for r in c["rows"]]
+
     def college_mark_ch(self):
-        """The mark column's width in the Colleges table, as mark_ch is in the others."""
-        return max((len(a["mark"]) for r in self.colleges["rows"] for c in r["cells"].values() if c
-                    for a in c["ahead"] + c["ties"]), default=5)
+        """The mark column's width in the Colleges tables, as mark_ch is in the others."""
+        return max((len(a["mark"]) for r in self.college_rows() if r["cell"]
+                    for a in r["cell"]["ahead"] + r["cell"]["ties"]), default=5)
 
     @staticmethod
     def about_standards(notes, more=""):
@@ -908,69 +911,77 @@ class Page:
                 + '</section>')
 
     def college_li(self, a, tie=False):
-        """A team mark ahead of or tied with the Athlete: mark, name, meet."""
+        """A team mark ahead of or tied with the Athlete: the mark, then the name and meet, which
+        wrap beside the mark rather than under it."""
         t = " &middot; tied" if tie else ""
         cls = ' class="tie"' if tie else ""
         # A hand-entered mark has no profile to link to.
         name = self.link(a["name"], a["url"]) if a["url"] else esc(a["name"])
         return (f'<li{cls}><span class="mk">{esc(a["mark"])}</span> '
-                f'<span class="nm">{name}</span> '
-                f'<span class="tm">{esc(a["meet"])}{t}</span></li>')
+                f'<span class="nt"><span class="nm">{name}</span> '
+                f'<span class="tm">{esc(a["meet"])}{t}</span></span></li>')
 
-    def college_cell(self, season, c):
-        """One college in one season, as a table cell: its season (shown only on a phone, where each
-        season is a row of its own) and college_rank."""
-        return f'<td class="cs"><span class="cy">{season}</span>{self.college_rank(c)}</td>'
-
-    def college_rank(self, c):
-        """One college in one season: the rank on its fill, out of how many (the team's marks and
-        the Athlete's), and who is faster on demand; or that the team has no marks."""
+    def college_row(self, r):
+        """One college in one season: the rank on its fill out of how many (the team's athletes
+        and the Athlete), the college, and who is faster on demand; or that the team has no marks."""
+        c = r["cell"]
+        # A bare asterisk after a college's name says hand-entered marks from another results
+        # source (the user's private files, see prepare_colleges) change what this season shows for
+        # it. By design the page says nothing more about them: no legend, no note, never the source.
+        name = ((self.link(r["name"], r["url"]) if r["url"] else esc(r["name"]))
+                + ('<span class="hm">*</span>' if r["hand"] else ""))
+        rank = ""
         if c is None:
-            return '<span class="tm">not collected</span>'
-        if c["marks"] == 0:
-            return '<span class="tm">no marks</span>'
-        if c["label"] is None:
-            return f'<span class="tm">{c["marks"]} marks</span>'
-        first = esc(self.meta["first"])
-        n, t = len(c["ahead"]), len(c["ties"])
-        plural = "s" if c["marks"] != 1 else ""
-        head = (f'<span class="cr" title="{first} and the team&rsquo;s {c["marks"]} mark{plural}">'
-                f'<span class="pill {c["bucket"][3]}">{rank_html(c["label"])}</span>'
-                f'<span class="of">of {c["marks"] + 1}</span></span>')
-        if not n + t:
-            return f'{head}<span class="nb">nobody faster</span>'
-        items = "".join(self.college_li(a) for a in c["ahead"]) + "".join(self.college_li(a, True) for a in c["ties"])
-        what = ", ".join(p for p in (f"{n} faster" if n else "", f"{t} tied" if t else "") if p)
-        return f'{head}<details><summary>{what}</summary><ol class="who">{items}</ol></details>'
+            who = '<span class="tm">not collected</span>'
+        elif c["marks"] == 0:
+            who = '<span class="tm">no marks</span>'
+        elif c["label"] is None:
+            who = f'<span class="tm">{c["marks"]} marks</span>'
+        else:
+            first = esc(self.meta["first"])
+            n, t = len(c["ahead"]), len(c["ties"])
+            plural = "s" if c["marks"] != 1 else ""
+            rank = (f'<span class="cr" title="{first} and the team&rsquo;s {c["marks"]} athlete{plural}">'
+                    f'<span class="pill {c["bucket"][3]}">{rank_html(c["label"])}</span>'
+                    f'<span class="of">of {c["marks"] + 1}</span></span>')
+            if not n + t:
+                who = '<span class="tm">nobody faster</span>'
+            else:
+                items = ("".join(self.college_li(a) for a in c["ahead"])
+                         + "".join(self.college_li(a, True) for a in c["ties"]))
+                what = ", ".join(p for p in (f"{n} faster" if n else "", f"{t} tied" if t else "") if p)
+                fastest = f' <span class="tm">&middot; fastest {esc(c["ahead"][0]["mark"])}</span>' if n else ""
+                who = f'<details><summary>{what}{fastest}</summary><ol class="who">{items}</ol></details>'
+        return f'<tr><td class="rk">{rank}</td><td class="sn">{name}</td><td class="ah">{who}</td></tr>'
+
+    def college_season(self, season, c):
+        """One season's Colleges: that season's best against each college team's season bests in
+        the college season of the same year, or that there are none yet."""
+        if c is None:
+            return f'<p class="lede">No college data for {season} yet.</p>'
+        first, event = esc(self.meta["first"]), esc(self.meta["event_name"])
+        rows = "".join(self.college_row(r) for r in c["rows"])
+        return (f'<p class="lede">{first}&rsquo;s {season} best, <b>{esc(c["mark"]["mark"])}</b>, against each '
+                f'college team&rsquo;s {season} {event} season bests.</p>'
+                f'<div class="tbl-wrap"><table class="ctbl"><thead><tr><th>Rank</th><th>College</th>'
+                f'<th>Ahead of {first}</th></tr></thead><tbody>{rows}</tbody></table></div>')
 
     def colleges_html(self):
-        """The Colleges section: where the Athlete's best would rank on each college team's season
-        bests, this season and last, or nothing without college data."""
+        """The Colleges section: in the season picked, where the Athlete's best that season would
+        rank on each college team's season bests that year (every season's content is on the page,
+        shown with its season, as the rest is); or nothing without college data."""
         c = self.colleges
         if not c:
             return ""
         first, event = esc(self.meta["first"]), esc(self.meta["event_name"])
-        if c["mark"] is None:
-            body = f'<p class="mapnote">{first} has no {event} mark to compare with the colleges yet.</p>'
-        else:
-            heads = "".join(f"<th>{s}</th>" for s in c["seasons"])
-            # A bare asterisk after a college's name says its ranks count marks entered by hand from
-            # another results source (the user's private files, see prepare_colleges). By design
-            # the page says nothing more about them: no legend, no note, never the source.
-            rows = "".join(
-                f'<tr><td class="sn">{self.link(r["name"], r["url"]) if r["url"] else esc(r["name"])}'
-                + ('<span class="hm">*</span>' if r["hand"] else "") + '</td>'
-                + "".join(self.college_cell(s, r["cells"][s]) for s in c["seasons"]) + "</tr>"
-                for r in c["rows"])
-            body = (f'<p class="lede">{first}&rsquo;s best, <b>{esc(c["mark"]["mark"])}</b>, against each college '
-                    f'team&rsquo;s {event} season bests.</p>'
-                    f'<div class="tbl-wrap"><table class="ctbl"><thead><tr><th>College</th>{heads}</tr></thead>'
-                    f'<tbody>{rows}</tbody></table></div>')
+        seasons = "".join(f'<div class="cseason"{self.attrs(s)}>{self.college_season(s, x)}</div>'
+                          for s, x in c["seasons"].items())
         return (f'\n  <section class="list colleges" aria-labelledby="colleges-h">'
-                f'<h2 id="colleges-h">Colleges</h2>{body}'
+                f'<h2 id="colleges-h">Colleges</h2>{seasons}'
                 f'<p class="mapnote">Rank is 1 plus the number of the team&rsquo;s athletes with a faster FAT {event} '
-                f'season best, against {first}&rsquo;s best ever (a tie shares the rank). Only results entered on '
-                f'Athletic.net count, and some college meets are missing, so a team can show few marks.</p></section>')
+                f'season best that year, against {first}&rsquo;s best of the season picked (a tie shares the rank). '
+                f'Only results entered on Athletic.net count, and some college meets are missing, so a team can '
+                f'show few marks.</p></section>')
 
     def us_svg(self, start, places, shapes):
         """The US map in the default season and view: each state filled with its rank's color and
@@ -1227,8 +1238,8 @@ class Page:
             f'<li>{s} season data pulled {pretty_date(sd["pulled"])}</li>'
             for s, sd in sorted(seasons.items(), key=lambda kv: -int(kv[0])))
         if self.colleges:
-            pulled += "".join(f'<li>{s} college data pulled {pretty_date(d)}</li>'
-                              for s, d in self.colleges["pulled"].items())
+            pulled += "".join(f'<li>{s} college data pulled {pretty_date(c["pulled"])}</li>'
+                              for s, c in self.colleges["seasons"].items() if c)
         map_ids = [m for m, _ in maps]
         stats = "".join(self.stats(s, v, m) for s, sd in seasons.items() for v in sd["views"]
                         for m in map_ids if m == "us" or (self.mapped and self.area_rows(s, v)))
@@ -1242,7 +1253,7 @@ class Page:
             robots="" if self.example else ROBOTS,
             example_css=("\n" + FOOTER_CSS if self.example else "")
             + (COLLEGES_CSS.format(mark_ch=self.college_mark_ch()) if self.colleges else "")
-            + (HAND_CSS if self.colleges and any(r["hand"] for r in self.colleges["rows"]) else ""),
+            + (HAND_CSS if self.colleges and any(r["hand"] for r in self.college_rows()) else ""),
             colleges=self.colleges_html(),
             footer="\n  " + example_footer() if self.example else "",
             links=("Names link to a page about the links: an example has no real lists or profiles."
@@ -1296,19 +1307,17 @@ class Page:
                                         for a in s["ahead"] + s["ties"])
                         rows.append([season, sd["pr"], v["phrase"], kind, s["label"], s["name"], s["abbr"],
                                      len(s["ahead"]), len(s["ties"]), who, "" if self.example else s["url"]])
-        c = self.colleges
-        if c and c["mark"]:
-            for r in c["rows"]:
-                for season in c["seasons"]:
-                    x = r["cells"][season]
-                    if x is None:
-                        continue
-                    who = "; ".join(f"{a['name']} {a['mark']} ({a['meet']}"
-                                    + ("" if self.example or not a["url"] else f", {a['url']}")
-                                    + ")" for a in x["ahead"] + x["ties"])
-                    rows.append([season, c["mark"]["mark"], "college season bests (FAT)", "College",
-                                 college_rank_text(x), r["name"], r["team"], len(x["ahead"]), len(x["ties"]), who,
-                                 "" if self.example else x["url"]])
+        for season, c in (self.colleges or {"seasons": {}})["seasons"].items():
+            for r in c["rows"] if c else []:
+                x = r["cell"]
+                if x is None:
+                    continue
+                who = "; ".join(f"{a['name']} {a['mark']} ({a['meet']}"
+                                + ("" if self.example or not a["url"] else f", {a['url']}")
+                                + ")" for a in x["ahead"] + x["ties"])
+                rows.append([season, c["mark"]["mark"], "college season bests (FAT)", "College",
+                             college_rank_text(x), r["name"], r["team"], len(x["ahead"]), len(x["ties"]), who,
+                             "" if self.example else r["url"]])
         write_csv(path, ["Season", "Mark", "Against", "List", "Rank", "Name", "Abbr", "Faster", "Tied",
                          "Athletes ahead (mark, grade, team, profile)", "Athletic.net list"], rows)
 
@@ -1374,36 +1383,31 @@ class Page:
                     lines += ["", f"#### {home} {labels}", ""]
                     lines += self.md_table(v["areas"], labels.lower(), sd["home_area"])
             lines += self.meet_lines(sd)
-        lines += self.college_lines()
+            lines += self.college_lines(season)
         return "\n".join(lines) + "\n"
 
-    def college_lines(self):
-        """The Colleges section in the Markdown, or none."""
-        c, meta = self.colleges, self.meta
-        if not c:
+    def college_lines(self, season):
+        """A season's Colleges in the Markdown, as the page shows them with the season picked, or
+        none without college data."""
+        if not self.colleges:
             return []
-        lines = ["", "## Colleges", ""]
-        if c["mark"] is None:
-            return lines + [f"{meta['first']} has no {meta['event_name']} mark to compare with the colleges yet."]
-        lines += [f"Where {meta['first']}'s best, {c['mark']['mark']}, would rank on each college team's "
-                  f"{meta['event_name']} season bests (FAT; out of the team's marks and hers).",
+        c, meta = self.colleges["seasons"][season], self.meta
+        lines = ["", "### Colleges", ""]
+        if c is None:
+            return lines + [f"No college data for {season} yet."]
+        lines += [f"Where {meta['first']}'s {season} best, {c['mark']['mark']}, would rank on each college team's "
+                  f"{season} {meta['event_name']} season bests (FAT; out of the team's athletes and hers).",
                   "Only results entered on Athletic.net count, and some college meets are missing.",
-                  "", "| College | " + " | ".join(c["seasons"]) + " |",
-                  "| --- | " + " | ".join("---" for _ in c["seasons"]) + " |"]
+                  "", "| College | Rank |", "| --- | --- |"]
         for r in c["rows"]:
-            cells = []
-            for s in c["seasons"]:
-                x = r["cells"][s]
-                text = college_rank_text(x)
-                if x and x["ahead"]:
-                    text += f", led by {x['ahead'][0]['name']} {x['ahead'][0]['mark']}"
-                cells.append(text)
-            # The page's asterisk (colleges_html), escaped so Markdown shows it.
+            x = r["cell"]
+            text = college_rank_text(x)
+            if x and x["ahead"]:
+                text += f", led by {x['ahead'][0]['name']} {x['ahead'][0]['mark']}"
+            # The page's asterisk (college_row), escaped so Markdown shows it.
             star = "\\*" if r["hand"] else ""
-            lines.append(f"| {r['name']}{star} | " + " | ".join(cells) + " |")
-        lines += [""] + [f"- {s} college data pulled {pretty_date(d)}" for s, d in c["pulled"].items()]
-        return lines
-
+            lines.append(f"| {r['name']}{star} | {text} |")
+        return lines + ["", f"- {season} college data pulled {pretty_date(c['pulled'])}"]
 
 def slug(meta):
     """Output file name: Athletic.net athlete id plus event code, e.g. <athlete_id>-400m."""
@@ -1421,7 +1425,8 @@ def build(saved_seasons, all_seasons, out_dir, theme=THEME, example=False, areas
     standards are its own (report.state_areas), never the published ones.
 
     colleges: the config's colleges ([{"name", "team"}]) and college_seasons their saved seasons
-    ({season: saved}, see college_file); with both, the page has a Colleges section.
+    ({season: saved}, see college_file); with both, the page has a Colleges section, each of its
+    seasons ranking that season's best on the college season of the same year.
     college_marks: hand-entered lists to merge into it ({(team id, season): [saved list, ...]}, see
     prepare_colleges).
 
@@ -1434,8 +1439,10 @@ def build(saved_seasons, all_seasons, out_dir, theme=THEME, example=False, areas
         "name": a["name"], "first": a["first_name"], "gender": latest["gender"], "url": a["url"],
         "event": latest["event"], "event_name": latest["event_name"] or latest["event"], "athlete_id": a["id"],
     }
-    page = Page(meta, prepare(saved_seasons, areas_dir), [str(s) for s in all_seasons], theme, example, spots_dir,
-                prepare_colleges(colleges, college_seasons, college_marks))
+    seasons = prepare(saved_seasons, areas_dir)
+    marks = {s: {"mark": sd["pr"], "sort_int": sd["sort_int"]} for s, sd in seasons.items()}
+    page = Page(meta, seasons, [str(s) for s in all_seasons], theme, example, spots_dir,
+                prepare_colleges(colleges, college_seasons, marks, college_marks))
     out_dir.mkdir(parents=True, exist_ok=True)
     base = out_dir / slug(meta)
     base.with_suffix(".html").write_text(page.html())
@@ -1447,25 +1454,22 @@ def build(saved_seasons, all_seasons, out_dir, theme=THEME, example=False, areas
 # The Colleges section's styles, only on a page that has one (so a page without it is unchanged).
 # Each college's rank is a pill on its bucket's fill, its count beside it, who is faster folded under.
 COLLEGES_CSS = """
+.cseason {{ display: grid; gap: 10px; min-width: 0; }}
 .colleges .lede {{ margin: 0; }}
-.colleges .tbl-wrap {{ max-width: 880px; }}
-.ctbl .sn {{ width: 170px; }}
-.cy {{ display: none; }}
-.cr {{ display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }}
-.of, .nb {{ color: var(--muted); font-size: 13px; }}
-.nb {{ display: block; margin-top: 4px; }}
-.cs details {{ margin-top: 4px; }}
-.cs .mk {{ min-width: {mark_ch}ch; }}
-/* Each mark ahead: the mark, then the name with its meet under it, so a long meet never wraps under the mark. */
-.cs .who {{ gap: 6px; }}
-.cs .who li {{ display: grid; grid-template-columns: auto 1fr; column-gap: .35em; }}
-.cs .who .mk {{ grid-row: 1 / 3; margin-right: 0; }}
-.cs .who .nm {{ justify-self: start; }}
-/* A phone gives each season a row of its own under the college's name, so who is faster has the width. */
-@media (max-width: 560px) {{ .ctbl thead {{ display: none; }} .ctbl tr {{ display: grid; }} .ctbl .sn {{ width: auto; border-bottom: 0; padding-bottom: 2px; }} .ctbl .cs {{ display: grid; grid-template-columns: 3.2em 1fr; align-items: baseline; border-bottom: 0; padding-top: 4px; padding-bottom: 4px; }} .ctbl tr .cs:last-child {{ padding-bottom: 10px; border-bottom: 1px solid var(--line); }} .ctbl tbody tr:last-child .cs:last-child {{ border-bottom: 0; }} .cy {{ display: block; grid-row: 1 / 3; font-family: var(--display); font-weight: 600; font-size: 12px; letter-spacing: .08em; color: var(--muted); }} .cs > :not(.cy) {{ grid-column: 2; }} .nb, .cs details {{ margin-top: 2px; }} }}"""
+.ctbl .rk {{ width: 1%; white-space: nowrap; }}
+/* A team without a rank keeps a rank's height, so every row is as tall. */
+.ctbl .rk:empty::before {{ content: "\\200b"; display: inline-block; padding: 1px 0; font-family: var(--display); font-weight: 900; font-size: 16px; }}
+.cr {{ display: inline-flex; align-items: baseline; gap: 6px; }}
+.of {{ color: var(--muted); font-size: 13px; }}
+.ctbl .mk {{ min-width: {mark_ch}ch; }}
+/* Each mark ahead: the mark, then the name and meet, which wrap beside the mark, never under it. */
+.ctbl .who li {{ display: grid; grid-template-columns: auto 1fr; column-gap: .35em; }}
+.ctbl .who .mk {{ margin-right: 0; }}
+/* A phone puts the college beside its rank and who is faster under the college, so it has the width. */
+@media (max-width: 560px) {{ .ctbl thead {{ display: none; }} .ctbl tr {{ display: grid; grid-template-columns: minmax(80px, auto) 1fr; column-gap: 10px; align-items: baseline; padding: 8px 10px; border-bottom: 1px solid var(--line); }} .ctbl tbody tr:last-child {{ border-bottom: 0; }} .ctbl td {{ padding: 0; border: 0; width: auto; }} .ctbl .ah {{ grid-column: 2; margin-top: 4px; }} .ctbl .who {{ gap: 6px; }} .ctbl .nt .tm {{ display: block; }} }}"""
 
 
-# The asterisk after a college whose ranks count hand-entered marks (colleges_html), only on a page
+# The asterisk after a college whose season hand-entered marks change (college_row), only on a page
 # that has one: quiet beside the name, outside its link so the link's underline stops at the name.
 HAND_CSS = """
 .hm { color: var(--muted); font-weight: 400; margin-left: 1px; }"""

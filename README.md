@@ -744,7 +744,7 @@ python3 tools/rankmap/rankmap.py                                                
 ```
 
 When the athlete's home State has Areas (California's CIF Sections), a switch shows the same on a county map of the State, one Section at a time on click.
-A Colleges section ranks the athlete's best against a list of college teams' season bests, this college season and last (`ath colleges`).
+A Colleges section ranks the athlete's best in the season picked against a list of college teams' season bests that year (`ath colleges`).
 Marks copied by hand from another results source count there too, kept in your private `local/` (`tools/rankmap/college_marks.py`, see [Hand-entered college marks](docs/rankmap.md#hand-entered-college-marks)).
 It is a Python tool (standard library only) that gets its data from `ath rank --in all,areas --ahead all` and `ath colleges` (through the browser relay) and renders the page; finished seasons are kept as collected.
 Full guide: [`docs/rankmap.md`](docs/rankmap.md).

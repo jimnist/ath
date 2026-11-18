@@ -403,13 +403,14 @@ def add(cfg, args, today):
     return path
 
 
-def show(cfg, today):
-    """What hand-entered lists there are: per college of the config and college season, for the
+def show(cfg):
+    """What hand-entered lists there are: per college of the config and season the page shows, for the
     athlete's gender and event, then any other lists in the folder."""
     folder = cfg["college_marks_dir"]
     if folder is None:
         sys.exit("An example config takes no hand-entered marks.")
     gender, event = athlete_side(cfg)
+    have, _ = rankmap.load_data(cfg)
     got, bad = rankmap.read_college_marks(folder)
     mine, other = [], []
     for (team, season), lists in sorted(got.items(), key=lambda kv: (kv[0][0], -kv[0][1])):
@@ -420,7 +421,7 @@ def show(cfg, today):
     print(f"Hand-entered college marks in {folder} for {who}{event}:")
     table = [("College", "Season", "Rows", "Entered", "Source")]
     for c in cfg["colleges"]:
-        seasons = sorted({h["season"] for h in mine if h["team"] == c["team"]} | set(rankmap.college_seasons(today)),
+        seasons = sorted({h["season"] for h in mine if h["team"] == c["team"]} | set(rankmap.college_seasons(have)),
                          reverse=True)
         for s in seasons:
             h = next((h for h in mine if (h["team"], h["season"]) == (c["team"], s)), None)
@@ -462,7 +463,7 @@ def main(argv=None, today=None):
     today = today or date.today()
     if args.command == "add":
         return add(cfg, args, today)
-    return show(cfg, today)
+    return show(cfg)
 
 
 if __name__ == "__main__":

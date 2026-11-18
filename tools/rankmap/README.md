@@ -4,7 +4,7 @@ Where an athlete's season-best mark would rank on every US state's Athletic.net 
 The athlete's home State is outlined on the map, keeping its rank color, and tagged "home" in the state-by-state table.
 Their own Area (Section) is marked the same way on the Areas map and in its table; a Class card keeps its own tag.
 The smallest states' ranks are in chips beside the map, listed under it at phone width so they stay readable.
-A Colleges section ranks the athlete's best mark against college teams' season bests, this college season and last (the config's `colleges`, UC Berkeley, Colorado and Virginia by default).
+A Colleges section ranks the athlete's best mark in the season picked against college teams' season bests that year (the config's `colleges`, UC Berkeley, Colorado and Virginia by default), and follows the season toggle.
 Its data comes from `ath rank --in all,areas --ahead all` and `ath colleges`, through the browser relay.
 College marks copied by hand from another results source can count too: `college_marks.py add` reads a pasted season list into your private `local/rankmap/college-marks/`, and `college_marks.py list` shows which lists there are (nothing is ever fetched from that source).
 
