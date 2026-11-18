@@ -280,7 +280,7 @@ class Merge(unittest.TestCase):
         self.assertIsNone(x["ahead"][3]["url"])
         self.assertTrue(c["rows"][0]["hand"])
         # The page: a bare asterisk after the name, outside its link, and nothing else.
-        self.assertEqual(names_cell(page)[0], '<a href="https://www.athletic.net/team/960000001/track-and-field-outdoor/2099"'
+        self.assertEqual(names_cell(page)[0], '<a href="https://www.athletic.net/team/960000001/track-and-field-outdoor/2099/event-records"'
                          ' target="_blank" rel="noopener">Harrowgate</a><span class="hm">*</span>')
         self.assertEqual(sum('class="hm"' in n for n in names_cell(page)), 1)
         self.assertIn(".hm {", page)

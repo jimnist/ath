@@ -1759,7 +1759,7 @@ class Colleges(AnonymizedAreas):
         # In the config's order, each college's name linked to its team page.
         names = re.findall(r'<td class="sn"><a [^>]*>([^<]+)</a>', section)
         self.assertEqual(names, ["Harrowgate", "Wrenmoor State", "Ostrander Tech"])
-        self.assertIn('href="https://www.athletic.net/team/960000001/track-and-field-outdoor/2099"', section)
+        self.assertIn('href="https://www.athletic.net/team/960000001/track-and-field-outdoor/2099/event-records"', section)
         # A tie in its small t, out of the team's marks and hers, who is faster folded away.
         self.assertIn('<span class="pill b2"><span class="sup">t</span>4</span><span class="of">of 6</span>', section)
         self.assertIn("<summary>3 faster, 1 tied</summary>", section)

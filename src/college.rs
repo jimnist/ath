@@ -354,9 +354,10 @@ impl Report for Colleges {
     }
 }
 
-/// The team's Athletic.net page for an outdoor season.
+/// The team's Records by Event page for an outdoor season: each athlete's
+/// season best per event, the list the ranks are read from.
 pub fn team_season_url(team_id: i64, season: i64) -> String {
-    format!("{}/{season}", team_url(team_id))
+    format!("{}/{season}/event-records", team_url(team_id))
 }
 
 /// A display without its timing letter (`10.31a` is `10.31`).

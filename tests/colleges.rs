@@ -101,7 +101,7 @@ async fn ranks_her_personal_record_against_each_team_and_season() -> anyhow::Res
     );
     assert_eq!(
         first.url,
-        "https://www.athletic.net/team/960000001/track-and-field-outdoor/2099"
+        "https://www.athletic.net/team/960000001/track-and-field-outdoor/2099/event-records"
     );
     assert!(r.note.is_none());
     Ok(())

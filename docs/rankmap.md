@@ -53,7 +53,7 @@ It lives in `tools/rankmap/` and gets its data from `ath rank` and `ath colleges
   State names link to the Athletic.net list used, and athlete names link to their Athletic.net profiles.
 - **Colleges.** After the state-by-state table, one row per college of the config's `colleges` (in its order), one column per college season, newest first: where the athlete's best mark would rank on that team's season bests, as a rank on its bucket's color (a tie with its small t), out of the team's marks and hers ("#2 of 6"), and who is faster folded behind "N faster" (mark, name, meet).
   A rank of 1 says "nobody faster"; a team with no marks in the event says "no marks".
-  The college's name links to its Athletic.net team page.
+  The college's name links to the team's Records by Event page on Athletic.net for the newest season shown (each athlete's season best per event).
   At phone width each season is a row of its own under the college's name, so the faster marks have the width.
   The section is the same whatever season and grade group are picked above it: college seasons are not the high school seasons.
   A note says only results entered on Athletic.net count and some college meets are missing.
