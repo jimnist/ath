@@ -585,6 +585,7 @@ Global options:
 `ath colleges <ATHLETE_ID> --event 400m --teams 21484,20765 --seasons 2026,2025` ranks an Athlete's best mark against college teams' season bests: where it would place on each team's list, season by season.
 The mark is the Athlete's Personal record in the event as of today, from their Profile (outdoor and FAT, as `ath profile` computes it), so it does not depend on any Rankings list and needs no paid subscription.
 Each team's list is Athletic.net's team records for the outdoor season (`TeamHome/GetTeamEventRecords`: one season best per athlete and event), cut to the Athlete's gender and event and to FAT marks, as the State lists are.
+A team's records also carry relay splits (a 400 Meters leg of a 4x400, `EventTypeID` 98, usually not FAT and its `SortInt` rounded up to the tenth); they are not open marks and never count.
 The event is matched by name, never by id: a team's event is the Athlete's when its name is the same, or the same with the implement spec college lists add after " - " (`100m Hurdles - 33" / 0.838m` is the `100m Hurdles`).
 `--event` takes a flat race (`400m`, `"400 Meters"`) or an event's full name as the Profile has it (`"100m Hurdles"`); an Athletic.net code such as `100mH` is not a name, and a field event is refused (no field Personal records yet).
 The rank is 1 plus the number of the team's marks strictly faster on `SortInt`, and an equal mark is a tie (`T4`).

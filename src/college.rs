@@ -55,7 +55,9 @@ pub struct TeamRecord {
     /// False for a relay.
     #[serde(rename = "PersonalEvent", default)]
     pub personal_event: Option<bool>,
-    /// 0 for a standard individual mark, as on a bio.
+    /// 0 for a standard individual mark, as on a bio. A relay split (a
+    /// 400 Meters leg of a 4x400) is 98, usually not FAT, its `SortInt`
+    /// rounded up to the tenth: never an open mark, so it never counts.
     #[serde(rename = "EventTypeID", default)]
     pub event_type_id: Option<i64>,
     /// As Athletic.net shows it (`10.31a`).
@@ -610,6 +612,28 @@ mod tests {
         let spec = names(&["110m Hurdles - 39\""]);
         assert!(!same_event("110m Hurdles - 42\" / 1.067m", &spec));
         assert!(!same_event("", &names(&[""])));
+    }
+
+    #[test]
+    fn a_relay_split_never_counts() {
+        // Seen live: a 4x400 leg on the team's 400 Meters list, type 98,
+        // not FAT, timed to the thousandth and its SortInt rounded up.
+        let mut r = records(&[
+            ("F", "400 Meters", "51.455", 51550, 0, 21, "Hollin"),
+            ("F", "400 Meters", "52.40a", 52400, 1, 22, "Ivers"),
+            ("F", "400 Meters", "53.10a", 53100, 1, 23, "Jessop"),
+        ]);
+        r.event_records[0].event_type_id = Some(98);
+        // Even a FAT split.
+        r.event_records[2].event_type_id = Some(98);
+        let ev = names(&["400 Meters"]);
+        let (marks, place, ahead, _) = place_on_team(&r, 1, Gender::F, &ev, Some(55_000));
+        assert_eq!(marks, 1);
+        assert_eq!(place.unwrap().label, "2");
+        assert_eq!(
+            ahead.iter().map(|a| a.mark.as_str()).collect::<Vec<_>>(),
+            ["52.40"]
+        );
     }
 
     #[test]

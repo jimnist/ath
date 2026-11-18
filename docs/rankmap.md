@@ -73,6 +73,7 @@ The athlete's mark for a season is their own row on their home state's list for 
 `ath rank` computes all of it; rankmap renders it.
 
 Against the colleges, the athlete's mark is their best ever: their outdoor FAT Personal record in the event as of the day it was collected, from their Profile, compared with each team's FAT season bests of the athlete's gender for that college season (`ath colleges`, see the README).
+Relay splits on a team's list (a 4x400 leg listed under 400 Meters) are not open marks and never count.
 Rank is 1 plus the number of the team's marks that are faster, and a tie shares the rank; "of N" counts the team's marks and hers.
 Only meets entered on Athletic.net are in a team's records, so a team can show few marks, or none.
 
