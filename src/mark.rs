@@ -269,7 +269,7 @@ pub fn resolve_event(bio: &Bio, query: &str) -> Option<ResolvedEvent> {
 }
 
 /// The lowercased event name `query` stands for: `400m` -> `400 meters`.
-fn event_name_for(query: &str) -> String {
+pub fn event_name_for(query: &str) -> String {
     let q = query.trim().to_ascii_lowercase();
     match q.strip_suffix('m') {
         Some(meters) if !meters.is_empty() && meters.bytes().all(|b| b.is_ascii_digit()) => {

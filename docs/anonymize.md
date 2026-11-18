@@ -41,6 +41,8 @@ The command runs as usual and also writes each response into the folder, in exac
 | Meet's event list (`GetEventListData`) | `meets/<meet_id>/events.json` |
 | One event's entries (`GetEntriesData`) | `meets/<meet_id>/entries/<gender>-<div_id>-<eventShort>.json` |
 | Athlete search (`AutoComplete/search`) | `search/<query>.json`, with the query added to it as `athQuery` |
+| A team's season bests (`TeamHome/GetTeamEventRecords`) | `teamrecords/<team_id>-<season>.json` |
+| A team's name and level (`TeamHome/GetTeamCore`) | `teamcore/<team_id>-<season>.json` |
 
 A search file's name is the query lower-cased, each run of other characters one `-` (`Jane O'Doe` is `jane-o-doe`); when that drops a character beyond ASCII, or leaves nothing, the first 8 hex digits of the SHA-256 of the lower-cased query follow (`José Núñez` is `jos-n-ez-43884fd3`, `山田 太郎` is `ed6d53c9`), so every query has its own name.
 `ath` (`source::search_fixture_name`) and the anonymizer (`search_fixture_name`) spell it the same way.
@@ -74,6 +76,9 @@ A command that fails part way still keeps what it recorded until then (a ranking
 python3 tools/anonymize/anonymize.py local/recordings/rank-ca-ccs-girls-400m /tmp/rank-ca-ccs \
   --key-file local/anonymize.key
 ```
+
+The anonymizer does not read team records yet (`ath colleges`): a Recording with `teamrecords/` or `teamcore/` stops it as outside the layout, so record `ath colleges` into a folder of its own.
+The test fixtures for them (`tests/fixtures/teamrecords/`, `teamcore/`) are made up by hand: invented teams, people and meets.
 
 It reads the Recording (dotfiles, such as `ath`'s own `.<name>.<pid>.<n>.tmp` and the output marker, are skipped; any other file outside the layout stops it), writes the anonymized copy to the output folder, and prints a summary: how many ids, names, dates and marks changed, the date shift and each event's mark shift.
 Python 3.9 or later, standard library only.

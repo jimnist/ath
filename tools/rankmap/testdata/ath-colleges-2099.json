@@ -1,0 +1,214 @@
+{
+  "schema": 1,
+  "athlete": {
+    "id": 982389051,
+    "name": "Jamie Uddumcombe",
+    "first_name": "Jamie",
+    "url": "https://www.athletic.net/athlete/982389051/track-and-field"
+  },
+  "gender": "f",
+  "event": "400m",
+  "event_name": "400 Meters",
+  "status": "ok",
+  "mark": {
+    "mark": "58.98",
+    "sort_int": 58980,
+    "season": 2099,
+    "date": "2099-07-04",
+    "meet": "Kestrelfield Landing Championship",
+    "meet_id": 924019590
+  },
+  "seasons": [
+    2099
+  ],
+  "note": null,
+  "results": [
+    {
+      "team": {
+        "id": 960000001,
+        "name": "Harrowgate",
+        "level": 8
+      },
+      "season": 2099,
+      "url": "https://www.athletic.net/team/960000001/track-and-field-outdoor/2099",
+      "status": "ok",
+      "marks": 5,
+      "place": {
+        "rank": 4,
+        "tied": true,
+        "label": "T4",
+        "ahead": 3,
+        "ties": 1
+      },
+      "ahead": [
+        {
+          "athlete_id": 960100001,
+          "name": "Maren Quillfeather",
+          "grade_id": 23,
+          "mark": "53.41",
+          "sort_int": 53410,
+          "meet": "Harrowgate Spring Opener",
+          "meet_id": 960200001,
+          "date": "2099-03-21",
+          "url": "https://www.athletic.net/athlete/960100001/track-and-field"
+        },
+        {
+          "athlete_id": 960100002,
+          "name": "Tessa Brackwood",
+          "grade_id": 22,
+          "mark": "55.02",
+          "sort_int": 55020,
+          "meet": "Ridgeline Conference Championships",
+          "meet_id": 960200002,
+          "date": "2099-05-10",
+          "url": "https://www.athletic.net/athlete/960100002/track-and-field"
+        },
+        {
+          "athlete_id": 960100003,
+          "name": "Ines Corrowmere",
+          "grade_id": 21,
+          "mark": "56.10",
+          "sort_int": 56100,
+          "meet": "Harrowgate Spring Opener",
+          "meet_id": 960200001,
+          "date": "2099-03-21",
+          "url": "https://www.athletic.net/athlete/960100003/track-and-field"
+        }
+      ],
+      "tied": [
+        {
+          "athlete_id": 960100004,
+          "name": "Della Fenmarsh",
+          "grade_id": 21,
+          "mark": "58.98",
+          "sort_int": 58980,
+          "meet": "Coastal Relays",
+          "meet_id": 960200003,
+          "date": "2099-04-04",
+          "url": "https://www.athletic.net/athlete/960100004/track-and-field"
+        }
+      ],
+      "note": null
+    },
+    {
+      "team": {
+        "id": 960000002,
+        "name": "Wrenmoor State",
+        "level": 8
+      },
+      "season": 2099,
+      "url": "https://www.athletic.net/team/960000002/track-and-field-outdoor/2099",
+      "status": "ok",
+      "marks": 9,
+      "place": {
+        "rank": 8,
+        "tied": false,
+        "label": "8",
+        "ahead": 7,
+        "ties": 0
+      },
+      "ahead": [
+        {
+          "athlete_id": 960100013,
+          "name": "Sable Ondrejka",
+          "grade_id": 24,
+          "mark": "52.80",
+          "sort_int": 52800,
+          "meet": "Wrenmoor Invitational",
+          "meet_id": 960200005,
+          "date": "2099-04-11",
+          "url": "https://www.athletic.net/athlete/960100013/track-and-field"
+        },
+        {
+          "athlete_id": 960100014,
+          "name": "Greer Vantongeren",
+          "grade_id": 23,
+          "mark": "54.66",
+          "sort_int": 54660,
+          "meet": "Wrenmoor Invitational",
+          "meet_id": 960200005,
+          "date": "2099-04-11",
+          "url": "https://www.athletic.net/athlete/960100014/track-and-field"
+        },
+        {
+          "athlete_id": 960100015,
+          "name": "Noor Kettleby",
+          "grade_id": 22,
+          "mark": "55.90",
+          "sort_int": 55900,
+          "meet": "Big Sky Twilight",
+          "meet_id": 960200006,
+          "date": "2099-04-25",
+          "url": "https://www.athletic.net/athlete/960100015/track-and-field"
+        },
+        {
+          "athlete_id": 960100016,
+          "name": "Ada Fairclough-Ruiz",
+          "grade_id": 21,
+          "mark": "56.47",
+          "sort_int": 56470,
+          "meet": "Wrenmoor Invitational",
+          "meet_id": 960200005,
+          "date": "2099-04-11",
+          "url": "https://www.athletic.net/athlete/960100016/track-and-field"
+        },
+        {
+          "athlete_id": 960100017,
+          "name": "Pia Underhay",
+          "grade_id": 22,
+          "mark": "57.25",
+          "sort_int": 57250,
+          "meet": "Big Sky Twilight",
+          "meet_id": 960200006,
+          "date": "2099-04-25",
+          "url": "https://www.athletic.net/athlete/960100017/track-and-field"
+        },
+        {
+          "athlete_id": 960100018,
+          "name": "Cleo Marchbank",
+          "grade_id": 21,
+          "mark": "57.88",
+          "sort_int": 57880,
+          "meet": "Wrenmoor Invitational",
+          "meet_id": 960200005,
+          "date": "2099-04-11",
+          "url": "https://www.athletic.net/athlete/960100018/track-and-field"
+        },
+        {
+          "athlete_id": 960100019,
+          "name": "Elsa Thornquist",
+          "grade_id": 21,
+          "mark": "58.31",
+          "sort_int": 58310,
+          "meet": "Big Sky Twilight",
+          "meet_id": 960200006,
+          "date": "2099-04-25",
+          "url": "https://www.athletic.net/athlete/960100019/track-and-field"
+        }
+      ],
+      "tied": [],
+      "note": null
+    },
+    {
+      "team": {
+        "id": 960000003,
+        "name": "Ostrander Tech",
+        "level": 8
+      },
+      "season": 2099,
+      "url": "https://www.athletic.net/team/960000003/track-and-field-outdoor/2099",
+      "status": "ok",
+      "marks": 1,
+      "place": {
+        "rank": 1,
+        "tied": false,
+        "label": "1",
+        "ahead": 0,
+        "ties": 0
+      },
+      "ahead": [],
+      "tied": [],
+      "note": null
+    }
+  ]
+}

@@ -7,6 +7,7 @@
 pub mod area;
 pub mod athletic;
 pub mod cache;
+pub mod college;
 pub mod contract;
 pub mod http;
 pub mod list;

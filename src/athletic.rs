@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::area::{AreaTree, Gender, NavInfo, RankingsToken, Region, TeamNav};
 use crate::cache::{Cacheable, DataKind, ResponseCache, season_finished};
+use crate::college::{TeamCore, TeamRecords};
 use crate::http::{FetchResponse, Fetcher, Request};
 use crate::list::{Grades, PageQuery, RankingsPage};
 use crate::meet::{EntriesData, EntriesQuery, MeetData, MeetEventList};
@@ -939,6 +940,41 @@ impl<F: Fetcher> DataSource for AthleticNet<F> {
             .await?;
         self.record(layout::teamnav(school_id, season), &raw)?;
         Ok(nav)
+    }
+
+    /// Cached forever once the season is finished, 12 hours while it is in
+    /// progress ([`DataKind::TeamRecords`]), and paced like rankings pages.
+    async fn team_records(&self, team_id: i64, season: i64) -> Result<TeamRecords> {
+        let req = Request::get(format!(
+            "{API_BASE}/TeamHome/GetTeamEventRecords?teamId={team_id}&seasonId={season}"
+        ));
+        let kind = DataKind::TeamRecords {
+            season_finished: season_finished(season, self.today()),
+        };
+        let (records, raw) = self
+            .fetch_json_paced(
+                &req,
+                Some(kind),
+                &format!("season bests of team {team_id} in {season}"),
+            )
+            .await?;
+        self.record(layout::team_records(team_id, season), &raw)?;
+        Ok(records)
+    }
+
+    /// Cached as [`AthleticNet::team_records`] is, and paced the same way.
+    async fn team_core(&self, team_id: i64, season: i64) -> Result<TeamCore> {
+        let req = Request::get(format!(
+            "{API_BASE}/TeamHome/GetTeamCore?teamId={team_id}&sport=tfo&year={season}"
+        ));
+        let kind = DataKind::TeamRecords {
+            season_finished: season_finished(season, self.today()),
+        };
+        let (core, raw) = self
+            .fetch_json_paced(&req, Some(kind), &format!("team {team_id} in {season}"))
+            .await?;
+        self.record(layout::team_core(team_id, season), &raw)?;
+        Ok(core)
     }
 
     /// Cached per page: forever once the season is finished, 12 hours while
@@ -1994,6 +2030,65 @@ mod tests {
             team_divisions_kind(2027).await,
             serde_json::json!({"team_divisions": {"season_finished": false}})
         );
+    }
+
+    /// The URL `team_records` and `team_core` asked for, and the kind each
+    /// cached its entry as.
+    async fn team_requests(season: i64) -> Vec<(String, serde_json::Value)> {
+        let dir = tempfile::tempdir().unwrap();
+        let src = AthleticNet::new(StubFetcher::new(vec![
+            ok_json(r#"{"eventRecords": [], "relayMembers": []}"#),
+            ok_json(r#"{"team": {"Name": "Harrowgate", "Level": 8}}"#),
+        ]))
+        .with_cache(cache_in(dir.path(), CacheMode::Normal))
+        .with_today("2026-10-26".parse().unwrap());
+        src.team_records(21, season).await.unwrap();
+        src.team_core(21, season).await.unwrap();
+        let mut out = Vec::new();
+        for file in std::fs::read_dir(dir.path()).unwrap() {
+            let entry: serde_json::Value =
+                serde_json::from_str(&std::fs::read_to_string(file.unwrap().path()).unwrap())
+                    .unwrap();
+            let url = entry["url"].as_str().unwrap();
+            out.push((url[API_BASE.len()..].to_string(), entry["kind"].clone()));
+        }
+        out.sort_by(|a, b| a.0.cmp(&b.0));
+        out
+    }
+
+    #[tokio::test]
+    async fn team_records_are_cached_by_whether_the_season_is_over() {
+        let kind = |done: bool| serde_json::json!({"team_records": {"season_finished": done}});
+        assert_eq!(
+            team_requests(2026).await,
+            [
+                (
+                    "/TeamHome/GetTeamCore?teamId=21&sport=tfo&year=2026".to_string(),
+                    kind(true)
+                ),
+                (
+                    "/TeamHome/GetTeamEventRecords?teamId=21&seasonId=2026".to_string(),
+                    kind(true)
+                ),
+            ]
+        );
+        assert!(
+            team_requests(2027)
+                .await
+                .iter()
+                .all(|(_, k)| *k == kind(false))
+        );
+    }
+
+    #[tokio::test]
+    async fn an_error_object_for_a_team_is_an_error_and_not_cached() {
+        let dir = tempfile::tempdir().unwrap();
+        let src = AthleticNet::new(StubFetcher::new(vec![ok_json(
+            r#"{"Message": "An error has occurred."}"#,
+        )]))
+        .with_cache(cache_in(dir.path(), CacheMode::Normal));
+        assert!(src.team_records(21, 2026).await.is_err());
+        assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 0);
     }
 
     const PAGE: &str = r#"{"eventShort": "400m", "division": {"ID": 900502, "SeasonID": 2026},

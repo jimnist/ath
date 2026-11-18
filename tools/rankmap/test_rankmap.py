@@ -31,6 +31,11 @@ import rankmap
 
 TESTDATA = Path(__file__).parent / "testdata"
 RANK = json.loads((TESTDATA / "ath-rank-2099.json").read_text())
+# Saved `ath colleges` reports (tests/colleges.rs keeps them current): the same athlete against three
+# made-up college teams, one report per season as rankmap saves them.
+COLLEGES = {s: json.loads((TESTDATA / f"ath-colleges-{s}.json").read_text()) for s in (2099, 2098)}
+TEAMS = [{"name": "Harrowgate", "team": 960000001}, {"name": "Wrenmoor State", "team": 960000002},
+         {"name": "Ostrander Tech", "team": 960000003}]
 CA, CCS = 985316289, 996953819
 SEASON = 2099
 
@@ -155,7 +160,8 @@ class Pages(AnonymizedAreas):
     def test_pages_match_the_expected_ones(self):
         expected = TESTDATA / "expected"
         with tempfile.TemporaryDirectory() as tmp:
-            html, _ = build.build({SEASON: saved()}, [2099, 2100, 2101, 2102], Path(tmp), areas_dir=AREAS)
+            html, _ = build.build({SEASON: saved()}, [2099, 2100, 2101, 2102], Path(tmp), areas_dir=AREAS,
+                                  colleges=TEAMS, college_seasons=college_files())
             self.assertEqual(html.name, "982389051-400m.html")
             for ext in (".html", ".md", ".csv"):
                 got = html.with_suffix(ext).read_text()
@@ -1203,7 +1209,8 @@ class ThemeFile(AnonymizedAreas):
         from report import THEME
         theme = self.load({"bg": "#fafafa", "map_edge": "#cccccc"})
         with tempfile.TemporaryDirectory() as tmp:  # as the expected page is built (Pages)
-            html, _ = build.build({SEASON: saved()}, [2099, 2100, 2101, 2102], Path(tmp), theme, areas_dir=AREAS)
+            html, _ = build.build({SEASON: saved()}, [2099, 2100, 2101, 2102], Path(tmp), theme, areas_dir=AREAS,
+                                  colleges=TEAMS, college_seasons=college_files())
             got = html.read_text()
         want = (TESTDATA / "expected" / "982389051-400m.html").read_text()
         want = want.replace(f"--bg: {THEME.bg};", "--bg: #fafafa;").replace(THEME.map_edge, "#cccccc")
@@ -1654,6 +1661,207 @@ class Collect(unittest.TestCase):
         with mock.patch.object(rankmap, "STATE_LISTS", 51):
             _, stale = rankmap.load_data(self.cfg)
         self.assertEqual(stale[SEASON], "has 1 of the 51 State lists")
+
+
+def college_files(reports=None, pulled="2099-10-30"):
+    return {s: build.college_file(copy.deepcopy(r), pulled) for s, r in (reports or COLLEGES).items()}
+
+
+def college_page(teams=TEAMS, files=None, example=False):
+    """The page, CSV and Markdown built with the saved college seasons."""
+    with tempfile.TemporaryDirectory() as tmp:
+        areas = AREAS
+        html, page = build.build({SEASON: saved()}, [SEASON], Path(tmp), areas_dir=areas, example=example,
+                                 colleges=teams, college_seasons=college_files() if files is None else files)
+        return html.read_text(), html.with_suffix(".csv").read_text(), html.with_suffix(".md").read_text()
+
+
+class Colleges(AnonymizedAreas):
+    """The Colleges section: the config's `colleges`, the seasons, the saved reports and the page."""
+
+    def config(self, d, **over):
+        cfg = {"athlete_id": 982389051, "event": "400m", "graduation_year": 2029, "output_dir": "out"}
+        cfg.update(over)
+        path = Path(d) / "c.config.json"
+        path.write_text(json.dumps(cfg))
+        return path
+
+    def test_the_default_colleges_without_the_key(self):
+        with tempfile.TemporaryDirectory() as d:
+            cfg = rankmap.load_config(self.config(d))
+        self.assertEqual(cfg["colleges"], [{"name": "UC Berkeley", "team": 21484}, {"name": "Colorado", "team": 20765},
+                                           {"name": "Virginia", "team": 21507}])
+
+    def test_colleges_are_kept_in_order_and_an_empty_list_is_none(self):
+        with tempfile.TemporaryDirectory() as d:
+            got = rankmap.load_config(self.config(d, colleges=[{"name": " B ", "team": 2}, {"name": "A", "team": 1}]))
+            self.assertEqual(got["colleges"], [{"name": "B", "team": 2}, {"name": "A", "team": 1}])
+            self.assertEqual(rankmap.load_config(self.config(d, colleges=[]))["colleges"], [])
+
+    def test_a_bad_colleges_list_is_refused_saying_why(self):
+        bad = [
+            ({"name": "A", "team": 1}, "'colleges' is a list of"),
+            ([{"name": "A"}], "item 1 is"),
+            ([{"name": "A", "team": 1, "x": 2}], "item 1 is"),
+            (["A"], "item 1 is"),
+            ([{"name": "", "team": 1}], "item 1: 'name' is the name to show"),
+            ([{"name": 5, "team": 1}], "item 1: 'name' is the name to show"),
+            ([{"name": "A", "team": "1"}], "item 1: 'team' is the team's Athletic.net id"),
+            ([{"name": "A", "team": 0}], "item 1: 'team' is the team's Athletic.net id"),
+            ([{"name": "A", "team": True}], "item 1: 'team' is the team's Athletic.net id"),
+            ([{"name": "A", "team": 1}, {"name": "B", "team": 1}], "lists the team 1 twice"),
+            ([{"name": "A", "team": 1}, {"name": "A", "team": 2}], "lists the name A twice"),
+        ]
+        with tempfile.TemporaryDirectory() as d:
+            for value, says in bad:
+                with self.assertRaises(SystemExit, msg=value) as e:
+                    rankmap.load_config(self.config(d, colleges=value))
+                self.assertIn(says, str(e.exception))
+
+    def test_this_college_season_starts_on_march_1(self):
+        self.assertEqual(rankmap.college_seasons(date(2026, 11, 18)), [2026, 2025])
+        self.assertEqual(rankmap.college_seasons(date(2027, 2, 28)), [2026, 2025])
+        self.assertEqual(rankmap.college_seasons(date(2027, 3, 1)), [2027, 2026])
+
+    def expect(self, **over):
+        e = {"athlete_id": 982389051, "season": 2099, "teams": [t["team"] for t in TEAMS], "events": ["400m", "400m"]}
+        e.update(over)
+        return e
+
+    def test_a_whole_report_passes_and_the_event_goes_by_code_or_name(self):
+        f = college_files()[2099]
+        self.assertEqual(build.check_colleges(f, self.expect())["seasons"], [2099])
+        build.check_colleges(f, self.expect(events=["400 Meters"]))
+        with self.assertRaisesRegex(build.SeasonError, "not the 800m"):
+            build.check_colleges(f, self.expect(events=["800m"]))
+
+    def test_reports_that_are_not_whole_or_not_this_configs_are_refused(self):
+        r = copy.deepcopy(COLLEGES[2099])
+        r["results"][0].update(status="lookup_failed", place=None)
+        cases = [
+            (build.college_file(r, "x"), self.expect(), "1 team(s) not read: 960000001"),
+            (college_files()[2099], self.expect(teams=[960000001]), "other teams than the config's"),
+            (college_files()[2099], self.expect(season=2098), "not athlete 982389051 2098"),
+            (college_files()[2099], self.expect(athlete_id=1), "not athlete 1 2099"),
+            ({"format": 1, "pulled": "x", "colleges": {"schema": 2}}, None, "schema 2"),
+            ({"format": 1, "pulled": "x", "colleges": {"schema": 1}}, None, "not a whole ath colleges report"),
+            (saved(), None, "not a saved college season"),
+        ]
+        for f, expect, says in cases:
+            with self.assertRaisesRegex(build.SeasonError, re.escape(says)):
+                build.check_colleges(f, expect)
+
+    def test_the_section_shows_each_college_this_season_and_last(self):
+        page, _, _ = college_page()
+        section = page[page.index('<section class="list colleges"'):]
+        section = section[:section.index("</section>")]
+        self.assertIn("<th>College</th><th>2099</th><th>2098</th>", section)
+        # In the config's order, each college's name linked to its team page.
+        names = re.findall(r'<td class="sn"><a [^>]*>([^<]+)</a>', section)
+        self.assertEqual(names, ["Harrowgate", "Wrenmoor State", "Ostrander Tech"])
+        self.assertIn('href="https://www.athletic.net/team/960000001/track-and-field-outdoor/2099"', section)
+        # A tie in its small t, out of the team's marks and hers, who is faster folded away.
+        self.assertIn('<span class="pill b2"><span class="sup">t</span>4</span><span class="of">of 6</span>', section)
+        self.assertIn("<summary>3 faster, 1 tied</summary>", section)
+        self.assertIn('<span class="pill b5">8</span><span class="of">of 10</span>', section)
+        self.assertIn('<span class="cy">2098</span><span class="tm">no marks</span>', section)
+        self.assertIn('<span class="nb">nobody faster</span>', section)
+        self.assertIn("Coastal Relays &middot; tied", section)
+        self.assertIn("some college meets are missing", section)
+        self.assertIn("<li>2098 college data pulled October 30, 2099</li>", page)
+
+    def test_markdown_and_csv_list_the_colleges(self):
+        _, table, md = college_page()
+        self.assertIn("| College | 2099 | 2098 |", md)
+        self.assertIn("| Harrowgate | T4 of 6, led by Maren Quillfeather 53.41 | #2 of 3, led by Maren Quillfeather 54.20 |", md)
+        self.assertIn("| Wrenmoor State | #8 of 10, led by Sable Ondrejka 52.80 | no marks |", md)
+        self.assertIn("2099,58.98,college season bests (FAT),College,T4 of 6,Harrowgate,960000001,3,1,", table)
+        self.assertIn("2098,58.98,college season bests (FAT),College,no marks,Wrenmoor State,960000002,0,0,,", table)
+
+    def test_no_section_without_colleges_or_their_data(self):
+        for teams, files in (([], None), (TEAMS, {})):
+            page, table, md = college_page(teams, files)
+            self.assertNotIn("colleges", page)
+            self.assertNotIn("College", table)
+            self.assertNotIn("Colleges", md)
+
+    def test_an_athlete_without_a_mark_says_so(self):
+        reports = copy.deepcopy(COLLEGES)
+        for r in reports.values():
+            r.update(status="no_mark", mark=None)
+            for x in r["results"]:
+                x.update(status="no_mark", place=None, ahead=[], tied=[])
+        page, table, md = college_page(files=college_files(reports))
+        self.assertIn("Jamie has no 400 Meters mark to compare with the colleges yet.", page)
+        self.assertIn("Jamie has no 400 Meters mark to compare with the colleges yet.", md)
+        self.assertNotIn("College", table)
+
+    def test_an_example_links_to_the_demo_page(self):
+        page, table, _ = college_page(example=True)
+        section = page[page.index('<section class="list colleges"'):page.index("</section>", page.index('class="list colleges"'))]
+        self.assertNotIn("athletic.net/", section)
+        self.assertNotIn("https://", table.split("College", 1)[1])
+
+    def test_what_is_collected(self):
+        cfg = {"colleges": TEAMS, "season_end": (7, 31)}
+        args = lambda refresh=(), no_fetch=False: type("Args", (), {"refresh": list(refresh), "no_fetch": no_fetch})()
+        today = date(2099, 10, 30)
+        self.assertEqual(rankmap.plan_colleges(cfg, {}, args(), today, False), [2099, 2098])
+        saved_both = {2099: {}, 2098: {}}
+        self.assertEqual(rankmap.plan_colleges(cfg, saved_both, args(), today, False), [], "finished and saved")
+        self.assertEqual(rankmap.plan_colleges(cfg, saved_both, args(refresh=[2098]), today, False), [2098])
+        self.assertEqual(rankmap.plan_colleges(cfg, saved_both, args(), today, True), [2099, 2098],
+                         "a run that collected a State season")
+        self.assertEqual(rankmap.plan_colleges(cfg, saved_both, args(), date(2100, 4, 1), False), [2100],
+                         "this season, in progress")
+        self.assertEqual(rankmap.plan_colleges(cfg, {}, args(no_fetch=True), today, True), [])
+        self.assertEqual(rankmap.plan_colleges({**cfg, "colleges": []}, {}, args(), today, True), [])
+
+
+class CollectColleges(Collect):
+    """rankmap.collect_colleges against the stub ath."""
+
+    def setUp(self):
+        super().setUp()
+        self.cfg["colleges"] = TEAMS
+        self.have = {SEASON: saved()}
+
+    def collect_college(self, refresh=False):
+        with redirect_stdout(io.StringIO()) as out:
+            got = rankmap.collect_colleges(self.cfg, SEASON, self.have, refresh, date(2099, 10, 30))
+        return got, out.getvalue()
+
+    def test_a_college_season_is_asked_for_by_the_events_name_and_saved(self):
+        self.stub(report=COLLEGES[2099])
+        got, _ = self.collect_college()
+        self.assertEqual(json.loads(self.args.read_text()), [
+            "colleges", "982389051", "--event", "400 Meters", "--teams", "960000001,960000002,960000003",
+            "--seasons", "2099", "--json"])
+        self.assertEqual(got, college_files()[2099])
+        have, stale = rankmap.load_colleges(self.cfg, self.have, date(2099, 10, 30))
+        self.assertEqual((list(have), stale), ([2099], {}))
+
+    def test_refresh_refetches(self):
+        self.stub(report=COLLEGES[2099])
+        self.collect_college(refresh=True)
+        self.assertEqual(json.loads(self.args.read_text())[-1], "--refresh")
+
+    def test_a_team_not_read_is_not_saved(self):
+        r = copy.deepcopy(COLLEGES[2099])
+        r["results"][1].update(status="lookup_failed", place=None)
+        self.stub(report=r)
+        got, out = self.collect_college()
+        self.assertIsNone(got)
+        self.assertIn("colleges 2099: not saved, 1 team(s) not read: 960000002", out)
+        self.assertFalse(rankmap.college_path(self.cfg, SEASON).exists())
+
+    def test_a_saved_season_for_other_teams_is_collected_again(self):
+        self.stub(report=COLLEGES[2099])
+        self.collect_college()
+        self.cfg["colleges"] = TEAMS[:2]
+        have, stale = rankmap.load_colleges(self.cfg, self.have, date(2099, 10, 30))
+        self.assertEqual(have, {})
+        self.assertIn("other teams than the config's", stale[SEASON])
 
 
 class Plan(unittest.TestCase):

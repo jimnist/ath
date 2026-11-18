@@ -31,6 +31,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use async_trait::async_trait;
 use ath::area::{AreaTree, Gender, Region, TeamNav};
+use ath::college::{TeamCore, TeamRecords};
 use ath::contract::to_json;
 use ath::list::{
     Capped, Grades, ListKind, ListQuery, PageQuery, RankingsList, RankingsPage, RankingsRow, Which,
@@ -137,6 +138,12 @@ impl DataSource for Counting {
     }
     async fn team_divisions(&self, school: i64, season: i64) -> anyhow::Result<TeamNav> {
         self.inner.team_divisions(school, season).await
+    }
+    async fn team_records(&self, team: i64, season: i64) -> anyhow::Result<TeamRecords> {
+        self.inner.team_records(team, season).await
+    }
+    async fn team_core(&self, team: i64, season: i64) -> anyhow::Result<TeamCore> {
+        self.inner.team_core(team, season).await
     }
     async fn rankings_page(&self, q: &PageQuery<'_>) -> anyhow::Result<RankingsPage> {
         self.pages.fetch_add(1, Ordering::Relaxed);

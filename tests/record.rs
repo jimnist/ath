@@ -142,6 +142,27 @@ const SCENARIOS: &[Scenario] = &[
     },
     Scenario {
         fixtures: "tests/fixtures",
+        args: &[
+            "colleges",
+            "982389051",
+            "--event",
+            "400m",
+            "--teams",
+            "960000001,960000002",
+            "--seasons",
+            "2099,2098",
+        ],
+        today: Some(ANON_TODAY),
+        out: false,
+        holds: &[
+            "982389051.json",
+            "teamcore/960000001-2099.json",
+            "teamrecords/960000001-2099.json",
+            "teamrecords/960000002-2098.json",
+        ],
+    },
+    Scenario {
+        fixtures: "tests/fixtures",
         args: &["meet", "900700"],
         today: None,
         out: false,

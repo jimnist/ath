@@ -19,6 +19,12 @@ from report import (RELAY_HINT, beside, check_moved, config_path, config_theme, 
 HERE = Path(__file__).parent
 LISTS = "all,areas"  # every State, and every Area of the home State (`ath rank --in`)
 STATE_LISTS = 51  # the 50 states and DC
+# The college teams a page ranks the athlete against when its config names none (`colleges`).
+DEFAULT_COLLEGES = [{"name": "UC Berkeley", "team": 21484}, {"name": "Colorado", "team": 20765},
+                    {"name": "Virginia", "team": 21507}]
+# The day a college outdoor season counts as started (month, day): before it, "this season" is the
+# latest finished one.
+COLLEGE_SEASON_START = (3, 1)
 
 
 # ---------------------------------------------------------------- config
@@ -39,6 +45,7 @@ def load_config(path):
     cfg["theme"] = config_theme(path, cfg)
     month, day = map(int, cfg.get("season_end", "07-31").split("-"))
     cfg["season_end"] = (month, day)
+    cfg["colleges"] = config_colleges(path, cfg)
     cfg["example"] = cfg.get("example", False)
     if not isinstance(cfg["example"], bool):
         sys.exit(f"{path}: 'example' is true or false")
@@ -56,6 +63,34 @@ def load_config(path):
     else:
         cfg["areas_dir"] = None
     return cfg
+
+
+def config_colleges(path, cfg):
+    """The config's `colleges`, checked: a list of {"name": <shown name>, "team": <Athletic.net team
+    id>}, in display order, no team or name twice; an empty list for no Colleges section.
+    DEFAULT_COLLEGES without the key."""
+    if "colleges" not in cfg:
+        return [dict(c) for c in DEFAULT_COLLEGES]
+    shape = (f'{path}: \'colleges\' is a list of {{"name": <shown name>, "team": <Athletic.net team id>}}, '
+             "in the order to show them")
+    colleges = cfg["colleges"]
+    if not isinstance(colleges, list):
+        sys.exit(shape)
+    out = []
+    for i, c in enumerate(colleges):
+        if not isinstance(c, dict) or set(c) != {"name", "team"}:
+            sys.exit(f"{shape}; item {i + 1} is {json.dumps(c)}")
+        if not isinstance(c["name"], str) or not c["name"].strip():
+            sys.exit(f"{path}: colleges item {i + 1}: 'name' is the name to show (text)")
+        if not isinstance(c["team"], int) or isinstance(c["team"], bool) or c["team"] <= 0:
+            sys.exit(f"{path}: colleges item {i + 1}: 'team' is the team's Athletic.net id (the number in its URL)")
+        out.append({"name": c["name"].strip(), "team": c["team"]})
+    for key in ("team", "name"):
+        seen = [c[key] for c in out]
+        twice = sorted({str(v) for v in seen if seen.count(v) > 1})
+        if twice:
+            sys.exit(f"{path}: colleges lists the {key} {', '.join(twice)} twice")
+    return out
 
 
 def check_moved_data(cfg, old=None):
@@ -113,6 +148,98 @@ def load_data(cfg):
         except build.SeasonError as e:
             stale[season] = str(e)
     return have, stale
+
+
+# ---------------------------------------------------------------- colleges
+
+def college_seasons(today):
+    """The college seasons a page shows, newest first: this one (the current outdoor season once it
+    has started, COLLEGE_SEASON_START, else the latest finished one) and the one before."""
+    latest = today.year if today >= date(today.year, *COLLEGE_SEASON_START) else today.year - 1
+    return [latest, latest - 1]
+
+
+def college_path(cfg, season):
+    return cfg["data_dir"] / "colleges" / f"{season}.json"
+
+
+def college_event(cfg, have):
+    """The event as `ath colleges` is asked for it: the full name the newest saved State season
+    has (so an event code such as 100mH, which a Profile cannot be read by, still matches), else
+    the configured one."""
+    for season in sorted(have, reverse=True):
+        name = have[season]["rank"].get("event_name")
+        if name:
+            return name
+    return cfg["event"]
+
+
+def check_college_season(cfg, season, saved, have):
+    """build.check_colleges against what this config's college season must be. Raises
+    build.SeasonError."""
+    return build.check_colleges(saved, {"athlete_id": cfg["athlete_id"], "season": season,
+                                        "teams": [c["team"] for c in cfg["colleges"]],
+                                        "events": [cfg["event"], college_event(cfg, have)]})
+
+
+def load_colleges(cfg, have, today):
+    """Saved college seasons that build ({season: saved}), and the ones to collect again ({season:
+    why}): not valid JSON, another shape, or for other teams than the config's."""
+    got, stale = {}, {}
+    if not cfg["colleges"]:
+        return got, stale
+    for season in college_seasons(today):
+        p = college_path(cfg, season)
+        if not p.exists():
+            continue
+        try:
+            saved = json.loads(p.read_text())
+            check_college_season(cfg, season, saved, have)
+            got[season] = saved
+        except ValueError as e:  # build.SeasonError is one
+            stale[season] = str(e)
+    return got, stale
+
+
+def plan_colleges(cfg, saved, args, today, collected):
+    """College seasons to collect now: none with --no-fetch or no colleges; otherwise one not saved
+    (or saved for other teams), one in progress, one asked for with --refresh, and every one when
+    this run collected a State season (so the Personal record they rank stays the newest; a finished
+    season's team records come from ath's cache)."""
+    if args.no_fetch or not cfg["colleges"]:
+        return []
+    return [s for s in college_seasons(today)
+            if s not in saved or s in args.refresh or collected or season_status(cfg, s, today) == "in progress"]
+
+
+def colleges_command(cfg, season, event, refresh):
+    cmd = [find_ath(), "colleges", str(cfg["athlete_id"]), "--event", event,
+           "--teams", ",".join(str(c["team"]) for c in cfg["colleges"]), "--seasons", str(season), "--json"]
+    if refresh:
+        cmd.append("--refresh")
+    return cmd
+
+
+def collect_colleges(cfg, season, have, refresh, today):
+    """Run `ath colleges` for one college season and save it. Returns the saved season, or None
+    (and what was saved stays) when ath fails or a team could not be read.
+
+    refresh: refetch instead of reading ath's cache (--refresh SEASON)."""
+    cmd = colleges_command(cfg, season, college_event(cfg, have), refresh)
+    label = f"colleges {season}"
+    print(f"\nCollect {label}: {' '.join(cmd[1:])}", flush=True)
+    report = run_ath_report(cmd, label)
+    if report is None:
+        return None
+    saved = build.college_file(report, today.isoformat())
+    try:
+        check_college_season(cfg, season, saved, have)
+    except build.SeasonError as e:
+        print(f"  {label}: not saved, {e}")
+        return None
+    write_json(college_path(cfg, season), saved)
+    print(f"  {label}: saved {college_path(cfg, season)}")
+    return saved
 
 
 # ---------------------------------------------------------------- planning
@@ -204,11 +331,11 @@ def collect(cfg, season, refresh, today):
 
 # ---------------------------------------------------------------- main
 
-def render(cfg, have):
-    """Build this config's page from its saved seasons ({season: saved}) into its output_dir.
-    Returns (html path, build.Page)."""
+def render(cfg, have, colleges=None):
+    """Build this config's page from its saved seasons ({season: saved}) and college seasons
+    ({season: saved}) into its output_dir. Returns (html path, build.Page)."""
     return build.build(have, high_school_seasons(cfg), cfg["output_dir"], cfg["theme"], example=cfg["example"],
-                       areas_dir=cfg["areas_dir"])
+                       areas_dir=cfg["areas_dir"], colleges=cfg["colleges"], college_seasons=colleges)
 
 
 def main(argv=None):
@@ -243,7 +370,20 @@ def main(argv=None):
 
     if not have:
         sys.exit("No collected seasons yet, so nothing to build.")
-    html_path, page = render(cfg, have)
+    colleges, college_stale = load_colleges(cfg, have, today)
+    college_todo = plan_colleges(cfg, colleges, args, today, bool(todo))
+    if college_todo and not todo:
+        print(RELAY_HINT)
+    for season in college_todo:
+        if season in college_stale:
+            print(f"colleges {season}: {college_path(cfg, season)} {college_stale[season]}; collecting it again")
+        got = collect_colleges(cfg, season, have, season in args.refresh, today)
+        if got:
+            colleges[season] = got
+            college_stale.pop(season, None)
+    for season in sorted(college_stale):
+        print(f"colleges {season}: left out, {college_path(cfg, season)} {college_stale[season]}")
+    html_path, page = render(cfg, have, colleges)
     seasons = page.seasons
     print()
     for season, sd in seasons.items():
@@ -255,6 +395,10 @@ def main(argv=None):
             if v["areas"]:
                 places = "  ".join(f"{s['abbr']} {s['label']}" for s in v["areas"])
                 print(f"{'':>14} {sd['area_file']['labels']}: {places}")
+    if page.colleges and page.colleges["mark"]:
+        for r in page.colleges["rows"]:
+            print(f"colleges {r['name']:16} " + "  ".join(f"{s} {build.college_rank_text(r['cells'][s])}"
+                                                         for s in page.colleges["seasons"]))
     print(f"\nWrote {html_path} (+ .md, .csv)")
     if cfg.get("artifact_url"):
         print(f"This config's shared page: {cfg['artifact_url']} (republish it there only if you share this page)")

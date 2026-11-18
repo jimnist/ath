@@ -29,6 +29,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use async_trait::async_trait;
 use ath::area::{AreaTree, Gender, Region, TeamNav};
+use ath::college::{TeamCore, TeamRecords};
 use ath::list::{Grades, ListKind, PageQuery, RankingsPage};
 use ath::meet::{EntriesData, EntriesQuery, MeetData, MeetEventList};
 use ath::model::{Bio, Candidate};
@@ -113,6 +114,12 @@ impl<S: DataSource> DataSource for Counting<S> {
     }
     async fn team_divisions(&self, school: i64, season: i64) -> anyhow::Result<TeamNav> {
         self.inner.team_divisions(school, season).await
+    }
+    async fn team_records(&self, team: i64, season: i64) -> anyhow::Result<TeamRecords> {
+        self.inner.team_records(team, season).await
+    }
+    async fn team_core(&self, team: i64, season: i64) -> anyhow::Result<TeamCore> {
+        self.inner.team_core(team, season).await
     }
     async fn rankings_page(&self, q: &PageQuery<'_>) -> anyhow::Result<RankingsPage> {
         self.pages.fetch_add(1, Ordering::Relaxed);

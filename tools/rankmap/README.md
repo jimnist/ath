@@ -4,7 +4,8 @@ Where an athlete's season-best mark would rank on every US state's Athletic.net 
 The athlete's home State is outlined on the map, keeping its rank color, and tagged "home" in the state-by-state table.
 Their own Area (Section) is marked the same way on the Areas map and in its table; a Class card keeps its own tag.
 The smallest states' ranks are in chips beside the map, listed under it at phone width so they stay readable.
-Its data comes from `ath rank --in all --ahead all`, through the browser relay.
+A Colleges section ranks the athlete's best mark against college teams' season bests, this college season and last (the config's `colleges`, UC Berkeley, Colorado and Virginia by default).
+Its data comes from `ath rank --in all,areas --ahead all` and `ath colleges`, through the browser relay.
 
 Full documentation, screenshots and the data format: [`docs/rankmap.md`](../../docs/rankmap.md).
 

@@ -2,11 +2,13 @@
 
 rankmap answers one question for a high school track athlete: where would their season-best mark rank in every US state, and in every Area of their home State?
 It builds a single page with a US map, one number per state, and a state-by-state table of who is ahead; when the home State has Areas configured (`areas/<ST>.json`, [`docs/areas.md`](areas.md)), a switch shows the same for the State's Areas: on a county map when they are places (California: the CIF Sections), as cards when they are not (Maine: the MPA Classes, which are school sizes).
-It lives in `tools/rankmap/` and gets its data from `ath rank` (see [How it relates to `ath`](#how-it-relates-to-ath)).
+Under it, a Colleges section says where the athlete's best mark would rank on a few college teams' season bests, this college season and last.
+It lives in `tools/rankmap/` and gets its data from `ath rank` and `ath colleges` (see [How it relates to `ath`](#how-it-relates-to-ath)).
 
 ![The rankmap page: a US map with the athlete's rank in each state](images/rankmap-map.png)
 
 *Screenshots use anonymized data (ADR 0010): invented people, schools and marks in the fictional season 2099.*
+*The examples have no Colleges section: the anonymizer does not read college team records yet, so there are no anonymized ones to build it from.*
 *They are the California example's page, shot by `python3 examples/screenshots.py` ([`docs/anonymize.md`](anonymize.md#the-examples)); rerun it after a change to the page.*
 
 ## What the page shows
@@ -49,6 +51,13 @@ It lives in `tools/rankmap/` and gets its data from `ath rank` (see [How it rela
   The season's home State has a small "home" tag after its name (and "(home)" in the Markdown), whatever its rank (a highlighted row is a picked Section's, not the home State's); so does its home Section or Class in the Areas table.
   A name and its tag stay on one line; at phone width the tag goes under a name too long for both.
   State names link to the Athletic.net list used, and athlete names link to their Athletic.net profiles.
+- **Colleges.** After the state-by-state table, one row per college of the config's `colleges` (in its order), one column per college season, newest first: where the athlete's best mark would rank on that team's season bests, as a rank on its bucket's color (a tie with its small t), out of the team's marks and hers ("#2 of 6"), and who is faster folded behind "N faster" (mark, name, meet).
+  A rank of 1 says "nobody faster"; a team with no marks in the event says "no marks".
+  The college's name links to its Athletic.net team page.
+  At phone width each season is a row of its own under the college's name, so the faster marks have the width.
+  The section is the same whatever season and grade group are picked above it: college seasons are not the high school seasons.
+  A note says only results entered on Athletic.net count and some college meets are missing.
+  The page has no Colleges section when the config's `colleges` is empty or no college season has been collected (an example page, for one).
 
 ![The state-by-state table](images/rankmap-table.png)
 
@@ -62,6 +71,11 @@ Grades are whatever Athletic.net lists; the site's own grade filter decides who 
 
 The athlete's mark for a season is their own row on their home state's list for that season (their season best as Athletic.net ranks it).
 `ath rank` computes all of it; rankmap renders it.
+
+Against the colleges, the athlete's mark is their best ever: their outdoor FAT Personal record in the event as of the day it was collected, from their Profile, compared with each team's FAT season bests of the athlete's gender for that college season (`ath colleges`, see the README).
+Relay splits on a team's list (a 4x400 leg listed under 400 Meters) are not open marks and never count.
+Rank is 1 plus the number of the team's marks that are faster, and a tie shares the rank; "of N" counts the team's marks and hers.
+Only meets entered on Athletic.net are in a team's records, so a team can show few marks, or none.
 
 ## Setup
 
@@ -93,6 +107,7 @@ It prefers this checkout's build because the JSON it reads is versioned with `to
 | `season_end` | no | `MM-DD` after which a season counts as finished (default `07-31`). |
 | `artifact_url` | no | A Claude artifact the page is shared at; rankmap prints it after a build, and the page is republished there only when you share it. |
 | `theme` | no | A theme file (a path, relative to the config file) whose design tokens replace the house look's: see [Restyling](#restyling) and `tools/theme.example.json`. Without it the pages are the house theme's, byte for byte. |
+| `colleges` | no | The college teams to rank the athlete against, in the order to show them: a list of `{"name": <the name to show>, "team": <the team's Athletic.net id, the number in its URL>}`. Without it: UC Berkeley (21484), Colorado (20765) and Virginia (21507). `[]` leaves the Colleges section off. Checked strictly: an item of another shape, an empty name, a team id that is not a whole number above 0, or a team or name twice stops the run, saying which. |
 | `example` | no | `true` builds an example page from anonymized data (see [Publishing](#publishing)); it never collects, as if `--no-fetch` were given. Default `false`. |
 | `areas_dir` | with `example` | An example's own State Meet standards: a folder (relative to the config file) with one file, named exactly `<ST>.json`, for each State whose Area file has a State Meet, holding only `{"state_meet": {...}}` with the anonymizer's mapped standards of the meet's kind (`at_large` for a meet by places, `standards` for one by standards) and any `notes`, `sources` and `checked` about them; everything else in an Area file is the repo's `areas/`. A missing, misnamed or stray file, or one of another shape, stops the build. Empty for a State without an Area file. Required for an example, refused otherwise: a real page always reads the published standards. |
 
@@ -115,6 +130,11 @@ For each of the athlete's four seasons:
 | Finished, no data yet | Collected. |
 | Finished, already collected | Asks whether to refresh (default no), so finished seasons stay as they were. |
 
+Then come the college seasons: this one (the current outdoor season once it has started, March 1, else the latest finished one) and the one before, so 2026 and 2025 from March 1, 2026 to the end of February 2027.
+Each is one run of `ath colleges` (below), collected when it is not saved yet (or was saved for other teams than the config's colleges, or cannot be read), when it is in progress (until the config's `season_end`), when `--refresh` names it, and on any run that collected a State season, so the Personal record it ranks stays the newest; otherwise a finished college season stays as it was saved.
+A college season is saved only when every team was read; otherwise rankmap says why and keeps what it had.
+`--no-fetch` collects none of them.
+
 Then it writes `<output_dir>/<athlete_id>-<event>.html`, `.md` and `.csv` (for example `<athlete_id>-400m.html`) from every collected season.
 `--no-fetch` builds from saved data only; `--refresh 2026` collects a season without asking.
 Without a terminal (for example when an agent runs it), every question takes its default.
@@ -136,6 +156,16 @@ ath rank <athlete_id> --event <event> --season <season> --in all,areas --ahead a
 - `--grade` is the grade rankmap computes from `graduation_year`, so past seasons keep their grade groups whatever the profile says now.
 - `--refresh` is passed when the season is asked for with `--refresh` or is already saved (collecting it again is a refresh), so fresh data really is refetched instead of read from `ath`'s cache.
   Anything else reads the cache, so a retry after a failed run fetches only what the failed run did not.
+
+A college season is one run of
+
+```bash
+ath colleges <athlete_id> --event <event name> --teams <team>,<team>,... --seasons <season> --json [--refresh]
+```
+
+with the teams in the config's order, and the event by the full name the newest saved State season has (`400 Meters`; the configured code when none has one), so an event code a Profile cannot be read by (`100mH`) still matches.
+`--refresh` is passed when `--refresh` names the season.
+It is two requests per team (its records and its name), a few seconds; a finished season's are answered from `ath`'s cache after that.
 
 That is about 200 lists and a little over 200 requests (40 more for California's ten Sections), around three minutes, paced and retried by `ath`.
 `ath`'s cache keeps finished seasons' lists forever and in-season lists 12 hours, so a re-run, or a retry after a failure, is fast.
@@ -167,6 +197,12 @@ Each season is one file, `<data_dir>/<athlete_id>-<event>/<season>.json`: the `a
 
 ```json
 {"format": 2, "pulled": "2026-10-27", "rank": {"schema": 1, "athlete": {"id": 123, "name": "First Last", "first_name": "First", "url": "..."}, "...": "..."}}
+```
+
+College seasons are `<data_dir>/<athlete_id>-<event>/colleges/<season>.json`: the `ath colleges` report for that one season, and the day it was pulled.
+
+```json
+{"format": 1, "pulled": "2026-11-18", "colleges": {"schema": 1, "athlete": {"id": 123, "...": "..."}, "seasons": [2026], "results": ["..."]}}
 ```
 
 The report's shape is in the README (`ath rank`); rankmap reads `athlete`, `gender`, `event`, `event_name`, `mark`, `groups` and, per result, the list's name and state, the grade group, the list URL, and the place with its Neighborhood (everyone ahead, everyone tied).
@@ -262,12 +298,12 @@ The page stays light-only, with or without a theme file: there is no dark mode, 
 | `tools/maps/label-spots.json`, `tools/maps/label_spots.py` | Where each rank number goes on the maps and how big, per label shape, in the house theme's display font: the biggest box with the number's proportions that fits in the state or Section, pulled toward its middle. Rerun the script (about ten seconds) when a map file, an Area file's counties, the house display font's metrics or the fitting change; a test says when. |
 | `tools/maps/measure_font.html` | Measures a display font's `metrics` for a theme file, in a browser. |
 | `tools/theme.example.json` | An example theme file (every token, with Oswald's metrics). |
-| `tools/rankmap/test_rankmap.py` | Tests, on a saved `ath rank` report (`testdata/ath-rank-2099.json`) with the expected pages in `testdata/expected/`. |
+| `tools/rankmap/test_rankmap.py` | Tests, on a saved `ath rank` report (`testdata/ath-rank-2099.json`) and saved `ath colleges` reports against made-up college teams (`testdata/ath-colleges-2099.json`, `-2098.json`), with the expected pages in `testdata/expected/`. |
 | `tools/rankmap/rankmap.config.example.json` | Example config. |
 | `.claude/skills/rankmap/SKILL.md` | The `/rankmap` agent skill. |
 
 The tests run with `cargo test` (`tests/tools.rs`) or `python3 -m unittest discover -s tools/rankmap`.
-`tests/rank.rs` fails when the saved report is no longer what `ath rank` prints (`ATH_BLESS=1 cargo test` refreshes it), and `RANKMAP_BLESS=1` rewrites the expected pages after a deliberate rendering change.
+`tests/rank.rs` and `tests/colleges.rs` fail when the saved reports are no longer what `ath rank` and `ath colleges` print (`ATH_BLESS=1 cargo test` refreshes them), and `RANKMAP_BLESS=1` rewrites the expected pages after a deliberate rendering change.
 
 ## Athletic.net quirks seen in the data
 
@@ -277,7 +313,7 @@ The tests run with `cargo test` (`tests/tools.rs`) or `python3 -m unittest disco
 
 ## How it relates to `ath`
 
-rankmap is a report on top of `ath`: `ath rank` reads Athletic.net and places the athlete, and rankmap plans seasons, keeps them, and renders the page.
+rankmap is a report on top of `ath`: `ath rank` reads Athletic.net and places the athlete (and `ath colleges` ranks their best against college teams), and rankmap plans seasons, keeps them, and renders the page.
 Since 2026-10-27 it has no Athletic.net code of its own; the browser collector `fetch.js` and its local receiver are retired.
 Switching over was checked on 2026-10-27 by re-collecting all three saved seasons (one athlete's 2026, another's 2025 and 2026) with `ath rank` through the browser relay and rebuilding both pages.
 Against the pages built from the collector's data (pulled 2026-10-25), the HTML, Markdown and CSV were identical apart from the pulled date and one change Athletic.net made in between: its Florida 2026 high school list no longer has a college athlete it listed first two days earlier.

@@ -61,7 +61,7 @@ Tell the user that; do not retry or work around it.
 
 Output is JSON when stdout is not a terminal (always, for an agent); `--table` prints the human view.
 Every JSON object has a top-level `schema`.
-Links: `ath profile`, `ath list` and `ath meet` have a top-level `url`; `ath rank` has `athlete.url` and each `results[].url`; `ath areas` has `state_list.url` and each `areas[].url`; `ath seed` has `entrants[].athlete_url` and `entrants[].school_url` on an individual sheet, `teams[].team_url` and `teams[].legs[].athlete_url` on a relay sheet, and `meet.url` with `--meet`.
+Links: `ath profile`, `ath list` and `ath meet` have a top-level `url`; `ath rank` has `athlete.url` and each `results[].url`; `ath colleges` has `athlete.url`, each `results[].url` (the team's season page) and `results[].ahead[].url`; `ath areas` has `state_list.url` and each `areas[].url`; `ath seed` has `entrants[].athlete_url` and `entrants[].school_url` on an individual sheet, `teams[].team_url` and `teams[].legs[].athlete_url` on a relay sheet, and `meet.url` with `--meet`.
 Events: always write a flat race as `400m` or `"400 Meters"`, never a bare number.
 `ath profile`, `ath seed --event`, `ath list`, `ath rank` and `ath areas` refuse `--event 400` with a hint; `ath meet --event 800` and `--seed-on 1600` instead report no such event or not a flat race.
 `ath list`, `ath rank` and `ath areas` also take Athletic.net codes such as `Shot` or `LJ` (not `SP`).
@@ -74,6 +74,7 @@ Ids are the numbers in Athletic.net URLs (`/athlete/<id>/`, `/meet/<id>/`).
 | What lists does a State have? | `ath areas CA --season 2026` | `state_list`, `areas[]` (`id`, `name`, `url`), `level`, `note` |
 | Who is on a State's or Area's list? | `ath list --state CA --event 400m --gender f --season 2026` (`--area CCS`, `--list <LIST_ID>`, `--grades 9-10`, `--limit 50`) | `total`, `complete`, `note`, `rows[]` (`place`, `tied`, `name`, `athlete_id`, `mark`, `sort_int`, `grade`, `team`) |
 | Where does an athlete's mark rank? | `ath rank <ATHLETE_ID> --event 400m --season 2026` (`--in CA,CCS,TX`, `--in all`, `--in all,areas`, `--ahead all`) | `status` (`ok`/`no_mark`), `mark`, `results[]` (`list`, `group`, `status`, `place.label` like `T23`, `place.neighborhood`) |
+| Where would an athlete's best rank on college teams? | `ath colleges <ATHLETE_ID> --event 400m --teams 21484,20765,21507 --seasons 2026,2025` (team ids from the team's URL) | `status` (`ok`/`no_mark`), `mark` (the Personal record), `results[]` (`team.name`, `season`, `status`, `marks`, `place.label` like `T4`, `ahead[]` with `name`, `mark`, `meet`) |
 | What events and divisions does a meet have? | `ath meet <MEET_ID>` | `name`, `date`, `indoor`, `divisions[]`, `events[]` (`gender`, `division_id`, `event_short`, `relay`, `url`) |
 | Who is entered in one event? | `ath meet <MEET_ID> --gender m --div V --event 4x800m` | `entries.entrants[]` (individual) or `entries.teams[]` (relay legs), `entries.left_out[]` |
 | Seed sheet for one meet event | `ath seed --meet <MEET_ID> --gender f --div V --event 800m --out <dir>/<meet>-f-800m.csv` | `entrants[]` (`rank`, `athlete`, `pr`, `pr_season`, `sort_int`), `meet.left_out[]` |
@@ -92,6 +93,7 @@ Notes that change answers:
   A team with a leg missing, a runner with no mark, or one runner on two legs has no aggregate (`no_aggregate_reason`, e.g. `Leg 4 has no 800 Meters mark`, `Leg 3 has no runner`, `Same runner on legs 1 and 3`) and goes to the bottom.
   An individual sheet has no `kind` and is unchanged.
 - `ath rank --in all` is about 200 lists; `--in all,areas` adds the home State's Areas.
+- `ath colleges` ranks the outdoor FAT Personal record against each team's FAT season bests of the athlete's gender, matching the event by name; a team only has the meets entered on Athletic.net, so few or no marks (`marks` 0) is common. Running events only; `--event` is a flat race or the Profile's full event name (`"100m Hurdles"`), not a code like `100mH`.
 - `ath profile` reports field events with `event.status` `field_event`: v1 reads running events only for bests and seeding.
 
 Offline, on made-up data in `tests/fixtures` (no transport needed):
@@ -145,13 +147,15 @@ Live output is about real athletes, mostly minors.
 | `N row(s) did not resolve - review <roster>.unresolved.csv, pin an athlete_id, and re-run` | Roster rows that did not resolve to one Profile (`unresolved[].reason`) | `ambiguous`: show the user the ranked candidates in `<roster>.unresolved.csv` (`cand_rank`, `cand_name`, `cand_school`, `athlete_url`), and after they pick, add `athlete_id` to the roster row and re-run; never guess. `no_match`: no candidates; fix the name or school, or ask for the athlete's id. `search_failed`: transient and not in the CSV; just re-run |
 | `ath rank` result `status` `no_mark` | The athlete has no mark this season yet | Tell the user; do not guess a mark |
 | `ath rank` result `status` `lookup_failed` | That one list could not be read | Re-run later; the lists already read come from the cache |
+| `ath colleges` result `status` `lookup_failed` | That team's records could not be read (a wrong team id, or a refusal) | Check the team id in the team's Athletic.net URL; re-run later |
+| `ath colleges` note `team N (...) is level L on Athletic.net, not a college team (8)` | The id is a club or school team | Tell the user; use the college team's own id |
 | `--event "400" is a bare number; did you mean 400m?` | Event spelled as a number | Use `400m` or `"400 Meters"` |
 | `meet N has no boys' event "800"; its boys' events are ...` | `ath meet --event` with an event the meet does not have, often a bare number | Use a code from the list it prints, such as `800m` |
 | `--seed-on "1600" is not a flat running race ...` | A bare number (or a field event or hurdles) given to `--seed-on` | Use `1600m` or `"1 Mile"` |
 
 ## 7. More
 
-- README: "Usage" (`ath seed`), "`ath seed --meet`", "`ath meet`", "`ath profile`", "`ath areas`", "`ath list`", "`ath rank`", "Output: JSON or table", "Reaching Athletic.net", "Your own configs and data: `local/`".
+- README: "Usage" (`ath seed`), "`ath seed --meet`", "`ath meet`", "`ath profile`", "`ath areas`", "`ath list`", "`ath rank`", "`ath colleges`", "Output: JSON or table", "Reaching Athletic.net", "Your own configs and data: `local/`".
 - [`CONTEXT.md`](../../../CONTEXT.md): the glossary (Personal record, Season best, Qualifying mark, Area, Grade group).
 - [`docs/agents/systems/athletic-net.md`](../../../docs/agents/systems/athletic-net.md): the endpoints, encodings and the relay protocol.
 - [ADR 0006](../../../docs/adr/0006-pluggable-transport-browser-relay-by-default.md): why the relay is the default transport.
