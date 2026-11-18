@@ -107,7 +107,7 @@ _Avoid_: opponent, rival
 
 **College season bests**:
 A college team's list of its athletes' best marks in each event for one outdoor season, from Athletic.net's team records.
-An Athlete is ranked against it with their Personal record (FAT only, the Athlete's gender, the event by name): 1 plus the number of the team's marks that are faster, FAT or not (imported college results often lose the flag).
+An Athlete is ranked against it with their Personal record (FAT only, the Athlete's gender, the event by name): 1 plus the number of the team's marks that are faster.
 Only meets entered on Athletic.net are in it, so it can be short or empty.
 _Avoid_: college list, roster
 

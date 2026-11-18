@@ -72,8 +72,7 @@ Grades are whatever Athletic.net lists; the site's own grade filter decides who 
 The athlete's mark for a season is their own row on their home state's list for that season (their season best as Athletic.net ranks it).
 `ath rank` computes all of it; rankmap renders it.
 
-Against the colleges, the athlete's mark is their best ever: their outdoor FAT Personal record in the event as of the day it was collected, from their Profile, compared with each team's season bests of the athlete's gender for that college season (`ath colleges`, see the README).
-College meets are electronically timed, but results imported into Athletic.net often lose the FAT flag (a 51.455 marked as not FAT), so a team's marks count FAT or not, compared on `SortInt`.
+Against the colleges, the athlete's mark is their best ever: their outdoor FAT Personal record in the event as of the day it was collected, from their Profile, compared with each team's FAT season bests of the athlete's gender for that college season (`ath colleges`, see the README).
 Rank is 1 plus the number of the team's marks that are faster, and a tie shares the rank; "of N" counts the team's marks and hers.
 Only meets entered on Athletic.net are in a team's records, so a team can show few marks, or none.
 

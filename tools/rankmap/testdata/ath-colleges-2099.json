@@ -32,12 +32,12 @@
       "season": 2099,
       "url": "https://www.athletic.net/team/960000001/track-and-field-outdoor/2099",
       "status": "ok",
-      "marks": 6,
+      "marks": 5,
       "place": {
-        "rank": 5,
+        "rank": 4,
         "tied": true,
-        "label": "T5",
-        "ahead": 4,
+        "label": "T4",
+        "ahead": 3,
         "ties": 1
       },
       "ahead": [
@@ -73,17 +73,6 @@
           "meet_id": 960200001,
           "date": "2099-03-21",
           "url": "https://www.athletic.net/athlete/960100003/track-and-field"
-        },
-        {
-          "athlete_id": 960100005,
-          "name": "Opal Strandquist",
-          "grade_id": 22,
-          "mark": "57.0",
-          "sort_int": 57000,
-          "meet": "Valley Twilight",
-          "meet_id": 960200004,
-          "date": "2099-04-18",
-          "url": "https://www.athletic.net/athlete/960100005/track-and-field"
         }
       ],
       "tied": [

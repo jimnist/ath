@@ -1761,8 +1761,8 @@ class Colleges(AnonymizedAreas):
         self.assertEqual(names, ["Harrowgate", "Wrenmoor State", "Ostrander Tech"])
         self.assertIn('href="https://www.athletic.net/team/960000001/track-and-field-outdoor/2099"', section)
         # A tie in its small t, out of the team's marks and hers, who is faster folded away.
-        self.assertIn('<span class="pill b5"><span class="sup">t</span>5</span><span class="of">of 7</span>', section)
-        self.assertIn("<summary>4 faster, 1 tied</summary>", section)
+        self.assertIn('<span class="pill b2"><span class="sup">t</span>4</span><span class="of">of 6</span>', section)
+        self.assertIn("<summary>3 faster, 1 tied</summary>", section)
         self.assertIn('<span class="pill b5">8</span><span class="of">of 10</span>', section)
         self.assertIn('<span class="cy">2098</span><span class="tm">no marks</span>', section)
         self.assertIn('<span class="nb">nobody faster</span>', section)
@@ -1773,10 +1773,10 @@ class Colleges(AnonymizedAreas):
     def test_markdown_and_csv_list_the_colleges(self):
         _, table, md = college_page()
         self.assertIn("| College | 2099 | 2098 |", md)
-        self.assertIn("| Harrowgate | T5 of 7, led by Maren Quillfeather 53.41 | #2 of 3, led by Maren Quillfeather 54.20 |", md)
+        self.assertIn("| Harrowgate | T4 of 6, led by Maren Quillfeather 53.41 | #2 of 3, led by Maren Quillfeather 54.20 |", md)
         self.assertIn("| Wrenmoor State | #8 of 10, led by Sable Ondrejka 52.80 | no marks |", md)
-        self.assertIn("2099,58.98,college season bests,College,T5 of 7,Harrowgate,960000001,4,1,", table)
-        self.assertIn("2098,58.98,college season bests,College,no marks,Wrenmoor State,960000002,0,0,,", table)
+        self.assertIn("2099,58.98,college season bests (FAT),College,T4 of 6,Harrowgate,960000001,3,1,", table)
+        self.assertIn("2098,58.98,college season bests (FAT),College,no marks,Wrenmoor State,960000002,0,0,,", table)
 
     def test_no_section_without_colleges_or_their_data(self):
         for teams, files in (([], None), (TEAMS, {})):

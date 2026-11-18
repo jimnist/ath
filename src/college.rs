@@ -4,9 +4,7 @@
 //! A college team's season bests come from `TeamHome/GetTeamEventRecords`
 //! (one row per athlete and event: that athlete's best of the season), its
 //! name and level from `TeamHome/GetTeamCore`. Only the rows of the Athlete's
-//! gender in the event count, FAT or not: college meets are electronically
-//! timed, but results imported into Athletic.net often lose the `FAT` flag
-//! (a 51.455 flagged 0), so filtering on it drops real marks. The
+//! gender in the event count, and only FAT ones, as on the State lists. The
 //! event is matched by name, never by id: a team's `Event` is the Athlete's
 //! event name, or that name with the implement spec college lists add after
 //! " - " (`100m Hurdles - 33" / 0.838m`). Rank is 1 plus the number of the
@@ -21,7 +19,8 @@ use crate::area::Gender;
 use crate::cache::Cacheable;
 use crate::contract::{Report, columns};
 use crate::mark::{
-    AsOf, event_name_for, is_real_time, personal_record_as_of, resolve_event, strip_timing_suffix,
+    AsOf, event_name_for, is_hand_timed, is_real_time, personal_record_as_of, resolve_event,
+    strip_timing_suffix,
 };
 use crate::model::{athlete_url, team_url};
 use crate::rank::AthleteRef;
@@ -87,18 +86,28 @@ pub struct TeamRecord {
 }
 
 impl TeamRecord {
+    /// Whether the row is a FAT time: `FAT` 1 (or true), and no `h` on the
+    /// display.
+    fn is_fat(&self) -> bool {
+        let fat = match &self.fat {
+            Some(serde_json::Value::Number(n)) => n.as_i64() == Some(1),
+            Some(serde_json::Value::Bool(b)) => *b,
+            _ => false,
+        };
+        fat && !self.result.as_deref().is_some_and(is_hand_timed)
+    }
+
     /// The row's mark when it counts for `gender` in the event named any of
-    /// `names`: the gender's, the event's (by name), an individual mark and a
-    /// real time, whatever its `FAT` flag (see the module doc). Compared on
-    /// `SortInt`, which Athletic.net keeps beside a raw value and a conversion
-    /// factor (as for hand times on the State lists).
+    /// `names`: the gender's, the event's (by name), an individual mark, a
+    /// real time and FAT.
     fn counted(&self, gender: Gender, names: &[String]) -> Option<i64> {
         let sort_int = self.sort_int.filter(|s| *s > 0)?;
         let ok = self.gender.as_deref().and_then(Gender::from_bio) == Some(gender)
             && self.event.as_deref().is_some_and(|e| same_event(e, names))
             && self.personal_event != Some(false)
             && self.event_type_id.unwrap_or(0) == 0
-            && self.result.as_deref().is_some_and(is_real_time);
+            && self.result.as_deref().is_some_and(is_real_time)
+            && self.is_fat();
         ok.then_some(sort_int)
     }
 
@@ -245,7 +254,7 @@ pub struct CollegeResult {
     /// The team's Athletic.net page for the season.
     pub url: String,
     pub status: CollegeStatus,
-    /// The team's counted marks in the event (the Athlete's gender, FAT or not); 0
+    /// The team's counted marks in the event (FAT, the Athlete's gender); 0
     /// when it has none, or when it could not be read.
     pub marks: usize,
     /// `null` unless `status` is `ok`.
@@ -283,7 +292,7 @@ impl Report for Colleges {
     fn table(&self) -> String {
         let mut out = match &self.mark {
             Some(m) => format!(
-                "{} {} {} (Personal record, {}), against college season bests\n\n",
+                "{} {} {} (Personal record, {}), against college season bests (FAT)\n\n",
                 self.athlete.name,
                 self.event_name.as_deref().unwrap_or(&self.event),
                 m.mark,
@@ -604,12 +613,11 @@ mod tests {
     }
 
     #[test]
-    fn rank_counts_faster_marks_of_the_gender_and_event() {
+    fn rank_counts_faster_fat_marks_of_the_gender_and_event() {
         let r = records(&[
             ("F", "400 Meters", "52.10a", 52100, 1, 11, "Ashgrove"),
             ("F", "400 Meters", "54.00a", 54000, 1, 12, "Birchley"),
-            // FAT or not, every mark counts: imported college results often
-            // lose the flag (an electronic 51.20 flagged 0), compared on SortInt.
+            // A hand time, even a fast one, never counts.
             ("F", "400 Meters", "51.0h", 51000, 0, 13, "Cotter"),
             ("F", "400 Meters", "51.20a", 51200, 0, 14, "Dunmore"),
             // The men's, and another event.
@@ -620,18 +628,18 @@ mod tests {
         ]);
         let ev = names(&["400 meters"]);
         let (marks, place, ahead, tied) = place_on_team(&r, 1, Gender::F, &ev, Some(55_000));
-        assert_eq!(marks, 5);
+        assert_eq!(marks, 3);
         let place = place.unwrap();
         assert_eq!(
             (place.rank, place.tied, place.label.as_str()),
-            (5, false, "5")
+            (3, false, "3")
         );
         assert_eq!(
-            ahead.iter().map(|a| a.name.as_str()).collect::<Vec<_>>(),
-            ["Pat Cotter", "Pat Dunmore", "Pat Ashgrove", "Pat Birchley"]
+            ahead.iter().map(|a| a.mark.as_str()).collect::<Vec<_>>(),
+            ["52.10", "54.00"]
         );
         assert!(tied.is_empty());
-        let a = &ahead[2];
+        let a = &ahead[0];
         assert_eq!(a.name, "Pat Ashgrove");
         assert_eq!(a.meet.as_deref(), Some("Lakeshore Invitational"));
         assert_eq!(a.date.as_deref(), Some("2099-04-12"));
