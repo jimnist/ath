@@ -1,0 +1,36 @@
+{
+ "eventRecords": [
+  {
+   "GradeID": 22,
+   "Age": 20,
+   "Gender": "M",
+   "Event": "400 Meters",
+   "IDEvent": 5,
+   "Type": "T",
+   "PersonalEvent": true,
+   "Description": null,
+   "EventTypeID": 0,
+   "IDResult": 965100022,
+   "Result": "48.60a",
+   "SortInt": 48600,
+   "IDAthlete": 960100022,
+   "FirstName": "Ezra",
+   "LastName": "Callowhill",
+   "Wind": null,
+   "PersonalBest": 0,
+   "FAT": 1,
+   "SortIntRaw": 48600,
+   "ConversionFactor": 0,
+   "FieldMeasureType": null,
+   "Round": "F",
+   "MeetName": "Wrenmoor Invitational",
+   "EndDate": "2098-04-12T00:00:00",
+   "IDMeet": 960200005,
+   "CurrentWeek": 0,
+   "MediaCount": {},
+   "ShortCode": ""
+  }
+ ],
+ "relayMembers": [],
+ "preferences": {}
+}

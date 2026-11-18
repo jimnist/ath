@@ -63,7 +63,7 @@ Qualifying mark filter, and per-event output behavior.
 
 ## Usage
 
-`ath` is a subcommand CLI: `ath seed` builds a seed sheet, [`ath meet`](#ath-meet) shows a meet's events and entries, [`ath profile`](#ath-profile) shows one person's Profile, [`ath areas`](#ath-areas) lists a State's Areas, [`ath list`](#ath-list) prints a whole Rankings list and [`ath rank`](#ath-rank) places an Athlete on State and Area lists.
+`ath` is a subcommand CLI: `ath seed` builds a seed sheet, [`ath meet`](#ath-meet) shows a meet's events and entries, [`ath profile`](#ath-profile) shows one person's Profile, [`ath areas`](#ath-areas) lists a State's Areas, [`ath list`](#ath-list) prints a whole Rankings list, [`ath rank`](#ath-rank) places an Athlete on State and Area lists and [`ath colleges`](#ath-colleges) ranks their best against college teams.
 Seeding is `ath seed`:
 
 ```
@@ -580,9 +580,57 @@ Global options:
   (same as above)
 ```
 
+### `ath colleges`
+
+`ath colleges <ATHLETE_ID> --event 400m --teams 21484,20765 --seasons 2026,2025` ranks an Athlete's best mark against college teams' season bests: where it would place on each team's list, season by season.
+The mark is the Athlete's Personal record in the event as of today, from their Profile (outdoor and FAT, as `ath profile` computes it), so it does not depend on any Rankings list and needs no paid subscription.
+Each team's list is Athletic.net's team records for the outdoor season (`TeamHome/GetTeamEventRecords`: one season best per athlete and event), cut to the Athlete's gender and event and to FAT marks, as the State lists are.
+The event is matched by name, never by id: a team's event is the Athlete's when its name is the same, or the same with the implement spec college lists add after " - " (`100m Hurdles - 33" / 0.838m` is the `100m Hurdles`).
+`--event` takes a flat race (`400m`, `"400 Meters"`) or an event's full name as the Profile has it (`"100m Hurdles"`); an Athletic.net code such as `100mH` is not a name, and a field event is refused (no field Personal records yet).
+The rank is 1 plus the number of the team's marks strictly faster on `SortInt`, and an equal mark is a tie (`T4`).
+A team with no marks in the event gets rank 1 of none (`marks` 0), and an Athlete with no Personal record gets `no_mark` results that still count each team's marks.
+Each team's name and level come from `TeamHome/GetTeamCore`; a team whose level is not college (8) is noted, not refused, and one that cannot be read is `lookup_failed` with its error while the rest stand (no team at all read exits non-zero).
+Only meets entered on Athletic.net are in a team's records, so a team can have few marks, or none, in a season.
+`--seasons` defaults to this year; the requests are paced like rankings pages and cached like them, forever once a season is over (after July 31) and 12 hours while it is in progress.
+
+```
+$ ath colleges 982389051 --event 400m --teams 960000001,960000002 --seasons 2099,2098 --table
+Jamie Uddumcombe 400 Meters 58.98 (Personal record, 2099), against college season bests (FAT)
+
+Team            Season  Rank      Marks  Fastest
+Harrowgate      2099    T4        5      53.41 Maren Quillfeather
+Harrowgate      2098    #2        2      54.20 Maren Quillfeather
+Wrenmoor State  2099    #8        9      52.80 Sable Ondrejka
+Wrenmoor State  2098    no marks  0
+```
+
+The JSON has `athlete` (`{id, name, first_name, url}`), `gender`, `event` (as asked), `event_name` (the Profile's name for it), `status` (`ok` or `no_mark`), `mark` (`{mark, sort_int, season, date, meet, meet_id}`, the Personal record), `seasons`, `note` and `results`.
+Each result is one team and season: `{team, season, url, status, marks, place, ahead, tied, note}`, where `team` is `{id, name, level}`, `url` is the team's Athletic.net page for the season, `status` is `ok`, `no_mark` or `lookup_failed`, `marks` counts the team's marks that count, `place` is `{rank, tied, label, ahead, ties}`, and `ahead` and `tied` list the team's marks faster than and equal to the Athlete's, best first, as `{athlete_id, name, grade_id, mark, sort_int, meet, meet_id, date, url}` (`grade_id` is Athletic.net's grade code, as given).
+rankmap reads this JSON, so its shape is pinned by a test (`tests/colleges.rs`) and versioned by `schema`.
+
+```
+$ ath colleges --help
+Rank an Athlete's Personal record in an event against college teams' season bests, season by season
+
+Usage: ath colleges [OPTIONS] --event <EVENT> --teams <IDS> <ATHLETE_ID>
+
+Arguments:
+  <ATHLETE_ID>  Athletic.net athlete id (the number in the Profile URL)
+
+Options:
+      --event <EVENT>       Event: a flat race ("400m" or "400 Meters") or an event's full name as the Profile has it ("100m Hurdles"). Running events only
+      --teams <IDS>         Athletic.net team ids of the colleges, comma-separated, in the order to report them (the number in a team's URL)
+      --seasons <YEARS>     Outdoor seasons (years), comma-separated, in the order to report them. Defaults to this year
+      --fixtures-dir <DIR>  Offline mode: read recorded responses from DIR (`<athlete_id>.json`, `teamrecords/` and `teamcore/`) instead of the live API (skips the cookie, the relay and the network)
+  -h, --help                Print help
+
+Global options:
+  (same as above)
+```
+
 ### Output: JSON or table
 
-Data commands (`ath seed`, `ath profile`, `ath areas`, `ath list`, `ath rank`) print JSON when stdout is not a terminal and a readable table when it is; `--json` or `--table` forces either, and when both are given the later one wins.
+Data commands (`ath seed`, `ath profile`, `ath areas`, `ath list`, `ath rank`, `ath colleges`) print JSON when stdout is not a terminal and a readable table when it is; `--json` or `--table` forces either, and when both are given the later one wins.
 The JSON is one object with a top-level `schema` version and the Athletic.net URL for the same view (the Profile page's `url`, each list's `url`, a Rankings list's filtered page), so scripts and the Python reports can rely on its shape ([ADR 0007](docs/adr/0007-ath-owns-data-python-reports-render.md)).
 `ath seed` is the exception: a seed sheet built from a roster has no Athletic.net page of its own, so it has no top-level `url`, and its links are per entrant (`athlete_url`, `school_url`, `club_url`).
 Field names use the glossary in [`CONTEXT.md`](CONTEXT.md): `season_best`, `personal_record`.
@@ -695,7 +743,8 @@ python3 tools/rankmap/rankmap.py                                                
 ```
 
 When the athlete's home State has Areas (California's CIF Sections), a switch shows the same on a county map of the State, one Section at a time on click.
-It is a Python tool (standard library only) that gets its data from `ath rank --in all,areas --ahead all` (through the browser relay) and renders the page; finished seasons are kept as collected.
+A Colleges section ranks the athlete's best against a list of college teams' season bests, this college season and last (`ath colleges`).
+It is a Python tool (standard library only) that gets its data from `ath rank --in all,areas --ahead all` and `ath colleges` (through the browser relay) and renders the page; finished seasons are kept as collected.
 Full guide: [`docs/rankmap.md`](docs/rankmap.md).
 
 ## Your own configs and data: `local/`

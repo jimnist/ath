@@ -48,6 +48,8 @@ Run `python3 tools/rankmap/rankmap.py --config rankmap.<athlete_id>-<event>` (or
 - `--no-fetch` just rebuilds.
 
 Each season is one `ath rank` run: about 200 lists, around three minutes the first time, instant from `ath`'s cache after that.
+Then rankmap runs `ath colleges` for this college season and last (the config's `colleges`, three default teams without it): a few seconds, and only when one is missing, in progress, asked for with `--refresh`, or a State season was collected this run.
+A team with "no marks" is normal: only meets entered on Athletic.net are there.
 Do not raise `ath`'s `--concurrency` or lower its `--delay-ms` to go faster.
 `ath`'s warnings print as it goes.
 A season is saved only when every list was read; otherwise rankmap says why and keeps what it had (re-run it to retry: lists already read come from the cache).

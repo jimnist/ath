@@ -54,6 +54,19 @@ changing anything that touches the network or the mark-selection logic.
   Each link is `{id, b, name}`: `id` is the season's list id and `b` the base division id, which stays the same across seasons (Central Coast is another list every season, with the same `b`).
   Names have leading spaces (`"   United States"`, and a league's name); trim them.
 
+- **Team records API** (`ath colleges`, rankmap's Colleges section; checked live 2026-11-18 on 11 college teams, women's 400m, seasons 2025 and 2026) -
+  `GET /api/v1/TeamHome/GetTeamEventRecords?teamId=<team>&seasonId=<year>`, no token needed (outdoor seasons; the plain year).
+  It answers `{eventRecords, relayMembers, preferences}`.
+  `eventRecords[]` is one row per athlete and event, that athlete's season best: `GradeID`, `Age`, `Gender` (`F`/`M`), `Event` (`400 Meters`, `800 Meters`, `100m Hurdles - 33" / 0.838m`), `IDEvent`, `Type` (`T`), `PersonalEvent`, `Description`, `EventTypeID` (0), `IDResult`, `Result` (`10.31a`), `SortInt`, `IDAthlete`, `FirstName`, `LastName`, `Wind`, `PersonalBest`, `FAT` (1, or 0 for a hand time), `SortIntRaw`, `ConversionFactor`, `FieldMeasureType`, `Round`, `MeetName`, `EndDate`, `IDMeet`, `CurrentWeek`, `MediaCount`, `ShortCode`.
+  College event names carry the implement spec after " - ", so `ath` matches an event by its name or that name with the spec (never by `IDEvent`), counts only the athlete's gender, `FAT` 1 and real times, and sorts on `SortInt`.
+  What `GradeID` codes mean for college is unchecked (a 22-year-old had 24); `ath` passes it on as `grade_id` and rankmap does not show it.
+  Coverage is partial: only meets entered on Athletic.net are there, so most teams had 2 to 12 marks in the event a season and one had none.
+  `relayMembers` is not read.
+- **Team core** - `GET /api/v1/TeamHome/GetTeamCore?teamId=<team>&sport=tfo&year=<year>`, no token: `team.Name` (short for a college: `Virginia`; its club team is a separate `... University Club`) and `team.Level` (8 for a college).
+  `ath colleges` reads it once per team for the newest season asked, for the team's name, and notes a level other than 8.
+  Team search is the legacy `POST /Search.aspx/runSearch` page method, which `ath` does not use; configs pin team ids instead.
+- **Cache and recording.** Both are cached as `DataKind::TeamRecords` (forever once the season is finished, 12 hours while it is in progress) and paced like rankings pages; `--record-dir` writes them as `teamrecords/<team>-<season>.json` and `teamcore/<team>-<season>.json`.
+
 ### Meets (Mode A)
 
 Confirmed live 2026-11-06 on an open indoor meet (a paid session through the relay); `ath meet` and `ath seed --meet` read these three calls (`src/meet.rs`).

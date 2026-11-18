@@ -1,0 +1,36 @@
+{
+ "eventRecords": [
+  {
+   "GradeID": 21,
+   "Age": 19,
+   "Gender": "F",
+   "Event": "400 Meters",
+   "IDEvent": 22,
+   "Type": "T",
+   "PersonalEvent": true,
+   "Description": null,
+   "EventTypeID": 0,
+   "IDResult": 965100023,
+   "Result": "1:00.20a",
+   "SortInt": 60200,
+   "IDAthlete": 960100023,
+   "FirstName": "Wilda",
+   "LastName": "Penhallow",
+   "Wind": null,
+   "PersonalBest": 0,
+   "FAT": 1,
+   "SortIntRaw": 60200,
+   "ConversionFactor": 0,
+   "FieldMeasureType": null,
+   "Round": "F",
+   "MeetName": "Ostrander Open",
+   "EndDate": "2099-04-02T00:00:00",
+   "IDMeet": 960200007,
+   "CurrentWeek": 0,
+   "MediaCount": {},
+   "ShortCode": ""
+  }
+ ],
+ "relayMembers": [],
+ "preferences": {}
+}

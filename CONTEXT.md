@@ -105,6 +105,12 @@ Anyone else who appears in a report.
 We need only what the report needs: name, team, grade, Profile, and their mark for the report's event and season.
 _Avoid_: opponent, rival
 
+**College season bests**:
+A college team's list of its athletes' best marks in each event for one outdoor season, from Athletic.net's team records.
+An Athlete is ranked against it with their Personal record (FAT only, the Athlete's gender, the event by name): 1 plus the number of the team's marks that are faster.
+Only meets entered on Athletic.net are in it, so it can be short or empty.
+_Avoid_: college list, roster
+
 **Masked row**:
 A placeholder row Athletic.net puts on a Rankings list past what the session may see (25 rows signed in without a paid subscription): an all-`X` name, athlete and team id 0, an empty mark.
 Never an Entrant, never ranked; a list that ends in one is capped, not complete (ADR 0001).

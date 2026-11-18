@@ -12,6 +12,7 @@ use async_trait::async_trait;
 use serde::de::DeserializeOwned;
 
 use crate::area::{AreaTree, NavInfo, Region, TeamNav};
+use crate::college::{TeamCore, TeamRecords};
 use crate::list::{PageQuery, RankingsPage};
 use crate::meet::{EntriesData, EntriesQuery, MeetData, MeetEventList};
 use crate::model::{Bio, Candidate};
@@ -44,6 +45,13 @@ pub trait DataSource: Send + Sync {
     /// A school's division chain for `season` (`TeamNav/Team`).
     async fn team_divisions(&self, school_id: i64, season: i64) -> Result<TeamNav>;
 
+    /// A team's season bests by event in an outdoor season
+    /// (`TeamHome/GetTeamEventRecords`).
+    async fn team_records(&self, team_id: i64, season: i64) -> Result<TeamRecords>;
+
+    /// A team's name and level as of an outdoor season (`TeamHome/GetTeamCore`).
+    async fn team_core(&self, team_id: i64, season: i64) -> Result<TeamCore>;
+
     /// One page of a rankings list, as Athletic.net answered it (unchecked:
     /// [`crate::list::rankings_list`] checks that it is the list asked for).
     async fn rankings_page(&self, q: &PageQuery<'_>) -> Result<RankingsPage>;
@@ -70,6 +78,10 @@ pub trait DataSource: Send + Sync {
 /// - `navinfo/<season>-<state_list>.json`: the `GetNavInfo` response read
 ///   with a token of a State's list, for its `tree` ([`DataSource::state_tree`]).
 /// - `teamnav/<school_id>-<season>.json`: a school's `TeamNav/Team` response.
+/// - `teamrecords/<team_id>-<season>.json`: a team's
+///   `TeamHome/GetTeamEventRecords` response.
+/// - `teamcore/<team_id>-<season>.json`: a team's `TeamHome/GetTeamCore`
+///   response.
 /// - `rankings/<list_id>-<gender>-<event>-<grades>-p<page>.json`: one page of
 ///   a rankings list (`GetRankings`), with `<grades>` as `9_10` or `all`
 ///   ([`rankings_fixture_name`]).
@@ -92,6 +104,8 @@ pub struct FixtureSource {
     trees: HashMap<i64, NavInfo>,
     state_trees: HashMap<(i64, i64), NavInfo>,
     teams: HashMap<(i64, i64), TeamNav>,
+    team_records: HashMap<(i64, i64), TeamRecords>,
+    team_cores: HashMap<(i64, i64), TeamCore>,
     pages: HashMap<String, RankingsPage>,
     meets: HashMap<i64, MeetData>,
     meet_events: HashMap<i64, MeetEventList>,
@@ -133,7 +147,8 @@ impl FixtureSource {
         self
     }
 
-    /// Load bios from `dir/*.json`, plus the `navinfo/` and `teamnav/`
+    /// Load bios from `dir/*.json`, plus the `navinfo/`, `teamnav/`,
+    /// `teamrecords/`, `teamcore/`, `rankings/`, `meets/` and `search/`
     /// subdirectories when present (see [`FixtureSource`]).
     pub fn from_dir(dir: impl AsRef<Path>) -> Result<Self> {
         let dir = dir.as_ref();
@@ -176,6 +191,19 @@ impl FixtureSource {
                         )
                     })?;
                 src.teams.insert(key, nav);
+            }
+        }
+        let records = dir.join("teamrecords");
+        if records.is_dir() {
+            for (stem, data) in read_json_dir::<TeamRecords>(&records)? {
+                src.team_records
+                    .insert(team_season(&stem, "teamrecords")?, data);
+            }
+        }
+        let cores = dir.join("teamcore");
+        if cores.is_dir() {
+            for (stem, data) in read_json_dir::<TeamCore>(&cores)? {
+                src.team_cores.insert(team_season(&stem, "teamcore")?, data);
             }
         }
         let rankings = dir.join("rankings");
@@ -227,6 +255,15 @@ impl FixtureSource {
         }
         Ok(())
     }
+}
+
+/// A `<team_id>-<season>` fixture stem as its two numbers.
+fn team_season(stem: &str, folder: &str) -> Result<(i64, i64)> {
+    stem.split_once('-')
+        .and_then(|(team, season)| Some((team.parse().ok()?, season.parse().ok()?)))
+        .with_context(|| {
+            format!("{folder} fixture {stem}.json is not named <team_id>-<season>.json")
+        })
 }
 
 /// One JSON fixture file, parsed.
@@ -358,6 +395,16 @@ pub mod layout {
         Path::new("teamnav").join(format!("{school_id}-{season}.json"))
     }
 
+    /// `teamrecords/<team_id>-<season>.json`.
+    pub fn team_records(team_id: i64, season: i64) -> PathBuf {
+        Path::new("teamrecords").join(format!("{team_id}-{season}.json"))
+    }
+
+    /// `teamcore/<team_id>-<season>.json`.
+    pub fn team_core(team_id: i64, season: i64) -> PathBuf {
+        Path::new("teamcore").join(format!("{team_id}-{season}.json"))
+    }
+
     /// `navinfo/<season>.json`: the season's tree.
     pub fn navinfo(season: i64) -> PathBuf {
         Path::new("navinfo").join(format!("{season}.json"))
@@ -444,6 +491,20 @@ impl DataSource for FixtureSource {
             .get(&(school_id, season))
             .cloned()
             .with_context(|| format!("no fixture TeamNav for school {school_id} in {season}"))
+    }
+
+    async fn team_records(&self, team_id: i64, season: i64) -> Result<TeamRecords> {
+        self.team_records
+            .get(&(team_id, season))
+            .cloned()
+            .with_context(|| format!("no fixture teamrecords/{team_id}-{season}.json"))
+    }
+
+    async fn team_core(&self, team_id: i64, season: i64) -> Result<TeamCore> {
+        self.team_cores
+            .get(&(team_id, season))
+            .cloned()
+            .with_context(|| format!("no fixture teamcore/{team_id}-{season}.json"))
     }
 
     async fn rankings_page(&self, q: &PageQuery<'_>) -> Result<RankingsPage> {

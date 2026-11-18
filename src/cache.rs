@@ -62,6 +62,11 @@ pub enum DataKind {
     /// State, Area and league lists it is on. Final once the season is over;
     /// while it is in progress Athletic.net may still move the school.
     TeamDivisions { season_finished: bool },
+    /// A college team in one season (`TeamHome/GetTeamEventRecords`, its
+    /// season bests by event, and `TeamHome/GetTeamCore`, its name and
+    /// level). Final once the season is over; while it is in progress new
+    /// meets are posted.
+    TeamRecords { season_finished: bool },
     /// "Athletic.net has no such season yet": a marker stored where the
     /// season's [`DataKind::AreaTree`] would be, so the next few runs do not
     /// ask again, while a season that appears is found within hours.
@@ -128,6 +133,12 @@ impl DataKind {
                 season_finished: true,
             } => Freshness::Forever,
             DataKind::TeamDivisions {
+                season_finished: false,
+            } => Freshness::For(12 * HOUR),
+            DataKind::TeamRecords {
+                season_finished: true,
+            } => Freshness::Forever,
+            DataKind::TeamRecords {
                 season_finished: false,
             } => Freshness::For(12 * HOUR),
             DataKind::MissingSeason => Freshness::For(6 * HOUR),
@@ -418,6 +429,19 @@ mod tests {
         };
         assert!(hit_after(finished, YEARS));
         let in_progress = DataKind::TeamDivisions {
+            season_finished: false,
+        };
+        assert!(hit_after(in_progress, 12 * HOUR));
+        assert!(!hit_after(in_progress, 12 * HOUR + Duration::from_secs(1)));
+    }
+
+    #[test]
+    fn team_records_last_forever_once_the_season_is_over() {
+        let finished = DataKind::TeamRecords {
+            season_finished: true,
+        };
+        assert!(hit_after(finished, YEARS));
+        let in_progress = DataKind::TeamRecords {
             season_finished: false,
         };
         assert!(hit_after(in_progress, 12 * HOUR));

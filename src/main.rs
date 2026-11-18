@@ -13,6 +13,7 @@ use ath::area::{
 };
 use ath::athletic::AthleticNet;
 use ath::cache::{CacheMode, ResponseCache};
+use ath::college::{CollegeQuery, CollegeStatus, colleges};
 use ath::contract::{Format, emit};
 use ath::http::{DEFAULT_USER_AGENT, ReqwestFetcher};
 use ath::list::{Grades, ListQuery, Which, rankings_list};
@@ -157,6 +158,9 @@ enum Command {
     /// Place an Athlete on State and Area Rankings lists, for each Grade
     /// group, with the people around them.
     Rank(RankArgs),
+    /// Rank an Athlete's Personal record in an event against college teams'
+    /// season bests, season by season.
+    Colleges(CollegesArgs),
     /// Set up the browser relay that fetches Athletic.net through your browser.
     Relay(RelayArgs),
 }
@@ -327,6 +331,36 @@ struct RankArgs {
 }
 
 #[derive(Args, Debug)]
+struct CollegesArgs {
+    /// Athletic.net athlete id (the number in the Profile URL).
+    #[arg(value_name = "ATHLETE_ID")]
+    athlete_id: i64,
+
+    /// Event: a flat race ("400m" or "400 Meters") or an event's full name as
+    /// the Profile has it ("100m Hurdles"). Running events only.
+    #[arg(long, value_name = "EVENT")]
+    event: String,
+
+    /// Athletic.net team ids of the colleges, comma-separated, in the order to
+    /// report them (the number in a team's URL).
+    #[arg(long, value_name = "IDS", required = true, value_delimiter = ',',
+          value_parser = clap::value_parser!(i64).range(1..))]
+    teams: Vec<i64>,
+
+    /// Outdoor seasons (years), comma-separated, in the order to report them.
+    /// Defaults to this year.
+    #[arg(long, value_name = "YEARS", value_delimiter = ',',
+          value_parser = clap::value_parser!(i64).range(1..ath::mark::INDOOR_SEASON_BASE))]
+    seasons: Vec<i64>,
+
+    /// Offline mode: read recorded responses from DIR (`<athlete_id>.json`,
+    /// `teamrecords/` and `teamcore/`) instead of the live API (skips the
+    /// cookie, the relay and the network).
+    #[arg(long, value_name = "DIR")]
+    fixtures_dir: Option<String>,
+}
+
+#[derive(Args, Debug)]
 struct RelayArgs {
     #[command(subcommand)]
     command: RelayCommand,
@@ -459,6 +493,7 @@ async fn main() -> Result<()> {
         Command::Areas(args) => run_areas(&cli.global, args).await,
         Command::List(args) => run_list(&cli.global, args).await,
         Command::Rank(args) => run_rank(&cli.global, args).await,
+        Command::Colleges(args) => run_colleges(&cli.global, args).await,
         Command::Relay(args) => match &args.command {
             RelayCommand::Install(install) => {
                 print!("{}", relay_install(&cli.global, install));
@@ -727,6 +762,61 @@ async fn run_rank(global: &GlobalArgs, args: &RankArgs) -> Result<()> {
         bail!(
             "none of the {lists} list(s) could be read, for any Grade group ({} results)",
             report.results.len()
+        );
+    }
+    Ok(())
+}
+
+/// `ath colleges`: an Athlete's Personal record against college teams, in
+/// the output contract's format.
+async fn run_colleges(global: &GlobalArgs, args: &CollegesArgs) -> Result<()> {
+    refuse_bare_number(&args.event)?;
+    let source = build_source(global, args.fixtures_dir.as_deref()).await?;
+    let seasons = if args.seasons.is_empty() {
+        vec![this_year(global, args.fixtures_dir.as_deref())?]
+    } else {
+        args.seasons.clone()
+    };
+    let mut teams = args.teams.clone();
+    let mut seen = std::collections::HashSet::new();
+    teams.retain(|t| seen.insert(*t));
+    let query = CollegeQuery {
+        athlete_id: args.athlete_id,
+        event: &args.event,
+        teams: &teams,
+        seasons: &seasons,
+        today: today(global, args.fixtures_dir.as_deref())?,
+    };
+    let report = colleges(source.as_ref(), &query).await?;
+    let format = Format::detect(global.json, global.table);
+    // The table prints the notes itself.
+    if format == Format::Json {
+        if let Some(note) = &report.note {
+            eprintln!("ath: warning - {note}");
+        }
+        for r in report
+            .results
+            .iter()
+            .filter(|r| r.status == CollegeStatus::LookupFailed)
+        {
+            eprintln!(
+                "ath: warning - team {} {}: {}",
+                r.team.id,
+                r.season,
+                r.note.as_deref().unwrap_or("could not be read")
+            );
+        }
+    }
+    emit(&report, format, &mut std::io::stdout().lock())?;
+    // Printed, but not a success: a script must not take it for one.
+    if report
+        .results
+        .iter()
+        .all(|r| r.status == CollegeStatus::LookupFailed)
+    {
+        bail!(
+            "none of the {} team(s) could be read, for any season",
+            teams.len()
         );
     }
     Ok(())
@@ -1602,6 +1692,54 @@ mod tests {
         assert_eq!(kind(&["--season", "12026"]), ErrorKind::ValueValidation);
         let err = parse_cli(["ath", "rank", "1"]).unwrap_err();
         assert_eq!(err.kind(), ErrorKind::MissingRequiredArgument);
+    }
+
+    fn colleges_args(cli: &Cli) -> &CollegesArgs {
+        match &cli.command {
+            Command::Colleges(a) => a,
+            other => panic!("expected colleges, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parses_colleges() {
+        let cli = parse_cli([
+            "ath",
+            "colleges",
+            "982389051",
+            "--event",
+            "400m",
+            "--teams",
+            "21484,20765",
+            "--seasons",
+            "2026,2025",
+        ])
+        .unwrap();
+        let a = colleges_args(&cli);
+        assert_eq!((a.athlete_id, a.event.as_str()), (982389051, "400m"));
+        assert_eq!(a.teams, [21484, 20765]);
+        assert_eq!(a.seasons, [2026, 2025]);
+        let cli = parse_cli(["ath", "colleges", "1", "--event", "400m", "--teams", "7"]).unwrap();
+        assert!(
+            colleges_args(&cli).seasons.is_empty(),
+            "this year by default"
+        );
+    }
+
+    #[test]
+    fn colleges_refuses_bad_arguments() {
+        let kind = |extra: &[&str]| {
+            let mut args = vec!["ath", "colleges", "1", "--event", "400m"];
+            args.extend(extra);
+            parse_cli(args).unwrap_err().kind()
+        };
+        assert_eq!(kind(&[]), ErrorKind::MissingRequiredArgument);
+        assert_eq!(kind(&["--teams", "0"]), ErrorKind::ValueValidation);
+        assert_eq!(kind(&["--teams", "x"]), ErrorKind::ValueValidation);
+        assert_eq!(
+            kind(&["--teams", "7", "--seasons", "12026"]),
+            ErrorKind::ValueValidation
+        );
     }
 
     #[test]

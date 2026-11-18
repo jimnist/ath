@@ -145,6 +145,12 @@ impl FixtureFetcher {
             (Method::Get, "Team") => self
                 .read(&layout::teamnav(num("team")?, num("season")?))
                 .map(ok),
+            (Method::Get, "GetTeamEventRecords") => self
+                .read(&layout::team_records(num("teamId")?, num("seasonId")?))
+                .map(ok),
+            (Method::Get, "GetTeamCore") => self
+                .read(&layout::team_core(num("teamId")?, num("year")?))
+                .map(ok),
             (Method::Get, "GetMeetData") => {
                 let raw = self.read(&layout::meet(num("meetId")?))?;
                 Some(ok(set_top_level_string(&raw, "jwtMeet", MEET_TOKEN)))
