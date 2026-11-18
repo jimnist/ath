@@ -1743,7 +1743,7 @@ class Colleges(AnonymizedAreas):
             (college_files()[2099], self.expect(teams=[960000001]), "other teams than the config's"),
             (college_files()[2099], self.expect(season=2098), "not athlete 982389051 2098"),
             (college_files()[2099], self.expect(athlete_id=1), "not athlete 1 2099"),
-            ({"format": 1, "pulled": "x", "colleges": {"schema": 2}}, None, "schema 2"),
+            ({"format": 1, "pulled": "x", "colleges": {"schema": 3}}, None, "schema 3"),
             ({"format": 1, "pulled": "x", "colleges": {"schema": 1}}, None, "not a whole ath colleges report"),
             (saved(), None, "not a saved college season"),
         ]

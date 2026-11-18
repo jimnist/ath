@@ -265,6 +265,9 @@ pub struct CollegeResult {
     pub ahead: Vec<CollegeMark>,
     /// The team's marks exactly the Athlete's.
     pub tied: Vec<CollegeMark>,
+    /// The team's marks slower than the Athlete's, best first, so a reader
+    /// has the whole list (rankmap merges hand-entered marks into it).
+    pub behind: Vec<CollegeMark>,
     pub note: Option<String>,
 }
 
@@ -289,7 +292,7 @@ pub struct Colleges {
 }
 
 impl Report for Colleges {
-    const SCHEMA: u32 = 1;
+    const SCHEMA: u32 = 2;
 
     fn table(&self) -> String {
         let mut out = match &self.mark {
@@ -371,7 +374,7 @@ fn day(raw: Option<&str>) -> Option<String> {
 
 /// Place `mark` among a team's rows: the counted ones (`names`, `gender`),
 /// leaving out the Athlete's own. Returns the counted marks, the place, and
-/// the marks ahead and tied.
+/// the marks ahead, tied and behind.
 pub fn place_on_team(
     records: &TeamRecords,
     athlete_id: i64,
@@ -383,6 +386,7 @@ pub fn place_on_team(
     Option<CollegePlace>,
     Vec<CollegeMark>,
     Vec<CollegeMark>,
+    Vec<CollegeMark>,
 ) {
     let mut counted: Vec<(i64, &TeamRecord)> = records
         .event_records
@@ -392,7 +396,7 @@ pub fn place_on_team(
         .collect();
     counted.sort_by(|(a, ra), (b, rb)| a.cmp(b).then_with(|| ra.name().cmp(&rb.name())));
     let Some(mark) = mark else {
-        return (counted.len(), None, Vec::new(), Vec::new());
+        return (counted.len(), None, Vec::new(), Vec::new(), Vec::new());
     };
     let row = |&(sort_int, r): &(i64, &TeamRecord)| CollegeMark {
         athlete_id: r.athlete_id,
@@ -411,6 +415,7 @@ pub fn place_on_team(
         .filter(|(s, _)| *s == mark)
         .map(row)
         .collect();
+    let behind: Vec<CollegeMark> = counted.iter().filter(|(s, _)| *s > mark).map(row).collect();
     let rank = ahead.len() + 1;
     let place = CollegePlace {
         rank,
@@ -419,7 +424,7 @@ pub fn place_on_team(
         ahead: ahead.len(),
         ties: tied.len(),
     };
-    (counted.len(), Some(place), ahead, tied)
+    (counted.len(), Some(place), ahead, tied, behind)
 }
 
 /// `ath colleges`: the Athlete's Personal record in the event against each
@@ -526,11 +531,12 @@ pub async fn colleges<S: DataSource + ?Sized>(
                 place: None,
                 ahead: Vec::new(),
                 tied: Vec::new(),
+                behind: Vec::new(),
                 note: None,
             };
             match source.team_records(team_id, season).await {
                 Ok(records) => {
-                    let (marks, place, ahead, tied) = place_on_team(
+                    let (marks, place, ahead, tied, behind) = place_on_team(
                         &records,
                         q.athlete_id,
                         gender,
@@ -543,6 +549,7 @@ pub async fn colleges<S: DataSource + ?Sized>(
                     result.place = place;
                     result.ahead = ahead;
                     result.tied = tied;
+                    result.behind = behind;
                 }
                 Err(e) => {
                     result.status = CollegeStatus::LookupFailed;
@@ -627,7 +634,7 @@ mod tests {
         // Even a FAT split.
         r.event_records[2].event_type_id = Some(98);
         let ev = names(&["400 Meters"]);
-        let (marks, place, ahead, _) = place_on_team(&r, 1, Gender::F, &ev, Some(55_000));
+        let (marks, place, ahead, _, _) = place_on_team(&r, 1, Gender::F, &ev, Some(55_000));
         assert_eq!(marks, 1);
         assert_eq!(place.unwrap().label, "2");
         assert_eq!(
@@ -651,7 +658,8 @@ mod tests {
             ("F", "400 Meters", "57.50a", 57500, 1, 17, "Garrow"),
         ]);
         let ev = names(&["400 meters"]);
-        let (marks, place, ahead, tied) = place_on_team(&r, 1, Gender::F, &ev, Some(55_000));
+        let (marks, place, ahead, tied, behind) =
+            place_on_team(&r, 1, Gender::F, &ev, Some(55_000));
         assert_eq!(marks, 3);
         let place = place.unwrap();
         assert_eq!(
@@ -663,6 +671,10 @@ mod tests {
             ["52.10", "54.00"]
         );
         assert!(tied.is_empty());
+        assert_eq!(
+            behind.iter().map(|a| a.mark.as_str()).collect::<Vec<_>>(),
+            ["57.50"]
+        );
         let a = &ahead[0];
         assert_eq!(a.name, "Pat Ashgrove");
         assert_eq!(a.meet.as_deref(), Some("Lakeshore Invitational"));
@@ -681,25 +693,27 @@ mod tests {
             ("F", "400 Meters", "55.00a", 55000, 1, 12, "Birchley"),
             ("F", "400 Meters", "55.00a", 55000, 1, 13, "Cotter"),
         ]);
-        let (marks, place, ahead, tied) =
+        let (marks, place, ahead, tied, behind) =
             place_on_team(&r, 1, Gender::F, &names(&["400 meters"]), Some(55_000));
         let place = place.unwrap();
         assert_eq!(marks, 3);
         assert_eq!((place.rank, place.label.as_str(), place.ties), (2, "T2", 2));
         assert_eq!(ahead.len(), 1);
         assert_eq!(tied.len(), 2);
+        assert!(behind.is_empty());
     }
 
     #[test]
     fn a_team_without_marks_places_first_of_none_and_the_athlete_is_left_out() {
         let r = records(&[("F", "400 Meters", "52.10a", 52100, 1, 1, "Self")]);
-        let (marks, place, ahead, _) =
+        let (marks, place, ahead, _, _) =
             place_on_team(&r, 1, Gender::F, &names(&["400 meters"]), Some(55_000));
         assert_eq!(marks, 0);
         assert_eq!(place.unwrap().rank, 1);
         assert!(ahead.is_empty());
         // Without a mark, the count alone.
-        let (marks, place, _, _) = place_on_team(&r, 2, Gender::F, &names(&["400 meters"]), None);
+        let (marks, place, _, _, _) =
+            place_on_team(&r, 2, Gender::F, &names(&["400 meters"]), None);
         assert_eq!((marks, place), (1, None));
     }
 

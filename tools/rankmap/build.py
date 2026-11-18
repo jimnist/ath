@@ -7,6 +7,7 @@ import functools
 import json
 import re
 import sys
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -299,9 +300,11 @@ def _whole(r, expect):
 
 # ---------------------------------------------------------------- colleges
 
-# The saved college season format this build reads, and the `ath colleges` JSON schema inside it.
+# The saved college season format this build reads, and the `ath colleges` JSON schemas inside it
+# it reads: 2 lists every team mark (`behind` too), which merging hand-entered marks needs; 1 does
+# not, so a season saved with it builds without its hand-entered marks until it is collected again.
 COLLEGES_FORMAT = 1
-ATH_COLLEGES_SCHEMA = 1
+ATH_COLLEGES_SCHEMAS = (1, 2)
 
 
 def college_file(report, pulled):
@@ -327,8 +330,9 @@ def check_colleges(saved, expect=None):
         raise SeasonError(f"is not a saved college season (format {COLLEGES_FORMAT})")
     try:
         r = saved["colleges"]
-        if r.get("schema") != ATH_COLLEGES_SCHEMA:
-            raise SeasonError(f"ath colleges JSON schema {r.get('schema')}; this rankmap reads {ATH_COLLEGES_SCHEMA}")
+        if r.get("schema") not in ATH_COLLEGES_SCHEMAS:
+            raise SeasonError(f"ath colleges JSON schema {r.get('schema')}; this rankmap reads "
+                              f"{' or '.join(map(str, ATH_COLLEGES_SCHEMAS))}")
         if len(r["seasons"]) != 1:
             raise SeasonError(f"has seasons {r['seasons']}, not one")
         failed = sorted({x["team"]["id"] for x in r["results"] if x["status"] == "lookup_failed"})
@@ -356,31 +360,166 @@ def college_person(row):
     return {"name": row["name"], "mark": row["mark"], "meet": row["meet"] or "", "url": row["url"]}
 
 
-def prepare_colleges(teams, files):
+# ---------------------------------------------------------------- hand-entered college marks
+
+# A list of one college team's marks for one season, gender and event, copied by hand from another
+# results source and kept in the user's private local/ folder (college_marks.py writes it). The
+# build merges it into the team's Athletic.net marks; nothing ever fetches it.
+HAND_FORMAT = 1
+HAND_HOW = "copied by hand from a season list"
+# A running time as shown, to the hundredth: 53.76, 1:00.04, 35:12.34.
+TIME = re.compile(r"(?:(\d{1,2}):(?=\d{2}\.))?(\d{1,2})\.(\d{2})")
+
+
+def time_hundredths(text):
+    """A running time as shown ("53.76", "1:00.04"), in hundredths of a second; None for anything
+    else (a time not to the hundredth, a field mark, words)."""
+    m = TIME.fullmatch(str(text).strip())
+    if not m:
+        return None
+    minutes, seconds, hundredths = m.groups()
+    if minutes is not None and int(seconds) >= 60:
+        return None
+    return (int(minutes or 0) * 60 + int(seconds)) * 100 + int(hundredths)
+
+
+def name_key(name):
+    """A person's name as compared across sources: "Last, First" read as "First Last", and accents,
+    case, punctuation and spaces dropped ("O'Neil-Park, Ana" and "Ana ONeil Park" are one name)."""
+    text = str(name)
+    if "," in text:
+        last, first = text.split(",", 1)
+        text = f"{first} {last}"
+    text = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in text.lower() if c.isalnum() and not unicodedata.combining(c))
+
+
+def shown_name(text):
+    """A name as the page shows it: "Last, First" as "First Last", one space between words."""
+    t = " ".join(str(text).split())
+    if "," in t:
+        last, first = t.split(",", 1)
+        t = f"{first.strip()} {last.strip()}"
+    return t
+
+
+def check_hand_marks(saved):
+    """A hand-entered list as saved, checked: its format, team, season, gender, event, and each
+    row's name and time. Returns it; raises SeasonError for a file of another shape."""
+    if not isinstance(saved, dict) or saved.get("format") != HAND_FORMAT:
+        raise SeasonError(f"is not a hand-entered list (format {HAND_FORMAT})")
+    try:
+        whole = (isinstance(saved["team"], int) and isinstance(saved["season"], int)
+                 and saved["gender"] in ("f", "m") and isinstance(saved["event"], str)
+                 and saved["event"].strip() and isinstance(saved["marks"], list))
+        if not whole:
+            raise SeasonError("is not a whole hand-entered list (team, season, gender, event and marks)")
+        for i, row in enumerate(saved["marks"]):
+            if not name_key(row["name"]) or time_hundredths(row["mark"]) is None:
+                raise SeasonError(f"row {i + 1} is not a name and a time ({row.get('name')!r}, {row.get('mark')!r})")
+    except (KeyError, TypeError, AttributeError) as e:
+        raise SeasonError(f"is not a whole hand-entered list ({type(e).__name__}: {e})") from None
+    return saved
+
+
+def hand_counts_for(hand, report):
+    """Whether a hand-entered list is of an `ath colleges` report's gender and event: a list counts
+    only for the athlete's own."""
+    events = {event_key(n) for n in (report["event"], report["event_name"]) if n}
+    return hand["gender"] == report["gender"] and event_key(hand["event"]) in events
+
+
+def merge_hand(x, mine, athlete, rows):
+    """A team's season bests on Athletic.net (x, an `ath colleges` result) merged with hand-entered
+    rows of the same team, season, gender and event, against the athlete's mark (mine, the report's
+    `mark`; athlete, their name). Returns (the marks counted, the marks ahead and tied as the page
+    shows them, whether a hand-entered mark counts), or None when x does not list every team mark
+    (schema 1).
+
+    Each person counts once, with their best mark: a hand-entered row is the same person as a row
+    from Athletic.net (or an earlier hand-entered one) when their names match by name_key, and it
+    counts only when it is faster to the hundredth; an equal mark is the same mark, counted once.
+    Hand-entered marks are compared with the athlete's to the hundredth, as they are shown, and
+    Athletic.net's on SortInt, as ath compares them. The athlete's own row is left out."""
+    if "behind" not in x:
+        return None
+
+    def side(a, b):
+        return (a > b) - (a < b)
+
+    mine_hund = time_hundredths(mine["mark"]) or -(-mine["sort_int"] // 10)
+    people, index = [], {}
+    for a in x["ahead"] + x["tied"] + x["behind"]:
+        p = {"person": college_person(a), "hund": time_hundredths(a["mark"]) or -(-a["sort_int"] // 10),
+             "sort": a["sort_int"], "hand": False, "side": side(a["sort_int"], mine["sort_int"])}
+        index.setdefault(name_key(a["name"]), p)
+        people.append(p)
+    me = name_key(athlete)
+    for row in rows:
+        key, hund = name_key(row["name"]), time_hundredths(row["mark"])
+        if key == me:
+            continue
+        p = {"person": {"name": shown_name(row["name"]), "mark": row["mark"], "meet": row.get("meet") or "",
+                        "url": None},
+             "hund": hund, "sort": hund * 10, "hand": True, "side": side(hund, mine_hund)}
+        known = index.get(key)
+        if known is None:
+            index[key] = p
+            people.append(p)
+        elif hund < known["hund"]:
+            # The same person, faster than the mark counted for them so far: the mark and meet
+            # become the hand-entered ones, and the name and profile link counted so far stay.
+            p["person"].update(name=known["person"]["name"], url=known["person"]["url"])
+            known.update(p)
+    order = sorted(people, key=lambda p: (p["hund"], p["sort"], p["person"]["name"]))
+    return (len(people), [p["person"] for p in order if p["side"] < 0],
+            [p["person"] for p in order if p["side"] == 0], any(p["hand"] for p in people))
+
+
+def prepare_colleges(teams, files, hand=None):
     """The Colleges section from the config's colleges ([{"name", "team"}], in display order) and
-    the saved college seasons ({season: saved}), newest season first; None without either."""
+    the saved college seasons ({season: saved}), newest season first; None without either.
+
+    hand: hand-entered lists ({(team id, season): [saved list, ...]}, see check_hand_marks), merged
+    into the team's marks of the same season when they are of the athlete's gender and event
+    (merge_hand). A college row is `hand` when its shown ranks count a hand-entered mark; a season
+    whose saved report cannot take them (schema 1) is listed in `unmerged`, as (college, season)."""
     if not teams or not files:
         return None
+    hand = hand or {}
     seasons = sorted(files, key=int, reverse=True)
     reports = {s: check_colleges(files[s]) for s in seasons}
-    rows = []
+    rows, unmerged = [], []
     for t in teams:
-        cells, url = {}, None
+        cells, url, counted = {}, None, False
         for s in seasons:
-            x = next((x for x in reports[s]["results"] if x["team"]["id"] == t["team"]), None)
+            r = reports[s]
+            x = next((x for x in r["results"] if x["team"]["id"] == t["team"]), None)
             if x is None:
                 cells[str(s)] = None
                 continue
             url = url or x["url"]
             p = x["place"]
-            cells[str(s)] = {"marks": x["marks"], "url": x["url"],
-                             "label": p and p["label"], "rank": p and p["rank"], "bucket": p and bucket(p["rank"]),
-                             "ahead": [college_person(a) for a in x["ahead"]],
-                             "ties": [college_person(a) for a in x["tied"]]}
-        rows.append({"name": t["name"], "team": t["team"], "url": url, "cells": cells})
+            cell = {"marks": x["marks"], "url": x["url"],
+                    "label": p and p["label"], "rank": p and p["rank"], "bucket": p and bucket(p["rank"]),
+                    "ahead": [college_person(a) for a in x["ahead"]],
+                    "ties": [college_person(a) for a in x["tied"]]}
+            lists = [h for h in hand.get((t["team"], int(s)), []) if hand_counts_for(h, r)]
+            if lists and r["mark"] is not None:
+                merged = merge_hand(x, r["mark"], r["athlete"]["name"], [m for h in lists for m in h["marks"]])
+                if merged is None:
+                    unmerged.append((t["name"], str(s)))
+                elif merged[3]:
+                    marks, ahead, ties, _ = merged
+                    rank = len(ahead) + 1
+                    cell.update(marks=marks, label=f"T{rank}" if ties else str(rank), rank=rank, bucket=bucket(rank),
+                                ahead=ahead, ties=ties)
+                    counted = True
+            cells[str(s)] = cell
+        rows.append({"name": t["name"], "team": t["team"], "url": url, "cells": cells, "hand": counted})
     newest = reports[seasons[0]]
     return {"seasons": [str(s) for s in seasons], "mark": newest["mark"], "rows": rows,
-            "pulled": {str(s): files[s]["pulled"] for s in seasons}}
+            "pulled": {str(s): files[s]["pulled"] for s in seasons}, "unmerged": unmerged}
 
 
 def college_rank_text(c):
@@ -772,8 +911,10 @@ class Page:
         """A team mark ahead of or tied with the Athlete: mark, name, meet."""
         t = " &middot; tied" if tie else ""
         cls = ' class="tie"' if tie else ""
+        # A hand-entered mark has no profile to link to.
+        name = self.link(a["name"], a["url"]) if a["url"] else esc(a["name"])
         return (f'<li{cls}><span class="mk">{esc(a["mark"])}</span> '
-                f'<span class="nm">{self.link(a["name"], a["url"])}</span> '
+                f'<span class="nm">{name}</span> '
                 f'<span class="tm">{esc(a["meet"])}{t}</span></li>')
 
     def college_cell(self, season, c):
@@ -813,8 +954,12 @@ class Page:
             body = f'<p class="mapnote">{first} has no {event} mark to compare with the colleges yet.</p>'
         else:
             heads = "".join(f"<th>{s}</th>" for s in c["seasons"])
+            # A bare asterisk after a college's name says its ranks count marks entered by hand from
+            # another results source (the user's private files, see prepare_colleges). By design
+            # the page says nothing more about them: no legend, no note, never the source.
             rows = "".join(
-                f'<tr><td class="sn">{self.link(r["name"], r["url"]) if r["url"] else esc(r["name"])}</td>'
+                f'<tr><td class="sn">{self.link(r["name"], r["url"]) if r["url"] else esc(r["name"])}'
+                + ('<span class="hm">*</span>' if r["hand"] else "") + '</td>'
                 + "".join(self.college_cell(s, r["cells"][s]) for s in c["seasons"]) + "</tr>"
                 for r in c["rows"])
             body = (f'<p class="lede">{first}&rsquo;s best, <b>{esc(c["mark"]["mark"])}</b>, against each college '
@@ -1096,7 +1241,8 @@ class Page:
         return TEMPLATE.format(
             robots="" if self.example else ROBOTS,
             example_css=("\n" + FOOTER_CSS if self.example else "")
-            + (COLLEGES_CSS.format(mark_ch=self.college_mark_ch()) if self.colleges else ""),
+            + (COLLEGES_CSS.format(mark_ch=self.college_mark_ch()) if self.colleges else "")
+            + (HAND_CSS if self.colleges and any(r["hand"] for r in self.colleges["rows"]) else ""),
             colleges=self.colleges_html(),
             footer="\n  " + example_footer() if self.example else "",
             links=("Names link to a page about the links: an example has no real lists or profiles."
@@ -1157,7 +1303,8 @@ class Page:
                     x = r["cells"][season]
                     if x is None:
                         continue
-                    who = "; ".join(f"{a['name']} {a['mark']} ({a['meet']}" + ("" if self.example else f", {a['url']}")
+                    who = "; ".join(f"{a['name']} {a['mark']} ({a['meet']}"
+                                    + ("" if self.example or not a["url"] else f", {a['url']}")
                                     + ")" for a in x["ahead"] + x["ties"])
                     rows.append([season, c["mark"]["mark"], "college season bests (FAT)", "College",
                                  college_rank_text(x), r["name"], r["team"], len(x["ahead"]), len(x["ties"]), who,
@@ -1251,7 +1398,9 @@ class Page:
                 if x and x["ahead"]:
                     text += f", led by {x['ahead'][0]['name']} {x['ahead'][0]['mark']}"
                 cells.append(text)
-            lines.append(f"| {r['name']} | " + " | ".join(cells) + " |")
+            # The page's asterisk (colleges_html), escaped so Markdown shows it.
+            star = "\\*" if r["hand"] else ""
+            lines.append(f"| {r['name']}{star} | " + " | ".join(cells) + " |")
         lines += [""] + [f"- {s} college data pulled {pretty_date(d)}" for s, d in c["pulled"].items()]
         return lines
 
@@ -1262,7 +1411,7 @@ def slug(meta):
 
 
 def build(saved_seasons, all_seasons, out_dir, theme=THEME, example=False, areas_dir=None, spots_dir=None,
-          colleges=None, college_seasons=None):
+          colleges=None, college_seasons=None, college_marks=None):
     """Write <slug>.html/.md/.csv into out_dir, in theme. saved_seasons: {season: saved season}.
     spots_dir: where label spots fitted to a theme's own display font are kept (report.label_spots).
 
@@ -1273,6 +1422,8 @@ def build(saved_seasons, all_seasons, out_dir, theme=THEME, example=False, areas
 
     colleges: the config's colleges ([{"name", "team"}]) and college_seasons their saved seasons
     ({season: saved}, see college_file); with both, the page has a Colleges section.
+    college_marks: hand-entered lists to merge into it ({(team id, season): [saved list, ...]}, see
+    prepare_colleges).
 
     Returns (html path, the Page: its meta and prepared seasons)."""
     if example and areas_dir is None:
@@ -1284,7 +1435,7 @@ def build(saved_seasons, all_seasons, out_dir, theme=THEME, example=False, areas
         "event": latest["event"], "event_name": latest["event_name"] or latest["event"], "athlete_id": a["id"],
     }
     page = Page(meta, prepare(saved_seasons, areas_dir), [str(s) for s in all_seasons], theme, example, spots_dir,
-                prepare_colleges(colleges, college_seasons))
+                prepare_colleges(colleges, college_seasons, college_marks))
     out_dir.mkdir(parents=True, exist_ok=True)
     base = out_dir / slug(meta)
     base.with_suffix(".html").write_text(page.html())
@@ -1312,6 +1463,12 @@ COLLEGES_CSS = """
 .cs .who .nm {{ justify-self: start; }}
 /* A phone gives each season a row of its own under the college's name, so who is faster has the width. */
 @media (max-width: 560px) {{ .ctbl thead {{ display: none; }} .ctbl tr {{ display: grid; }} .ctbl .sn {{ width: auto; border-bottom: 0; padding-bottom: 2px; }} .ctbl .cs {{ display: grid; grid-template-columns: 3.2em 1fr; align-items: baseline; border-bottom: 0; padding-top: 4px; padding-bottom: 4px; }} .ctbl tr .cs:last-child {{ padding-bottom: 10px; border-bottom: 1px solid var(--line); }} .ctbl tbody tr:last-child .cs:last-child {{ border-bottom: 0; }} .cy {{ display: block; grid-row: 1 / 3; font-family: var(--display); font-weight: 600; font-size: 12px; letter-spacing: .08em; color: var(--muted); }} .cs > :not(.cy) {{ grid-column: 2; }} .nb, .cs details {{ margin-top: 2px; }} }}"""
+
+
+# The asterisk after a college whose ranks count hand-entered marks (colleges_html), only on a page
+# that has one: quiet beside the name, outside its link so the link's underline stops at the name.
+HAND_CSS = """
+.hm { color: var(--muted); font-weight: 400; margin-left: 1px; }"""
 
 
 TEMPLATE = """<!doctype html>

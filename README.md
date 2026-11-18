@@ -606,8 +606,8 @@ Wrenmoor State  2098    no marks  0
 ```
 
 The JSON has `athlete` (`{id, name, first_name, url}`), `gender`, `event` (as asked), `event_name` (the Profile's name for it), `status` (`ok` or `no_mark`), `mark` (`{mark, sort_int, season, date, meet, meet_id}`, the Personal record), `seasons`, `note` and `results`.
-Each result is one team and season: `{team, season, url, status, marks, place, ahead, tied, note}`, where `team` is `{id, name, level}`, `url` is the team's Athletic.net page for the season, `status` is `ok`, `no_mark` or `lookup_failed`, `marks` counts the team's marks that count, `place` is `{rank, tied, label, ahead, ties}`, and `ahead` and `tied` list the team's marks faster than and equal to the Athlete's, best first, as `{athlete_id, name, grade_id, mark, sort_int, meet, meet_id, date, url}` (`grade_id` is Athletic.net's grade code, as given).
-rankmap reads this JSON, so its shape is pinned by a test (`tests/colleges.rs`) and versioned by `schema`.
+Each result is one team and season: `{team, season, url, status, marks, place, ahead, tied, behind, note}`, where `team` is `{id, name, level}`, `url` is the team's Athletic.net page for the season, `status` is `ok`, `no_mark` or `lookup_failed`, `marks` counts the team's marks that count, `place` is `{rank, tied, label, ahead, ties}`, and `ahead`, `tied` and `behind` list the team's marks faster than, equal to and slower than the Athlete's, best first (all three empty when the Athlete has no mark), as `{athlete_id, name, grade_id, mark, sort_int, meet, meet_id, date, url}` (`grade_id` is Athletic.net's grade code, as given).
+rankmap reads this JSON, so its shape is pinned by a test (`tests/colleges.rs`) and versioned by `schema` (2 since `behind` was added).
 
 ```
 $ ath colleges --help
@@ -745,6 +745,7 @@ python3 tools/rankmap/rankmap.py                                                
 
 When the athlete's home State has Areas (California's CIF Sections), a switch shows the same on a county map of the State, one Section at a time on click.
 A Colleges section ranks the athlete's best against a list of college teams' season bests, this college season and last (`ath colleges`).
+Marks copied by hand from another results source count there too, kept in your private `local/` (`tools/rankmap/college_marks.py`, see [Hand-entered college marks](docs/rankmap.md#hand-entered-college-marks)).
 It is a Python tool (standard library only) that gets its data from `ath rank --in all,areas --ahead all` and `ath colleges` (through the browser relay) and renders the page; finished seasons are kept as collected.
 Full guide: [`docs/rankmap.md`](docs/rankmap.md).
 

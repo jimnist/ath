@@ -76,6 +76,7 @@ Against the colleges, the athlete's mark is their best ever: their outdoor FAT P
 Relay splits on a team's list (a 4x400 leg listed under 400 Meters) are not open marks and never count.
 Rank is 1 plus the number of the team's marks that are faster, and a tie shares the rank; "of N" counts the team's marks and hers.
 Only meets entered on Athletic.net are in a team's records, so a team can show few marks, or none.
+Marks you enter by hand from another results source count too, merged with Athletic.net's (see [Hand-entered college marks](#hand-entered-college-marks)).
 
 ## Setup
 
@@ -133,6 +134,7 @@ For each of the athlete's four seasons:
 Then come the college seasons: this one (the current outdoor season once it has started, March 1, else the latest finished one) and the one before, so 2026 and 2025 from March 1, 2026 to the end of February 2027.
 Each is one run of `ath colleges` (below), collected when it is not saved yet (or was saved for other teams than the config's colleges, or cannot be read), when it is in progress (until the config's `season_end`), when `--refresh` names it, and on any run that collected a State season, so the Personal record it ranks stays the newest; otherwise a finished college season stays as it was saved.
 A college season is saved only when every team was read; otherwise rankmap says why and keeps what it had.
+A season saved before `ath colleges` listed every team mark (its JSON `schema` 1) is collected again when hand-entered marks are kept for it, since merging them needs the whole list; until then it builds without them, and rankmap says so.
 `--no-fetch` collects none of them.
 
 Then it writes `<output_dir>/<athlete_id>-<event>.html`, `.md` and `.csv` (for example `<athlete_id>-400m.html`) from every collected season.
@@ -202,12 +204,64 @@ Each season is one file, `<data_dir>/<athlete_id>-<event>/<season>.json`: the `a
 College seasons are `<data_dir>/<athlete_id>-<event>/colleges/<season>.json`: the `ath colleges` report for that one season, and the day it was pulled.
 
 ```json
-{"format": 1, "pulled": "2026-11-18", "colleges": {"schema": 1, "athlete": {"id": 123, "...": "..."}, "seasons": [2026], "results": ["..."]}}
+{"format": 1, "pulled": "2026-11-18", "colleges": {"schema": 2, "athlete": {"id": 123, "...": "..."}, "seasons": [2026], "results": ["..."]}}
 ```
 
 The report's shape is in the README (`ath rank`); rankmap reads `athlete`, `gender`, `event`, `event_name`, `mark`, `groups` and, per result, the list's name and state, the grade group, the list URL, and the place with its Neighborhood (everyone ahead, everyone tied).
 Every link on the page comes from the report, so rankmap builds no Athletic.net URLs itself.
 A change to the `ath rank` JSON shows up as a new `schema`, which rankmap refuses until it is updated.
+
+## Hand-entered college marks
+
+Athletic.net has a college team's marks only from meets entered there, so a team's list can be short.
+You can add a team's season list for the athlete's event from another results source (a results site, or a university's own athletics site) by copying it in your own browser and pasting it in.
+Nothing in `ath` or rankmap ever fetches anything from that other source: the marks are only what you paste, and which source you use is yours to note in your private files.
+
+### The files
+
+Each list is one file in your private `local/` folder, beside the configs, never committed: `local/rankmap/college-marks/<team id>/<season>-<gender>-<event>.json`, one per college, season, gender (`f` or `m`) and event (such as `2026-f-400-meters.json`).
+It keeps how its marks were gathered: `source` (a note in your own words), `source_url` (the page the list was copied from, optional, so you can find it again), `entered` (the day it was entered), `how` (copied by hand from a season list), `pasted` (the text as pasted), and the rows read from it in `marks`.
+
+```json
+{"format": 1, "team": 123, "college": "Name", "season": 2026, "gender": "f", "event": "400 Meters", "source": "...", "source_url": "...", "entered": "2026-11-18", "how": "copied by hand from a season list", "pasted": "...", "marks": [{"name": "First Last", "year": "JR-3", "mark": "53.76", "sort_int": 53760, "meet": "...", "date": "2026-04-17"}]}
+```
+
+`sort_int` is the time in milliseconds, as `ath` compares running marks, from the time to the hundredth.
+
+### Entering a list
+
+Copy the team's season list for the event (every athlete's season best), then pipe it into `college_marks.py add` with the config, the college (its team id or its name in the config's `colleges`) and the college season:
+
+```bash
+pbpaste | python3 tools/rankmap/college_marks.py add --config <name> --team <id or name> --season 2026 --source "<where it was copied from>" --url <the page>
+pbpaste | python3 tools/rankmap/college_marks.py add --config <name> --team <id or name> --season 2026 --yes
+python3 tools/rankmap/college_marks.py list --config <name>
+```
+
+Without `--yes` it only shows the rows it read and writes nothing; check them, then run it again with `--yes` to write the file.
+`--source` is needed the first time for a college and season, and kept after (with `--url`) for the next list of that college and season.
+The gender and event are the athlete's (the event's full name, such as `400 Meters`); `--gender` and `--event` say otherwise, and `--file` reads the paste from a file instead of stdin.
+Entering the same college, season, gender and event again replaces the list, with the new paste and date.
+`list` shows which lists there are: for each of the config's colleges and the college seasons the page shows, the rows, the day entered and the source note, then any other lists in the folder.
+
+A paste can come in any of these layouts, with an optional event heading (and a "Top" link) and a row of column names before the rows:
+
+- one field per line, as copying a results page often gives it: the athlete, the class year when given, the time, then the meet and its date when given;
+- tab-separated rows, as copying an HTML table gives them (by the column names when there are some);
+- rows you type, `name, mark[, meet, date]`.
+
+Names are "Last, First" or "First Last", class years such as `JR-3`, `Jr.` or `SO-2`, and times to the hundredth such as `53.76` or `1:00.04`.
+A paste it cannot read is refused rather than guessed at: a time not to the hundredth, a hand time, a field event's mark, a heading of another event or gender, or a meet date outside the season.
+A heading and column names with no rows are an empty list.
+
+### How they count
+
+When the page is built (`--no-fetch` too, so a newly entered list needs no collecting), each college season's ranks count the hand-entered list of that college and season along with Athletic.net's marks, only when the list is of the athlete's gender and event.
+Each athlete counts once, with their best mark: a hand-entered row is the same athlete as an Athletic.net row when their names match, compared without case, accents, punctuation or spaces, and with "Last, First" read as "First Last".
+So the same athlete and mark from both sources counts once, and a faster hand-entered mark replaces the athlete's Athletic.net one (their name keeps its profile link).
+A hand-entered mark is compared to the hundredth, as it is shown; an equal mark is a tie.
+The rank, "of N", the marks ahead (a hand-entered one shows its name, mark and meet, with no link), the Markdown and the CSV all count the merged list.
+The page never shows a list's source note, link or date.
 
 ## Restyling
 
@@ -298,6 +352,8 @@ The page stays light-only, with or without a theme file: there is no dark mode, 
 | `tools/maps/label-spots.json`, `tools/maps/label_spots.py` | Where each rank number goes on the maps and how big, per label shape, in the house theme's display font: the biggest box with the number's proportions that fits in the state or Section, pulled toward its middle. Rerun the script (about ten seconds) when a map file, an Area file's counties, the house display font's metrics or the fitting change; a test says when. |
 | `tools/maps/measure_font.html` | Measures a display font's `metrics` for a theme file, in a browser. |
 | `tools/theme.example.json` | An example theme file (every token, with Oswald's metrics). |
+| `tools/rankmap/college_marks.py` | Enters hand-entered college marks: reads a pasted season list, shows its rows, writes the private file (`add`), and lists them (`list`). |
+| `tools/rankmap/test_college_marks.py` | Tests of reading pastes, the files and the merge, with made-up names in temporary folders. |
 | `tools/rankmap/test_rankmap.py` | Tests, on a saved `ath rank` report (`testdata/ath-rank-2099.json`) and saved `ath colleges` reports against made-up college teams (`testdata/ath-colleges-2099.json`, `-2098.json`), with the expected pages in `testdata/expected/`. |
 | `tools/rankmap/rankmap.config.example.json` | Example config. |
 | `.claude/skills/rankmap/SKILL.md` | The `/rankmap` agent skill. |
