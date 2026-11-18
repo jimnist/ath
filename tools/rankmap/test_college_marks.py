@@ -297,7 +297,7 @@ class Merge(unittest.TestCase):
         self.assertNotIn("private note", page + table + md)
         self.assertNotIn("hand", page.lower().replace("handle", ""))
         self.assertIn('<span class="pill b5"><span class="sup">t</span>5</span><span class="of">of 7</span>', page)
-        self.assertIn('<summary>4 faster, 1 tied <span class="tm">&middot; fastest 53.41</span></summary>', page)
+        self.assertIn('<summary>4 faster, 1 tied <span class="tm">&middot; fastest&nbsp;53.41</span></summary>', page)
         # A hand-entered mark, unlinked, with its meet.
         self.assertIn('<li><span class="mk">57.40</span> <span class="nt"><span class="nm">Odile Larkspur</span> '
                       '<span class="tm">Fernhollow Invitational</span></span></li>', page)

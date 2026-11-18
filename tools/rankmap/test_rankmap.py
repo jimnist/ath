@@ -1764,7 +1764,7 @@ class Colleges(AnonymizedAreas):
         self.assertIn('<td class="rk"><span class="cr" title="Jamie and the team&rsquo;s 5 athletes">'
                       '<span class="pill b2"><span class="sup">t</span>4</span><span class="of">of 6</span></span></td>',
                       section)
-        self.assertIn('<summary>3 faster, 1 tied <span class="tm">&middot; fastest 53.41</span></summary>', section)
+        self.assertIn('<summary>3 faster, 1 tied <span class="tm">&middot; fastest&nbsp;53.41</span></summary>', section)
         self.assertIn('<span class="pill b5">8</span><span class="of">of 10</span>', section)
         self.assertIn('<td class="ah"><span class="tm">nobody faster</span></td>', section)
         self.assertIn("Coastal Relays &middot; tied", section)

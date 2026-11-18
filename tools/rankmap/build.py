@@ -784,7 +784,7 @@ class Page:
             else:
                 who = (f'<details><summary>{len(s["ahead"])} faster'
                        f'{", " + str(len(s["ties"])) + " tied" if s["ties"] else ""}'
-                       f' <span class="tm">&middot; fastest {esc(s["ahead"][0]["mark"])}</span></summary>'
+                       f' <span class="tm">&middot; fastest&nbsp;{esc(s["ahead"][0]["mark"])}</span></summary>'
                        f'<ol class="who">{items}</ol></details>')
             out.append(
                 f'<tr data-pick="{esc(s["abbr"])}"><td class="rk"><span class="pill {s["bucket"][3]}">{rank_html(s["label"])}</span></td>'
@@ -950,7 +950,7 @@ class Page:
                 items = ("".join(self.college_li(a) for a in c["ahead"])
                          + "".join(self.college_li(a, True) for a in c["ties"]))
                 what = ", ".join(p for p in (f"{n} faster" if n else "", f"{t} tied" if t else "") if p)
-                fastest = f' <span class="tm">&middot; fastest {esc(c["ahead"][0]["mark"])}</span>' if n else ""
+                fastest = f' <span class="tm">&middot; fastest&nbsp;{esc(c["ahead"][0]["mark"])}</span>' if n else ""
                 who = f'<details><summary>{what}{fastest}</summary><ol class="who">{items}</ol></details>'
         return f'<tr><td class="rk">{rank}</td><td class="sn">{name}</td><td class="ah">{who}</td></tr>'
 
