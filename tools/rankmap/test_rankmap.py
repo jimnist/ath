@@ -1769,7 +1769,7 @@ class Colleges(AnonymizedAreas):
         self.assertIn('<td class="ah"><span class="tm">nobody faster</span></td>', section)
         self.assertIn("Coastal Relays &middot; tied", section)
         self.assertIn("against Jamie&rsquo;s best of the season picked", section)
-        self.assertIn("some college meets are missing", section)
+        self.assertIn("Some college meets are missing from these results", section)
         self.assertIn("<li>2099 college data pulled October 30, 2099</li>", page)
         self.assertNotIn("2098", section)
         self.assertNotIn("2098 college data", page)

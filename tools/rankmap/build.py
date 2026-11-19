@@ -980,8 +980,7 @@ class Page:
                 f'<h2 id="colleges-h">Colleges</h2>{seasons}'
                 f'<p class="mapnote">Rank is 1 plus the number of the team&rsquo;s athletes with a faster FAT {event} '
                 f'season best that year, against {first}&rsquo;s best of the season picked (a tie shares the rank). '
-                f'Only results entered on Athletic.net count, and some college meets are missing, so a team can '
-                f'show few marks.</p></section>')
+                f'Some college meets are missing from these results, so a team can show few marks.</p></section>')
 
     def us_svg(self, start, places, shapes):
         """The US map in the default season and view: each state filled with its rank's color and
@@ -1397,7 +1396,7 @@ class Page:
             return lines + [f"No college data for {season} yet."]
         lines += [f"Where {meta['first']}'s {season} best, {c['mark']['mark']}, would rank on each college team's "
                   f"{season} {meta['event_name']} season bests (FAT; out of the team's athletes and hers).",
-                  "Only results entered on Athletic.net count, and some college meets are missing.",
+                  "Some college meets are missing from these results, so a team can show few marks.",
                   "", "| College | Rank |", "| --- | --- |"]
         for r in c["rows"]:
             x = r["cell"]
