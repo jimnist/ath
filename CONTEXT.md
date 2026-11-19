@@ -111,6 +111,12 @@ An Athlete is ranked against it with their Personal record (FAT only, the Athlet
 Only meets entered on Athletic.net are in it, so it can be short or empty.
 _Avoid_: college list, roster
 
+**Hand-entered marks**:
+A college team's season list for one event that the user copied by hand from another results source and pasted in, kept in their private `local/` with a note of where it came from.
+Nothing ever fetches that source, and nothing public names it.
+Merged into the College season bests of the same team, season, gender and event: each person counts once, with their best mark (names matched without case, accents, punctuation or word order).
+_Avoid_: scraped marks, imported results
+
 **Masked row**:
 A placeholder row Athletic.net puts on a Rankings list past what the session may see (25 rows signed in without a paid subscription): an all-`X` name, athlete and team id 0, an empty mark.
 Never an Entrant, never ranked; a list that ends in one is capped, not complete (ADR 0001).

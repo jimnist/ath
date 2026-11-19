@@ -1718,11 +1718,6 @@ class Colleges(AnonymizedAreas):
                     rankmap.load_config(self.config(d, colleges=value))
                 self.assertIn(says, str(e.exception))
 
-    def test_this_college_season_starts_on_march_1(self):
-        self.assertEqual(rankmap.college_seasons(date(2026, 11, 18)), [2026, 2025])
-        self.assertEqual(rankmap.college_seasons(date(2027, 2, 28)), [2026, 2025])
-        self.assertEqual(rankmap.college_seasons(date(2027, 3, 1)), [2027, 2026])
-
     def expect(self, **over):
         e = {"athlete_id": 982389051, "season": 2099, "teams": [t["team"] for t in TEAMS], "events": ["400m", "400m"]}
         e.update(over)
@@ -1743,79 +1738,184 @@ class Colleges(AnonymizedAreas):
             (college_files()[2099], self.expect(teams=[960000001]), "other teams than the config's"),
             (college_files()[2099], self.expect(season=2098), "not athlete 982389051 2098"),
             (college_files()[2099], self.expect(athlete_id=1), "not athlete 1 2099"),
-            ({"format": 1, "pulled": "x", "colleges": {"schema": 2}}, None, "schema 2"),
-            ({"format": 1, "pulled": "x", "colleges": {"schema": 1}}, None, "not a whole ath colleges report"),
+            ({"format": 1, "pulled": "x", "colleges": {"schema": 3}}, None, "schema 3"),
+            ({"format": 1, "pulled": "x", "colleges": {"schema": 1}}, None,
+             "ath colleges JSON schema 1; this rankmap reads 2"),
+            ({"format": 1, "pulled": "x", "colleges": {"schema": 2}}, None, "not a whole ath colleges report"),
             (saved(), None, "not a saved college season"),
         ]
         for f, expect, says in cases:
             with self.assertRaisesRegex(build.SeasonError, re.escape(says)):
                 build.check_colleges(f, expect)
 
-    def test_the_section_shows_each_college_this_season_and_last(self):
+    def test_the_section_shows_each_college_in_the_season_picked(self):
         page, _, _ = college_page()
-        section = page[page.index('<section class="list colleges"'):]
-        section = section[:section.index("</section>")]
-        self.assertIn("<th>College</th><th>2099</th><th>2098</th>", section)
-        # In the config's order, each college's name linked to its team page.
+        section = colleges_section(page)
+        # One season on the page (2099), so one season's Colleges, shown; no other season's data.
+        self.assertEqual(re.findall(r'<div class="cseason"[^>]*>', section), ['<div class="cseason" data-season="2099">'])
+        self.assertIn("Jamie&rsquo;s 2099 best, <b>58.98</b>, against each college team&rsquo;s 2099 400 Meters "
+                      "season bests.", section)
+        self.assertIn("<th>Rank</th><th>College</th><th>Ahead of Jamie</th>", section)
+        # In the config's order, each college's name linked to its Records by Event page that season.
         names = re.findall(r'<td class="sn"><a [^>]*>([^<]+)</a>', section)
         self.assertEqual(names, ["Harrowgate", "Wrenmoor State", "Ostrander Tech"])
-        self.assertIn('href="https://www.athletic.net/team/960000001/track-and-field-outdoor/2099"', section)
-        # A tie in its small t, out of the team's marks and hers, who is faster folded away.
-        self.assertIn('<span class="pill b2"><span class="sup">t</span>4</span><span class="of">of 6</span>', section)
-        self.assertIn("<summary>3 faster, 1 tied</summary>", section)
+        self.assertIn('href="https://www.athletic.net/team/960000001/track-and-field-outdoor/2099/event-records"', section)
+        # A tie in its small t, out of the team's athletes and her, who is faster folded away.
+        self.assertIn('<td class="rk"><span class="cr" title="Jamie and the team&rsquo;s 5 athletes">'
+                      '<span class="pill b2"><span class="sup">t</span>4</span><span class="of">of 6</span></span></td>',
+                      section)
+        self.assertIn('<summary>3 faster, 1 tied <span class="tm">&middot; fastest&nbsp;53.41</span></summary>', section)
         self.assertIn('<span class="pill b5">8</span><span class="of">of 10</span>', section)
-        self.assertIn('<span class="cy">2098</span><span class="tm">no marks</span>', section)
-        self.assertIn('<span class="nb">nobody faster</span>', section)
+        self.assertIn('<td class="ah"><span class="tm">nobody faster</span></td>', section)
         self.assertIn("Coastal Relays &middot; tied", section)
-        self.assertIn("some college meets are missing", section)
-        self.assertIn("<li>2098 college data pulled October 30, 2099</li>", page)
+        self.assertIn("against Jamie&rsquo;s best of the season picked", section)
+        self.assertIn("Some college meets are missing from these results", section)
+        self.assertIn("<li>2099 college data pulled October 30, 2099</li>", page)
+        self.assertNotIn("2098", section)
+        self.assertNotIn("2098 college data", page)
+
+    def test_each_season_ranks_its_own_best(self):
+        # 2098's best, 1:00.10, is slower than her 58.98 Personal record that ath placed 2098 with:
+        # on Harrowgate's 2098 list (54.20, 59.10) it is 3rd, not ath's 2nd.
+        page, table, md, c = two_seasons_page("1:00.10", 60100)
+        harrow = college_cells(c, "2098")[960000001]
+        self.assertEqual((harrow["label"], harrow["marks"], [a["mark"] for a in harrow["ahead"]]),
+                         ("3", 2, ["54.20", "59.10"]))
+        self.assertEqual(college_cells(c, "2098")[960000003]["label"], "2")
+        self.assertEqual(college_cells(c, "2099")[960000001]["label"], "T4", "2099 ranks 2099's 58.98")
+        # An equal mark is a tie; a faster one passes the team.
+        self.assertEqual(college_cells(two_seasons_page("59.10", 59100)[3], "2098")[960000001]["label"], "T2")
+        fast = college_cells(two_seasons_page("54.00", 54000)[3], "2098")
+        self.assertEqual((fast[960000001]["label"], fast[960000001]["ahead"], fast[960000003]["label"]), ("1", [], "1"))
+        # The page: each season's Colleges under its season, the newest shown, the other hidden for
+        # the season toggle (show() shows what has the season picked, as it does the rest).
+        section = colleges_section(page)
+        self.assertEqual(re.findall(r'<div class="cseason"[^>]*>', section),
+                         ['<div class="cseason" data-season="2099">', '<div class="cseason" data-season="2098" hidden>'])
+        self.assertIn('[data-season]:not(button)', page)
+        self.assertIn("Jamie&rsquo;s 2098 best, <b>1:00.10</b>, against each college team&rsquo;s 2098 400 Meters", section)
+        self.assertIn('href="https://www.athletic.net/team/960000001/track-and-field-outdoor/2098/event-records"', section)
+        # Wrenmoor State has no 2098 marks: no rank, kept as tall as a ranked row.
+        self.assertIn('<td class="rk"></td><td class="sn"><a href="https://www.athletic.net/team/960000002/'
+                      'track-and-field-outdoor/2098/event-records" target="_blank" rel="noopener">Wrenmoor State</a></td>'
+                      '<td class="ah"><span class="tm">no marks</span></td>', section)
+        self.assertIn(".ctbl .rk:empty::before", page)
+        # The Markdown: a Colleges table under each season; the CSV: each season against its best.
+        self.assertIn("## 2098 season - 1:00.10", md)
+        tail = md[md.index("## 2098 season"):]
+        self.assertIn("### Colleges\n\nWhere Jamie's 2098 best, 1:00.10, would rank on each college team's 2098 "
+                      "400 Meters season bests", tail)
+        self.assertIn("| Harrowgate | #3 of 3, led by Maren Quillfeather 54.20 |", tail)
+        self.assertIn("| Wrenmoor State | no marks |", tail)
+        self.assertIn("- 2098 college data pulled October 30, 2099", tail)
+        head = md[:md.index("## 2098 season")]
+        self.assertIn("| Harrowgate | T4 of 6, led by Maren Quillfeather 53.41 |", head)
+        self.assertIn("2098,1:00.10,college season bests (FAT),College,#3 of 3,Harrowgate,960000001,2,0,", table)
+        self.assertIn("2099,58.98,college season bests (FAT),College,T4 of 6,Harrowgate,960000001,3,1,", table)
+
+    def test_a_season_without_college_data_says_so(self):
+        page, table, md, c = two_seasons_page("1:00.10", 60100, files=college_files({2099: COLLEGES[2099]}))
+        self.assertIsNone(c["seasons"]["2098"])
+        self.assertIn('<div class="cseason" data-season="2098" hidden><p class="lede">No college data for 2098 yet.</p>'
+                      '</div>', page)
+        self.assertIn("### Colleges\n\nNo college data for 2098 yet.", md)
+        self.assertNotIn("\n2098,1:00.10,college", table)
+        self.assertNotIn("2098 college data pulled", page + md)
 
     def test_markdown_and_csv_list_the_colleges(self):
         _, table, md = college_page()
-        self.assertIn("| College | 2099 | 2098 |", md)
-        self.assertIn("| Harrowgate | T4 of 6, led by Maren Quillfeather 53.41 | #2 of 3, led by Maren Quillfeather 54.20 |", md)
-        self.assertIn("| Wrenmoor State | #8 of 10, led by Sable Ondrejka 52.80 | no marks |", md)
+        self.assertIn("| College | Rank |", md)
+        self.assertIn("| Harrowgate | T4 of 6, led by Maren Quillfeather 53.41 |", md)
+        self.assertIn("| Wrenmoor State | #8 of 10, led by Sable Ondrejka 52.80 |", md)
+        self.assertIn("| Ostrander Tech | #1 of 2 |", md)
+        self.assertNotIn("\n## Colleges", md)
         self.assertIn("2099,58.98,college season bests (FAT),College,T4 of 6,Harrowgate,960000001,3,1,", table)
-        self.assertIn("2098,58.98,college season bests (FAT),College,no marks,Wrenmoor State,960000002,0,0,,", table)
+        self.assertNotIn("\n2098,", table)
 
     def test_no_section_without_colleges_or_their_data(self):
         for teams, files in (([], None), (TEAMS, {})):
             page, table, md = college_page(teams, files)
             self.assertNotIn("colleges", page)
+            self.assertNotIn("cseason", page)
             self.assertNotIn("College", table)
             self.assertNotIn("Colleges", md)
+        # The same page as one built without any college arguments.
+        with tempfile.TemporaryDirectory() as tmp:
+            html, _ = build.build({SEASON: saved()}, [SEASON], Path(tmp), areas_dir=AREAS)
+            self.assertEqual(college_page([], None)[0], html.read_text())
 
-    def test_an_athlete_without_a_mark_says_so(self):
+    def test_a_report_without_every_team_mark_shows_counts_only(self):
+        # ath lists no team marks for an athlete without a Personal record: nothing to rank on.
         reports = copy.deepcopy(COLLEGES)
         for r in reports.values():
             r.update(status="no_mark", mark=None)
             for x in r["results"]:
-                x.update(status="no_mark", place=None, ahead=[], tied=[])
+                x.update(status="no_mark", place=None, ahead=[], tied=[], behind=[])
         page, table, md = college_page(files=college_files(reports))
-        self.assertIn("Jamie has no 400 Meters mark to compare with the colleges yet.", page)
-        self.assertIn("Jamie has no 400 Meters mark to compare with the colleges yet.", md)
-        self.assertNotIn("College", table)
+        self.assertIn('<td class="rk"></td><td class="sn"><a href="https://www.athletic.net/team/960000001/track-and-'
+                      'field-outdoor/2099/event-records" target="_blank" rel="noopener">Harrowgate</a></td>'
+                      '<td class="ah"><span class="tm">5 marks</span></td>', page)
+        self.assertIn("| Harrowgate | 5 marks |", md)
+        self.assertIn("2099,58.98,college season bests (FAT),College,5 marks,Harrowgate,960000001,0,0,,", table)
 
     def test_an_example_links_to_the_demo_page(self):
         page, table, _ = college_page(example=True)
-        section = page[page.index('<section class="list colleges"'):page.index("</section>", page.index('class="list colleges"'))]
-        self.assertNotIn("athletic.net/", section)
+        self.assertNotIn("athletic.net/", colleges_section(page))
         self.assertNotIn("https://", table.split("College", 1)[1])
+
+    def test_the_college_seasons_are_the_pages_seasons(self):
+        self.assertEqual(rankmap.college_seasons({2097: {}, 2099: {}, 2098: {}}), [2099, 2098, 2097])
+        self.assertEqual(rankmap.college_seasons({}), [])
 
     def test_what_is_collected(self):
         cfg = {"colleges": TEAMS, "season_end": (7, 31)}
         args = lambda refresh=(), no_fetch=False: type("Args", (), {"refresh": list(refresh), "no_fetch": no_fetch})()
+        have = {2098: {}, 2099: {}}  # the State seasons saved: the page's seasons
         today = date(2099, 10, 30)
-        self.assertEqual(rankmap.plan_colleges(cfg, {}, args(), today, False), [2099, 2098])
+        self.assertEqual(rankmap.plan_colleges(cfg, {}, have, args(), today), [2099, 2098])
         saved_both = {2099: {}, 2098: {}}
-        self.assertEqual(rankmap.plan_colleges(cfg, saved_both, args(), today, False), [], "finished and saved")
-        self.assertEqual(rankmap.plan_colleges(cfg, saved_both, args(refresh=[2098]), today, False), [2098])
-        self.assertEqual(rankmap.plan_colleges(cfg, saved_both, args(), today, True), [2099, 2098],
-                         "a run that collected a State season")
-        self.assertEqual(rankmap.plan_colleges(cfg, saved_both, args(), date(2100, 4, 1), False), [2100],
-                         "this season, in progress")
-        self.assertEqual(rankmap.plan_colleges(cfg, {}, args(no_fetch=True), today, True), [])
-        self.assertEqual(rankmap.plan_colleges({**cfg, "colleges": []}, {}, args(), today, True), [])
+        self.assertEqual(rankmap.plan_colleges(cfg, saved_both, have, args(), today), [], "finished and saved")
+        self.assertEqual(rankmap.plan_colleges(cfg, {2099: {}}, have, args(), today), [2098], "not saved yet")
+        self.assertEqual(rankmap.plan_colleges(cfg, saved_both, have, args(refresh=[2098]), today), [2098])
+        self.assertEqual(rankmap.plan_colleges(cfg, saved_both, have, args(), today, {2099}), [2099],
+                         "its State season collected this run")
+        self.assertEqual(rankmap.plan_colleges(cfg, saved_both, have, args(), date(2099, 5, 1)), [2099],
+                         "its State season in progress")
+        self.assertEqual(rankmap.plan_colleges(cfg, saved_both, {**have, 2100: {}}, args(), today), [2100],
+                         "a State season saved since")
+        self.assertEqual(rankmap.plan_colleges(cfg, {}, {2099: {}}, args(), today), [2099],
+                         "only the page's seasons, never one without a State season")
+        self.assertEqual(rankmap.plan_colleges(cfg, {}, have, args(no_fetch=True), today, {2099}), [])
+        self.assertEqual(rankmap.plan_colleges({**cfg, "colleges": []}, {}, have, args(), today, {2099}), [])
+
+
+def colleges_section(page):
+    section = page[page.index('<section class="list colleges"'):]
+    return section[:section.index("</section>")]
+
+
+def season_rank(season, mark, sort_int):
+    """The saved report as another season's, with another season best (made up)."""
+    r = copy.deepcopy(RANK)
+    r["season"] = season
+    r["mark"].update(mark=mark, sort_int=sort_int)
+    return r
+
+
+def two_seasons_page(mark98, sort98, files=None, hand=None):
+    """The page, CSV and Markdown of 2098 (its best mark98) and 2099, with both college seasons
+    (or files), and the prepared Colleges section."""
+    with tempfile.TemporaryDirectory() as tmp:
+        html, page = build.build({2098: saved(season_rank(2098, mark98, sort98)), 2099: saved()}, [2098, 2099],
+                                 Path(tmp), areas_dir=AREAS, colleges=TEAMS,
+                                 college_seasons=college_files() if files is None else files, college_marks=hand)
+        return (html.read_text(), html.with_suffix(".csv").read_text(), html.with_suffix(".md").read_text(),
+                page.colleges)
+
+
+def college_cells(colleges, season):
+    """A season's Colleges cells by team id."""
+    return {r["team"]: r["cell"] for r in colleges["seasons"][season]["rows"]}
 
 
 class CollectColleges(Collect):
@@ -1838,7 +1938,7 @@ class CollectColleges(Collect):
             "colleges", "982389051", "--event", "400 Meters", "--teams", "960000001,960000002,960000003",
             "--seasons", "2099", "--json"])
         self.assertEqual(got, college_files()[2099])
-        have, stale = rankmap.load_colleges(self.cfg, self.have, date(2099, 10, 30))
+        have, stale = rankmap.load_colleges(self.cfg, self.have)
         self.assertEqual((list(have), stale), ([2099], {}))
 
     def test_refresh_refetches(self):
@@ -1859,9 +1959,30 @@ class CollectColleges(Collect):
         self.stub(report=COLLEGES[2099])
         self.collect_college()
         self.cfg["colleges"] = TEAMS[:2]
-        have, stale = rankmap.load_colleges(self.cfg, self.have, date(2099, 10, 30))
+        have, stale = rankmap.load_colleges(self.cfg, self.have)
         self.assertEqual(have, {})
         self.assertIn("other teams than the config's", stale[SEASON])
+
+    def test_a_season_saved_without_every_team_mark_is_collected_again(self):
+        # ath colleges schema 1 listed only the marks ahead and tied: not enough to rank a season's best.
+        old = copy.deepcopy(COLLEGES[2099])
+        old["schema"] = 1
+        for x in old["results"]:
+            del x["behind"]
+        path = rankmap.college_path(self.cfg, SEASON)
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps(build.college_file(old, "2099-10-30")))
+        have, stale = rankmap.load_colleges(self.cfg, self.have)
+        self.assertEqual(have, {})
+        self.assertEqual(stale[SEASON], "ath colleges JSON schema 1; this rankmap reads 2")
+        args = type("Args", (), {"refresh": [], "no_fetch": False})()
+        self.assertEqual(rankmap.plan_colleges(self.cfg, have, self.have, args, date(2099, 10, 30)), [SEASON])
+
+    def test_only_the_pages_seasons_are_read(self):
+        self.stub(report=COLLEGES[2099])
+        self.collect_college()
+        have, stale = rankmap.load_colleges(self.cfg, {2098: saved(season_rank(2098, "1:00.10", 60100))})
+        self.assertEqual((have, stale), ({}, {}))
 
 
 class Plan(unittest.TestCase):

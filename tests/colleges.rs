@@ -101,7 +101,7 @@ async fn ranks_her_personal_record_against_each_team_and_season() -> anyhow::Res
     );
     assert_eq!(
         first.url,
-        "https://www.athletic.net/team/960000001/track-and-field-outdoor/2099"
+        "https://www.athletic.net/team/960000001/track-and-field-outdoor/2099/event-records"
     );
     assert!(r.note.is_none());
     Ok(())
@@ -172,7 +172,7 @@ fn key_paths(v: &serde_json::Value, prefix: &str, out: &mut BTreeSet<String>) {
 async fn the_json_shape_is_pinned() -> anyhow::Result<()> {
     let r = run("400m", &TEAMS, &[2099, 2098]).await?;
     let json: serde_json::Value = serde_json::from_str(&ath::contract::to_json(&r)?)?;
-    assert_eq!(json["schema"], 1);
+    assert_eq!(json["schema"], 2);
     let mut paths = BTreeSet::new();
     key_paths(&json, "", &mut paths);
     let mut want: BTreeSet<String> = [
@@ -212,12 +212,13 @@ async fn the_json_shape_is_pinned() -> anyhow::Result<()> {
         "results[].place.ties",
         "results[].ahead",
         "results[].tied",
+        "results[].behind",
         "results[].note",
     ]
     .into_iter()
     .map(String::from)
     .collect();
-    for part in ["ahead", "tied"] {
+    for part in ["ahead", "tied", "behind"] {
         for key in [
             "athlete_id",
             "name",

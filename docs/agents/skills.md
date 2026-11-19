@@ -49,6 +49,7 @@ Repo-specific skills live directly in `.claude/skills/` as real, tracked directo
 | Skill | Purpose |
 |---|---|
 | `ath` | Fetch Athletic.net data through the `ath` CLI: Profiles and marks, Rankings lists and where a mark ranks, a State's Areas, a meet's events and entries, and seed sheets. Covers connecting the browser relay, what a paid subscription unlocks, privacy, and what each error means. |
+| `college-marks` | Help the user enter a college team's season list copied by hand from another results source (`tools/rankmap/college_marks.py`): preview the parsed rows, write them on the user's OK, offer to rebuild the page. It never fetches anything. See `docs/rankmap.md`. |
 | `rankmap` | Build or update a rankmap page (where an athlete's season best would rank in every state), collecting seasons with `ath rank` through the browser relay in a Claude in Chrome tab. See `docs/rankmap.md`. |
 
 To add another, create `.claude/skills/<name>/SKILL.md`; it is tracked like any other file.

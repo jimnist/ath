@@ -1,5 +1,5 @@
 {
-  "schema": 1,
+  "schema": 2,
   "athlete": {
     "id": 982389051,
     "name": "Jamie Uddumcombe",
@@ -30,7 +30,7 @@
         "level": null
       },
       "season": 2098,
-      "url": "https://www.athletic.net/team/960000001/track-and-field-outdoor/2098",
+      "url": "https://www.athletic.net/team/960000001/track-and-field-outdoor/2098/event-records",
       "status": "ok",
       "marks": 2,
       "place": {
@@ -54,6 +54,19 @@
         }
       ],
       "tied": [],
+      "behind": [
+        {
+          "athlete_id": 960100012,
+          "name": "Bea Holloway-Prynne",
+          "grade_id": 23,
+          "mark": "59.10",
+          "sort_int": 59100,
+          "meet": "Coastal Relays",
+          "meet_id": 960200003,
+          "date": "2098-04-05",
+          "url": "https://www.athletic.net/athlete/960100012/track-and-field"
+        }
+      ],
       "note": null
     },
     {
@@ -63,7 +76,7 @@
         "level": null
       },
       "season": 2098,
-      "url": "https://www.athletic.net/team/960000002/track-and-field-outdoor/2098",
+      "url": "https://www.athletic.net/team/960000002/track-and-field-outdoor/2098/event-records",
       "status": "ok",
       "marks": 0,
       "place": {
@@ -75,6 +88,7 @@
       },
       "ahead": [],
       "tied": [],
+      "behind": [],
       "note": null
     },
     {
@@ -84,7 +98,7 @@
         "level": null
       },
       "season": 2098,
-      "url": "https://www.athletic.net/team/960000003/track-and-field-outdoor/2098",
+      "url": "https://www.athletic.net/team/960000003/track-and-field-outdoor/2098/event-records",
       "status": "ok",
       "marks": 1,
       "place": {
@@ -108,6 +122,7 @@
         }
       ],
       "tied": [],
+      "behind": [],
       "note": null
     }
   ]
