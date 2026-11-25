@@ -182,6 +182,64 @@ class Anonymized(unittest.TestCase):
         for real in (900500, 900502, 900020, 900010):
             self.assertNotIn(str(real), everything + names)
 
+    def test_college_teams(self):
+        """Team records and a team's name (`ath colleges`): people, ids, meets, dates and marks
+        as in a bio; the team's name, code and city invented, its contacts, pictures, coaches and
+        list of seasons blanked; a team named as its State leaves the State's name alone."""
+        bio = load(self.out_file("1203001.json"))
+        meets = {m["IDMeet"]: m["MeetName"] for m in bio["meets"].values()}
+        hers = {r["SortInt"] for r in bio["resultsTF"] if r["EventID"] == 21}
+        real = load(RECORDING / "teamrecords/880101-2026.json")
+        records = load(self.out_file("teamrecords/880101-2026.json"))
+        rows, was = records["eventRecords"], real["eventRecords"]
+        self.assertEqual(len(rows), len(was))
+        for row, old in zip(rows, was):
+            self.assertEqual(row["IDResult"], self.ids[old["IDResult"]])
+            self.assertEqual(row["IDAthlete"], self.ids[old["IDAthlete"]])
+            self.assertEqual(row["MeetName"], meets[self.ids[old["IDMeet"]]])
+            self.assertTrue(row["EndDate"].startswith("2099-04-"), row["EndDate"])
+            self.assertNotEqual(row["Result"], old["Result"])
+            self.assertNotEqual(row["SortInt"], old["SortInt"])
+            self.assertEqual(row["SortInt"], row["SortIntRaw"])
+            self.assertEqual((row["Age"], row["ShortCode"], row["MediaCount"]), (0, "", {"photos": 0}))
+            for key in ("Event", "IDEvent", "Gender", "GradeID", "EventTypeID", "Type", "Round", "FAT", "Description"):
+                self.assertEqual(row[key], old[key], key)
+        # One map per event: her 57.40 and a college athlete's 57.40 land on the same mark.
+        same = next(r for r, o in zip(rows, was) if o["SortInt"] == 57400)
+        self.assertIn(same["SortInt"], hers)
+        self.assertTrue(same["Result"].endswith("a"))
+        # The relay: its team's id, its legs by the names they have in relayMembers.
+        relay = next(r for r in rows if r["Event"] == "4x400 Relay")
+        legs = records["relayMembers"]
+        self.assertEqual(relay["FirstName"], "<BR>".join(m["Name"] for m in legs))
+        self.assertIsNone(relay["LastName"])
+        self.assertEqual({m["TeamID"] for m in legs}, {relay["IDAthlete"]})
+        self.assertEqual({m["IDResult"] for m in legs}, {relay["IDResult"]})
+        self.assertEqual(legs[0]["IDAthlete"], rows[0]["IDAthlete"])
+        self.assertEqual(legs[0]["Name"], rows[0]["FirstName"] + " " + rows[0]["LastName"])
+        self.assertTrue(all(m["Age"] == 0 for m in legs))
+        self.assertEqual(records["preferences"]["IDSchool"], self.ids[880101])
+        self.assertTrue(rows[4]["Result"].endswith("m"), rows[4]["Result"])  # metric field mark
+        # The team's name: invented, its State kept; the State's own name stays everywhere else.
+        for team, state in ((880101, "CA"), (880102, "OR")):
+            core = load(self.out_file("teamcore/%d-2026.json" % team))
+            info, old = core["team"], load(RECORDING / ("teamcore/%d-2026.json" % team))["team"]
+            self.assertEqual(info["IDTeam"], self.ids[team])
+            for key in ("Name", "TeamCode", "City"):
+                self.assertNotEqual(info[key], old[key], key)
+            self.assertEqual((info["State"], info["Level"], info["Country"], info["RegionID"]),
+                             (state, 8, "USA", old["RegionID"]))
+            for key in ("MascotUrl", "CoverPhoto", "TwitterUser", "Address", "ZipCode", "Website", "publicToken"):
+                self.assertEqual(info[key], "", key)
+            self.assertEqual((info["mHeadCoachIdSport"], info["fHeadCoachIdSport"]), (0, 0))
+            self.assertEqual(core["jwtTeamHome"], "")
+            self.assertEqual((core["seasonInfo"]["year"], core["seasonInfo"]["seasonId"]), (2099, 2099))
+            self.assertEqual(set(core["seasonInfo"]["seasons"]), {0})
+        page = load(self.out_file("rankings/900500-f-400m-all-p1.json"))
+        self.assertEqual(page["division"]["Name"], "California")
+        tree = load(self.out_file("navinfo/2026.json"))
+        self.assertIn("California", json.dumps(tree))
+
     def test_seasons_end_at_2099_and_dates_follow(self):
         self.assertEqual(self.report.year_shift, 2099 - 2026)
         self.assertTrue((self.out / "navinfo" / "2099.json").is_file())
@@ -489,7 +547,7 @@ def out_rel(rel, report):
     parts = list(rel.parts)
     if len(parts) == 1:
         parts[0] = "%d.json" % ids[int(rel.stem)]
-    elif parts[0] == "teamnav":
+    elif parts[0] in ("teamnav", "teamrecords", "teamcore"):
         school, season = rel.stem.split("-")
         parts[1] = "%d-%d.json" % (ids[int(school)], int(season) + years)
     elif parts[0] == "meets":
@@ -1324,6 +1382,7 @@ SAME = [
     ["seed", "--meet", "{770001}", "--gender", "f", "--div", "13", "--event", "800m"],
     ["seed", "--meet", "{770001}", "--gender", "m", "--div", "13", "--event", "4x800m"],
     ["seed", "--meet", "{770001}", "--gender", "f", "--div", "13", "--event", "4xmile"],
+    ["colleges", "{1203001}", "--event", "400m", "--teams", "{880101},{880102}", "--seasons", "{2026}"],
 ]
 # These read reshuffled lists: the same shape, every list consistent in itself.
 LISTS = [
@@ -1338,7 +1397,9 @@ RANK = ["rank", "{1203001}", "--event", "400m", "--season", "{2026}", "--in", "C
 MARK_KEYS = {"mark", "sort_int", "pr", "pr_numeric", "aggregate", "aggregate_seconds", "entered_sort_int",
              "estimated_from_pr", "estimated_from_sort_int", "season_best_mark"}
 DATE_KEYS = {"date", "meet_date", "end_date", "as_of"}
-SEASON_KEYS = {"season", "year", "season_id", "pr_season"}
+SEASON_KEYS = {"season", "seasons", "year", "season_id", "pr_season"}
+# Public structure's names (the States, the Areas): never anonymized where they name a division.
+PUBLIC_NAMES = anonymize.public_divisions(anonymize.area_files())[1]
 
 
 @unittest.skipUnless(ATH, "set ATH_TEST_BIN to an ath binary (cargo test does)")
@@ -1462,6 +1523,10 @@ class Replayed(unittest.TestCase):
                 self.assertEqual(b, a + self.report.year_shift, where)
             elif isinstance(a, int) and (key == "id" or key.endswith("_id")):
                 self.assertEqual(b, self.report.id_map.get(a, a), where)
+            elif isinstance(a, str) and a in PUBLIC_NAMES and "team" not in path:
+                # A State's or Area's name stays, though a college team named as its State
+                # (`ath colleges`' `team/name`) got an invented name.
+                self.assertEqual(a, b, where)
             elif isinstance(a, str):
                 self.assertEqual(b, self.expected_string(a), where)
             else:

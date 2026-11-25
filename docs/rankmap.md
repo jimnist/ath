@@ -8,7 +8,7 @@ It lives in `tools/rankmap/` and gets its data from `ath rank` and `ath colleges
 ![The rankmap page: a US map with the athlete's rank in each state](images/rankmap-map.png)
 
 *Screenshots use anonymized data (ADR 0010): invented people, schools and marks in the fictional season 2099.*
-*The examples have no Colleges section: the anonymizer does not read college team records yet, so there are no anonymized ones to build it from.*
+*The examples' Colleges are anonymized too: invented teams, people and meets, with ranks as recorded.*
 *They are the California example's page, shot by `python3 examples/screenshots.py` ([`docs/anonymize.md`](anonymize.md#the-examples)); rerun it after a change to the page.*
 
 ## What the page shows
@@ -59,7 +59,7 @@ It lives in `tools/rankmap/` and gets its data from `ath rank` and `ath colleges
   At phone width the college sits beside its rank and who is faster goes under the college, each meet under its athlete's name, so the faster marks have the width.
   A season with no college data collected yet says so ("No college data for 2026 yet.").
   A note says only results entered on Athletic.net count and some college meets are missing.
-  The page has no Colleges section when the config's `colleges` is empty or no college season has been collected (an example page, for one).
+  The page has no Colleges section when the config's `colleges` is empty or no college season has been collected.
 
 ![The state-by-state table](images/rankmap-table.png)
 

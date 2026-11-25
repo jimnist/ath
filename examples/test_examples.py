@@ -5,6 +5,7 @@ the site into a temporary folder, never examples/site/; with ATH_EXAMPLES_SITE s
 site (the Pages workflow's), it checks that one instead of building.
 """
 import io
+import json
 import os
 import re
 import tempfile
@@ -142,6 +143,18 @@ class Site(unittest.TestCase):
             if 'class="smeet"' in page:
                 self.assertIn("These standards are moved as the example&#x27;s marks are", page, path.name)
         self.assertEqual(sum('class="smeet"' in p.read_text() for p in self.rankmaps), 2)  # CA, ME
+
+    def test_every_rankmap_has_its_colleges(self):
+        # Each example's anonymized college season, under its config's (invented) college names.
+        for path in self.rankmaps:
+            page = path.read_text()
+            self.assertEqual(page.count('<h2 id="colleges-h">Colleges</h2>'), 1, path.name)
+            self.assertNotIn("No college data", page, path.name)
+        for key, _, _ in build_site.RANKMAPS:
+            config = json.loads((build_site.HERE / "rankmap" / key / "rankmap.config.json").read_text())
+            page = next(p for p in self.rankmaps if p.name.startswith(str(config["athlete_id"]))).read_text()
+            for college in config["colleges"]:
+                self.assertIn(college["name"], page, key)
 
     def test_the_cards_say_who_with_an_ordinal_grade(self):
         index = (self.site / "index.html").read_text()

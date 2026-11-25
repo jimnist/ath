@@ -104,7 +104,12 @@ def build_rankmap(key, site):
     have, stale = rankmap.load_data(cfg)
     if stale or not have:
         sys.exit(f"{config}: saved seasons that do not build: {stale or 'none saved'}")
-    html, built = rankmap.render(cfg, have)
+    # Its college seasons (data/<athlete>-<event>/colleges/), as rankmap reads them; an example
+    # never reads hand-entered marks (no college_marks_dir).
+    colleges, college_stale = rankmap.load_colleges(cfg, have)
+    if college_stale:
+        sys.exit(f"{config}: saved college seasons that do not build: {college_stale}")
+    html, built = rankmap.render(cfg, have, colleges)
     season = built.default_season
     grade = built.seasons[season]["grade"]
     # The page's grade groups come from the config's graduation year (rankmap.grade_in): the two
