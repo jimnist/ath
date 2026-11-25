@@ -5,5 +5,19 @@
   "graduation_year": 2100,
   "output_dir": "../../site",
   "example": true,
-  "areas_dir": "areas"
+  "areas_dir": "areas",
+  "colleges": [
+    {
+      "name": "Sablestead Point",
+      "team": 989384303
+    },
+    {
+      "name": "Thornley Springs",
+      "team": 985302705
+    },
+    {
+      "name": "Larkwood",
+      "team": 944870936
+    }
+  ]
 }

@@ -9,7 +9,8 @@ bios (outdoor, indoor, hand-timed, DNS, relay splits, a relay result under the r
 field marks), a school's TeamNav chain, the season's tree and a State's own subtree, rankings
 pages (Grade groups, ties, a field event, a list capped by a masked tail), a meet with its event
 list and entries (an open event and two relays, one of them a 4xMile whose runners have miles),
-and an athlete search. Run it again after changing it:
+two college teams' season bests and names (one team named as its State is; a relay with its legs,
+a relay split, a metric field mark), and an athlete search. Run it again after changing it:
 
     python3 tools/anonymize/testdata/make_recording.py
 """
@@ -369,6 +370,72 @@ def boys_800m():
         write("rankings/%d-m-800m-all-p%d.json" % (CCS, page_no), doc, pretty=True)
 
 
+# College teams (`ath colleges`): one named as its State is (public structure everywhere else), one
+# not. Their team records hold every event of both genders, as Athletic.net's do.
+COLLEGES = {
+    880101: ("California", "CALX", "Tamsworth", "CA", 2003),
+    880102: ("Tidemark", "TDMK", "Gorsebridge", "OR", 2038),
+}
+
+
+def team_record(athlete, first, last, gender, event, event_id, display, sort, meet, date, grade=22,
+                kind="T", event_type=0, description=None, field=None):
+    return {
+        "GradeID": grade, "Age": 20, "Gender": gender, "Event": event, "IDEvent": event_id, "Type": kind,
+        "PersonalEvent": event_type == 0, "Description": description, "EventTypeID": event_type,
+        "IDResult": next(RESULT_IDS), "Result": display, "SortInt": sort, "IDAthlete": athlete,
+        "FirstName": first, "LastName": last, "Wind": None, "PersonalBest": 0, "FAT": 1, "SortIntRaw": sort,
+        "ConversionFactor": 0.0, "FieldMeasureType": field, "Round": "F", "MeetName": MEETS[meet],
+        "EndDate": date, "IDMeet": meet, "CurrentWeek": 0, "MediaCount": {"photos": 1},
+        "ShortCode": "0Ni0Xx%dQ" % athlete,
+    }
+
+
+def colleges():
+    # Girls' 400m around the subject's 56.77 (one equal to a bio mark of hers, 57.40: one map
+    # for the event, so it lands where hers does), a relay split, a relay with its legs, a
+    # metric field mark and a men's sprint.
+    rows = {
+        880101: [
+            team_record(1209001, "Saoirse", "Halloran", "F", "400 Meters", 21, "55.18a", 55180, 660101, "2026-04-04T00:00:00"),
+            team_record(1209002, "Ulla", "Brightwater", "F", "400 Meters", 21, "57.40a", 57400, 660102, "2026-04-11T00:00:00", grade=23),
+            team_record(1209002, "Ulla", "Brightwater", "F", "400 Meters", 21, "55.02a", 55020, 660102, "2026-04-11T00:00:00", grade=23, event_type=98),
+            # A relay: its team's id, its legs' names `<BR>`-joined in FirstName, no LastName.
+            team_record(7700200, "Saoirse Halloran<BR>Ulla Brightwater<BR>Calla Wintersby<BR>Fenna Drystone", None,
+                        "F", "4x400 Relay", 33, "3:41.20a", 221200, 660102, "2026-04-11T00:00:00", grade=99),
+            team_record(1209003, "Vesper", "Coldridge", "F", "Shot Put", 30, "14.21m", 20_000_000 - 55945, 660101,
+                        "2026-04-04T00:00:00", kind="F", field="S", description="4kg"),
+            team_record(1209004, "Rook", "Ashwell", "M", "100 Meters", 1, "10.41a", 10410, 660101, "2026-04-04T00:00:00", grade=24),
+        ],
+        880102: [
+            team_record(1209011, "Greer", "Marlowe-Finch", "F", "400 Meters", 21, "56.20a", 56200, 660101, "2026-04-18T00:00:00"),
+            team_record(1209012, "Ione", "Penrose", "F", "400 Meters", 21, "58.85a", 58850, 660102, "2026-04-25T00:00:00", grade=21),
+            team_record(1209013, "Lark", "Esterbrook", "F", "800 Meters", 22, "2:09.40a", 129400, 660102, "2026-04-25T00:00:00"),
+        ],
+    }
+    legs = {880101: [(1209001, "Saoirse Halloran"), (1209002, "Ulla Brightwater"), (1209005, "Calla Wintersby"),
+                     (1209006, "Fenna Drystone")], 880102: []}
+    for team, (name, code, city, state, region) in COLLEGES.items():
+        relay = next((r for r in rows[team] if r["Event"] == "4x400 Relay"), None)
+        members = [{"IDResult": relay["IDResult"], "TeamID": 7700200, "SortID": i + 1, "IDAthlete": who, "Name": full,
+                    "eventId": 33, "GradeID": 22, "Age": 20} for i, (who, full) in enumerate(legs[team])] if relay else []
+        write("teamrecords/%d-%d.json" % (team, SEASON), {
+            "eventRecords": rows[team], "relayMembers": members,
+            "preferences": {"IDSchool": team, "PrefMetric": 1, "PrefConvert": 1},
+        })
+        write("teamcore/%d-%d.json" % (team, SEASON), {
+            "team": {"IDTeam": team, "Name": name, "TeamCode": code, "Level": 8, "MascotUrl": "https://example.invalid/m.png",
+                     "CoverPhoto": "cover-%d.jpg" % team, "TwitterUser": "@" + code.lower(), "ShowPSW": 1, "publicToken": "tok",
+                     "Address": "1 Campus Way", "City": city, "State": state, "ZipCode": "99999", "Country": "USA",
+                     "Phone": None, "Fax": None, "Website": "https://example.invalid", "RegionID": region, "LegacySS": 1,
+                     "WebsiteSport": "", "mHeadCoachIdSport": 5501, "fHeadCoachIdSport": 5502},
+            "isTeamAthlete": False, "currentSiteSupport": True,
+            "seasonInfo": {"year": SEASON, "seasonId": SEASON, "seasons": [2027, 2026, 2025, 2019, 1934],
+                           "seasonSiteSupport": True},
+            "teamCode": None, "jwtTeamHome": "eyJ.x.y",
+        })
+
+
 def search():
     write("search/odette-pendergast.json", {"response": {"numFound": 2, "docs": [
         {"id_db": "1204002", "type": "Athlete", "textsuggest": "Odette Pendergast",
@@ -387,6 +454,7 @@ def main():
     teamnav()
     navinfo()
     meet()
+    colleges()
     search()
 
 

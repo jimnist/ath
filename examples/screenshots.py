@@ -67,7 +67,7 @@ SHOTS = {
         return {...%s, y: top, height: Math.ceil(rows[rows.length - 1].bottom + .5) - top}; })()""" % DOCS_X),
     # The README's and the landing page's example cards.
     "example-rankmap-ca": ("ca", "#areas-2099-9-11", "({x: 0, width: innerWidth, y: 0, height: below(lastOf('.legend'), 16)})"),
-    "example-rankmap-me": ("me", "#areas-2099-9-11", "({x: 0, width: innerWidth, y: 0, height: below(lastOf('.tbl-wrap'), 16)})"),
+    "example-rankmap-me": ("me", "#areas-2099-9-11", "({x: 0, width: innerWidth, y: 0, height: below(lastOf('.list > .tbl-wrap'), 16)})"),
     "example-rankmap-or": ("or", "", "({x: 0, width: innerWidth, y: 0, height: below(lastOf('.legend'), 16)})"),
 }
 

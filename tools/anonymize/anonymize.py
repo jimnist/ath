@@ -234,7 +234,7 @@ KEEP_KEYS = {
 # equal an id) and reported in the summary.
 PUBLIC_INT_KEYS = {
     "rank", "rowNum", "GradeID", "Grade", "EventID", "IDEvent", "IDEventType", "EventTypeID",
-    "eventId", "SeasonID", "seasonId", "Year", "minCount", "IDDiv", "DivID", "divId", "d", "e", "sort",
+    "eventId", "SeasonID", "seasonId", "Year", "year", "minCount", "IDDiv", "DivID", "divId", "d", "e", "sort",
     "Entry", "Level", "LevelMask", "AcceptanceStatus", "Source", "PersonalBest", "SeasonBest", "depth",
     "page", "numFound", "RelayAthletesRequired", "ConversionInt", "Round", "Wind", "FAT", "score",
     "IDSeason", "IDGrade", "SortID", "PublicList", "EditDepth", "RegionID", "EventSelectionID", "Filter",
@@ -335,6 +335,31 @@ ALLOWED_KEYS = {
         "d", "ge_p", "eventTypes", "rounds", "releyLegs",
     },
     "search": {"athQuery", "response", "numFound", "docs", "id_db", "type", "textsuggest", "subtext", "score"},
+    # A college team's season bests, every event of both genders (seen 2026-11-25). A row is a
+    # result like a bio's: its mark (`Result`, `SortInt`, `SortIntRaw`) moves by its event's map,
+    # its athlete's name is invented, its ids move, its meet's name is invented and its date
+    # moves. Kept, public structure: the event (`Event`, `IDEvent`, `Type`, `EventTypeID`,
+    # `PersonalEvent`, `FieldMeasureType`), college year (`GradeID`), `Gender`, `Round`, `Wind`,
+    # `FAT`, `PersonalBest`, `ConversionFactor`, `CurrentWeek`, and the team's unit preferences.
+    # A relay's legs (`relayMembers`): each `Name` is a person (REVIEWED_PATHS), its ids move. An
+    # age, a result's code (its public page) and media counts are blanked: BLANKED_PATHS.
+    "teamrecords": {
+        "eventRecords", "GradeID", "Gender", "Event", "IDEvent", "Type", "PersonalEvent", "EventTypeID",
+        "IDResult", "Result", "SortInt", "IDAthlete", "FirstName", "LastName", "Wind", "PersonalBest",
+        "FAT", "SortIntRaw", "ConversionFactor", "FieldMeasureType", "Round", "MeetName", "EndDate",
+        "IDMeet", "CurrentWeek", "relayMembers", "TeamID", "SortID", "eventId", "preferences", "IDSchool",
+        "PrefConvert", "PrefMetric",
+    },
+    # A college team's name and level (seen 2026-11-25), of which `ath` reads only `Name` and
+    # `Level`. The name is invented as a school's, the team code and city too, the id moves; its
+    # season moves. Kept: `Level`, `State`, `Country`, `RegionID` (a State's), flags. Contacts are
+    # location keys (blanked anywhere); the mascot, photos, coaches, handle and the team's list of
+    # seasons (which seasons it has data for, a fingerprint of the team) are blanked: BLANKED_PATHS.
+    "teamcore": {
+        "team", "IDTeam", "Name", "TeamCode", "Level", "ShowPSW", "City", "State", "Country", "RegionID",
+        "LegacySS", "isTeamAthlete", "currentSiteSupport", "seasonInfo", "year", "seasonId",
+        "seasonSiteSupport", "teamCode",
+    },
     "navinfo": {
         "divListId", "levels", "levelDivId", "seasons", "countries", "countryDivId", "regions",
         "regionDivId", "tree", "events", "events_main", "recordSets", "id", "name", "state", "divType",
@@ -349,6 +374,7 @@ ALLOWED_KEYS = {
 REVIEWED_PATHS = {
     "bio": {"relayTeamMembers[]/Name", "eventsTF[]/Description"},
     "rankings": {"division/Description", "eventTypes[]/Description"},
+    "teamrecords": {"relayMembers[]/Name", "eventRecords[]/Description"},
 }
 # Blanked by their whole path (strings to "", numbers to 0, everything inside too), reviewed as
 # identifying (2026-11-09): an age (with a grade, close to a birth date), a handle, a USATF
@@ -371,6 +397,13 @@ BLANKED_PATHS = {
     "teamnav": {
         "team/Mascot", "team/MascotUrl", "team/colors", "team/coverPhoto", "customLists/<id>/Name",
         "customLists/<id>/Description", "customDivisions[]/DivName",
+    },
+    "teamrecords": {
+        "eventRecords[]/Age", "eventRecords[]/ShortCode", "eventRecords[]/MediaCount", "relayMembers[]/Age",
+    },
+    "teamcore": {
+        "team/MascotUrl", "team/CoverPhoto", "team/TwitterUser", "team/WebsiteSport",
+        "team/mHeadCoachIdSport", "team/fHeadCoachIdSport", "seasonInfo/seasons",
     },
 }
 # Season values (`2026`, indoor `12026`): moved into the fictional seasons.
@@ -862,8 +895,8 @@ class Anonymizer:
         parts = rel.parts
         if len(parts) == 1 and re.fullmatch(r"\d+\.json", parts[0]):
             return "bio"
-        if len(parts) == 2 and parts[0] == "teamnav" and re.fullmatch(r"\d+-\d+\.json", parts[1]):
-            return "teamnav"
+        if len(parts) == 2 and parts[0] in ("teamnav", "teamrecords", "teamcore") and re.fullmatch(r"\d+-\d+\.json", parts[1]):
+            return parts[0]
         if len(parts) == 2 and parts[0] == "navinfo":
             return "navinfo"
         if len(parts) == 2 and parts[0] == "rankings":
@@ -989,7 +1022,8 @@ class Anonymizer:
             if v.kind == "number" and isinstance(v.value, int) and v.value > 0:
                 out.append(("listid", v, None))
             return
-        if (key in SEASON_KEYS or (key == "ID" and parent_key == "allSeasons")) and v.kind == "number":
+        if (key in SEASON_KEYS or (key == "ID" and parent_key == "allSeasons")
+                or (key == "year" and parent_key == "seasonInfo")) and v.kind == "number":
             if isinstance(v.value, int) and v.value > 0:
                 out.append(("season", v, None))
             return
@@ -1013,11 +1047,15 @@ class Anonymizer:
             return
         if key in KEEP_KEYS or key in DISPLAY_KEYS:
             return
-        if key in FIRST_KEYS:
+        if key in FIRST_KEYS and BR.search(v.value):
+            # A relay's row in a team's records: its legs' whole names, `<BR>`-joined, in
+            # `FirstName` (its `LastName` null), invented as a rankings relay's `AthleteName`.
+            out.append(("person", v, None))
+        elif key in FIRST_KEYS:
             out.append(("first", v, None))
         elif key in LAST_KEYS:
             out.append(("last", v, None))
-        elif key in PERSON_KEYS or (key == "Name" and parent_key == "relayTeamMembers"):
+        elif key in PERSON_KEYS or (key == "Name" and parent_key in ("relayTeamMembers", "relayMembers")):
             out.append(("person", v, None))
         elif key in SCHOOL_KEYS or (key == "Name" and parent_key == "team"):
             out.append(("school", v, None))
@@ -1068,7 +1106,7 @@ class Anonymizer:
                     who = e.get("IDAthlete") if e.kind == "object" else None
                     if who is not None and who.kind == "number" and who.value:
                         self.protected.add(who.value)
-            elif f["kind"] == "teamnav":
+            elif f["kind"] in ("teamnav", "teamrecords", "teamcore"):
                 self.ids.add(int(rel.stem.split("-")[0]))
                 self.seasons.add(int(rel.stem.split("-")[1]))
             elif f["kind"] == "navinfo":
@@ -1655,13 +1693,17 @@ class Anonymizer:
 
     def replacements(self):
         """Every real whole name the recording holds (a person's full name, a school, meet,
-        venue or city), by `norm`, with what replaces it."""
+        venue or city), by `norm`, with what replaces it. A school's name that is a public
+        division's (a college team named as its State, `Virginia`) is invented where it names the
+        team, but is public structure everywhere else: never replaced in other text."""
         if getattr(self, "_replacements", None) is None:
             names = {}
+            public = {norm(n) for n in getattr(self, "public_div_names", ())}
             for group, fn in ((self.cities, self.city), (self.venues, self.venue), (self.meets, self.meet),
                               (self.schools, self.school)):
                 for real in sorted(group):
-                    names[norm(real)] = (fn, real)
+                    if norm(real) not in public:
+                        names[norm(real)] = (fn, real)
             for full in sorted(self.persons):
                 names[norm(full)] = (self.person, full)
             self._replacements = names
@@ -1689,7 +1731,7 @@ class Anonymizer:
         parts = list(rel.parts)
         if f["kind"] == "bio":
             parts[0] = "%d.json" % self.new_id(rel.stem)
-        elif f["kind"] == "teamnav":
+        elif f["kind"] in ("teamnav", "teamrecords", "teamcore"):
             school, season = rel.stem.split("-", 1)
             parts[1] = "%d-%d.json" % (self.new_id(school), self.season(season))
         elif f["kind"] == "navinfo":
